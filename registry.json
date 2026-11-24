@@ -3974,7 +3974,7 @@
       "name": "ink-cast",
       "type": "registry:ui",
       "title": "Chinese Ink Cast",
-      "description": "Three half figures in brush ink, in layers that breathe, blink and move their hair, ribbons and jewels in a light wind, and can paint themselves stroke by stroke: 水月, a woman looking back over her shoulder before the moon; 清風, a swordsman in indigo with a silver crown; 墨梅, a girl with coiled hair and a hanging loop beside plum blossom. Faces are posed from a measured head and painted with brush marks only. Backdrop, name and wind are options.",
+      "description": "Three half figures in brush ink, in layers that breathe, blink and move their hair, ribbons and jewels in a light wind, and can paint themselves stroke by stroke: 水月, a woman looking back over her shoulder before the moon, in two versions (brush ink on bare paper, and in colour over white); 清風, a swordsman in indigo with a silver crown; 墨梅, a girl with coiled hair and a hanging loop beside plum blossom. Faces are posed from a measured head and painted with brush marks only. Backdrop, name and wind are options.",
       "dependencies": [],
       "registryDependencies": [
         "ink-film",
@@ -3985,6 +3985,11 @@
           "path": "registry/video/ink/cast/shuiyue.ts",
           "type": "registry:ui",
           "target": "components/video/ink/cast/shuiyue.ts"
+        },
+        {
+          "path": "registry/video/ink/cast/shuiyue-gongbi.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/cast/shuiyue-gongbi.ts"
         },
         {
           "path": "registry/video/ink/cast/qingfeng.ts",

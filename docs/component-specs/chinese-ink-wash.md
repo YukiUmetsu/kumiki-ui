@@ -14,7 +14,7 @@
 | Need | Use | Storybook (Video production / Film Looks) |
 |---|---|---|
 | A whole film, wide and upright | `InkFilm` data with `InkFilmPlayer` ([INK-FILM1](chinese-ink-film.md)) | Chinese Ink / Film |
-| Handsome and beautiful figures | `ink-cast`: `inkShuiyue`, `inkQingfeng`, `inkMomei` | Chinese Ink / Characters |
+| Handsome and beautiful figures | `ink-cast`: `inkShuiyue`, `inkShuiyueGongbi`, `inkQingfeng`, `inkMomei` | Chinese Ink / Characters |
 | Places and weather | `ink-scenes` | Chinese Ink / Scenes |
 | Plants, animals, land, buildings, marks | `INK_BOOK` | Chinese Ink / Motifs |
 | Titles and seals in any script | `inkLettering`, `inkSeal` | Chinese Ink / Titles And Seals |
