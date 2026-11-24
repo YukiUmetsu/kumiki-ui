@@ -49,11 +49,13 @@ export interface InkHeadShape {
   /** Height of the lips about their parting (default 1.08). */
   lips?: number;
   /** Brow: height over the eye (default 1), its lift toward the peak (1), thickness (1), and its turn like `eyeRoll` (default -1: the far one lies nearly level on a tipped head). */
-  brow?: { height?: number; arch?: number; thick?: number; roll?: number; /** Another brow, seen from the front and drawn once: distance out from the face's middle and height over the brow's level, in spans, then thickness; seven places from the head to the tail. */ form?: InkProfile };
+  brow?: { height?: number; arch?: number; thick?: number; roll?: number; /** Another brow, seen from the front and drawn once: distance out from the face's middle and height over the brow's level, in spans, then thickness; seven places from the head to the tail. */ form?: InkProfile; /** And one for the far side, where the turn takes the tail away (default: the same). */ far?: InkProfile };
   /** Size of the irises (default 1). */
   iris?: number;
   /** The painted lids, each 1 by default: how tall the opening is drawn, how thick the line on the upper lid is at the corner by the nose and at the outer one, how far that line runs on past the corner, and how far the fold stands off the lid. */
-  lids?: { tall?: number; line?: number; lineOut?: number; wing?: number; fold?: number };
+  lids?: { tall?: number; line?: number; lineOut?: number; wing?: number; fold?: number; /** How far the end of that line rises, 1 the default; under 0 it sinks, so that on a raised eye it runs out level. */ flick?: number };
+  /** How far everything below the eyes is drawn toward the near side, and the mouth's line up on the far one, degrees (default 0): the sway of a head that is turned and tipped at once. */
+  lean?: number;
   /** Another outline for the face: share of its height, then the place on the far and on the near side, in spans, for a head turned 20°. */
   outline?: InkProfile;
   /** Height of the hairline's peak above the brows, as a share of brow-to-chin (measured faces: about 0.28). Default 0.42. */
@@ -179,10 +181,11 @@ const EAR = {
 const smooth = (a: number, b: number, v: number) => { const t = Math.max(0, Math.min(1, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 export function poseInkHead(src: InkHeadSource, pose: InkHeadPose, shape: InkHeadShape = {}): InkHead {
-  const { eye: [ex, ey] = [1.38, 1.1], eyeOut = 0.72, wrap = 0.64, eyeRoll = 2.7, eyeTilt = 0, open = 1, gaze = [0, 0.1], mouth = 0.7, nose = 0.69, noseHeight = 0.18, noseUnder = 5, length = 0.93, cheek = 1, chinWidth = 1, lift = 4.6, philtrum = 1.4, lips = 1.08, brow = {}, forehead = 0.42, ear: earSize = 0.76, iris = 1, lids = {}, outline = OUTLINE, side } = shape;
-  const { tall: lidTall = 1, line: lidLine = 1, lineOut = lidLine, wing: wingLong = 1, fold: foldUp = 1 } = lids, browForm: InkProfile = brow.form ?? BROW;
+  const { eye: [ex, ey] = [1.38, 1.1], eyeOut = 0.72, wrap = 0.64, eyeRoll = 2.7, eyeTilt = 0, open = 1, gaze = [0, 0.1], mouth = 0.7, nose = 0.69, noseHeight = 0.18, noseUnder = 5, length = 0.93, cheek = 1, chinWidth = 1, lift = 4.6, philtrum = 1.4, lips = 1.08, brow = {}, forehead = 0.42, ear: earSize = 0.76, iris = 1, lids = {}, outline = OUTLINE, side, lean = 0 } = shape;
+  const { tall: lidTall = 1, line: lidLine = 1, lineOut = lidLine, wing: wingLong = 1, fold: foldUp = 1, flick = 1 } = lids;
   const V = src.vertices, mid = (a: number, b: number): InkVec3 => [(V[a][0] + V[b][0]) / 2, (V[a][1] + V[b][1]) / 2, (V[a][2] + V[b][2]) / 2];
   const mouthAt = mid(61, 291), noseY = (V[4][1] + V[2][1]) / 2, chinY = V[152][1], lipY = V[17][1], browY = (V[105][1] + V[334][1]) / 2, bridgeY = V[6][1];
+  const leanBy = Math.sign(src.eyes[pose.yaw <= 0 ? "L" : "R"][0]) * Math.tan((lean * Math.PI) / 180), eyesAt = (src.eyes.L[1] + src.eyes.R[1]) / 2;
   // ---- the painter's bend: each pull fades out with distance, so nothing near it is torn
   const bend = (v: InkVec3): InkVec3 => {
     let [x, y, z] = v;
@@ -197,6 +200,7 @@ export function poseInkHead(src: InkHeadSource, pose: InkHeadPose, shape: InkHea
     { const u = v[1] - mouthAt[1]; y += (lips - 1) * (u > 0 ? 1.4 : 0.7) * u * Math.exp(-((u / 15) ** 2)) * smooth(34, 22, Math.abs(v[0])); }
     y -= philtrum * smooth(V[2][1], V[0][1], v[1]) * smooth(chinY + 6, lipY, v[1]) * smooth(42, 26, Math.abs(v[0]));
     y += lift * smooth(bridgeY, noseY + 4, v[1]) + noseUnder * smooth(V[4][1], V[2][1], v[1]);
+    if (lean && v[1] < eyesAt) { const k = leanBy * smooth(eyesAt, eyesAt - 18, v[1]), d = eyesAt - y; y -= k * x; x += k * d; }
     return [x, y, z];
   };
   const rad = Math.PI / 180, cy = Math.cos(pose.yaw * rad), sy = Math.sin(pose.yaw * rad), cp = Math.cos(pose.pitch * rad), sp = Math.sin(pose.pitch * rad), cr = Math.cos(pose.roll * rad), sr = Math.sin(pose.roll * rad);
@@ -252,11 +256,12 @@ export function poseInkHead(src: InkHeadSource, pose: InkHeadPose, shape: InkHea
     const c = src.eyes[side === "near" ? nearSide : farSide], ball = local(at([bend(c)[0] * 0.97, eyeY + 0.022 * front, lidZ - 0.142 * front]));
     return {
       upper: LIDS.map(q => on(q[0], q[1] + raise(q[0]))), lower: LIDS.map(q => on(q[0], q[2])), crease: inkSpline(FOLD, 0.04).map(q => on(q[0], foldUp === 1 ? q[1] + raise(q[0]) : 0.06 + (q[1] - 0.06) * foldUp + raise(q[0]))),
-      line: [on(TIP[0], TIP[1]), ...LIDS.map(q => on(q[0], top(q[0], q[1], q[3]) + raise(q[0]))), ...WING.slice(1).map(q => on(out(q[0]), wingLong === 1 ? top(1, q[1], q[2]) : at1 + (top(1, q[1], q[2]) - at1) * wingLong))], wing: WING.map(q => on(out(q[0]), wingLong === 1 ? q[1] : at1 + (q[1] - at1) * wingLong)),
+      line: [on(TIP[0], TIP[1]), ...LIDS.map(q => on(q[0], top(q[0], q[1], q[3]) + raise(q[0]))), ...WING.slice(1).map(q => on(out(q[0]), flick !== 1 ? at1 + (q[1] - at1) * wingLong * flick + top(1, q[1], q[2]) - q[1] : wingLong === 1 ? top(1, q[1], q[2]) : at1 + (top(1, q[1], q[2]) - at1) * wingLong))], wing: WING.map(q => on(out(q[0]), wingLong === 1 && flick === 1 ? q[1] : at1 + (q[1] - at1) * wingLong * flick)),
       iris: face(ball[0] + gaze[0] * r, ball[1] + gaze[1] * r), rx: r * span * (side === "near" ? 1 : 0.97), ry: r * span, dir: (Math.sign(corner[side][1][0] - corner[side][0][0]) || 1) as 1 | -1,
     };
   };
   const browLines = (side: "near" | "far"): InkBrowLines => {
+    const browForm: InkProfile = (side === "far" ? brow.far : undefined) ?? brow.form ?? BROW;
     const tall = 0.235 * (brow.height ?? 1), arch = brow.arch ?? 1, th = 0.027 * (brow.thick ?? 1), put = rolled(side, browZ, [browForm[3][0], tall], brow.roll ?? -1);
     const on = (i: number, e: number) => put(browForm[i][0], tall + browForm[i][1] * arch - e * browForm[i][2] * th);
     const n = browForm.length;

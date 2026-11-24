@@ -10,7 +10,7 @@ const painted: Partial<InkFilmLayer> = { enter: { kind: "paint", at: 0.3, second
 const CAST: InkFilm = {
   schemaVersion: 1, id: "ink-cast", title: "Three figures in ink", fps: 30, paper: "#F8F1E3", size: { width: 1920, height: 1080 },
   shots: [{
-    id: "cast", seconds: 18, label: "Three half figures in brush ink side by side: a girl with looped hair and white blossom, a swordsman with a small crown, and a long-haired woman before the moon",
+    id: "cast", seconds: 18, label: "Three half figures in brush ink side by side: a girl with coiled hair and white blossom, a swordsman with a small crown, and a long-haired woman before the moon",
     layers: [
       { subject: "qingfeng", props: { name: false, mountain: false }, at: [962, 590], scale: 0.68, depth: 0, enter: { kind: "paint", at: 0.2, seconds: 6 } },
       { subject: "momei", props: { name: false, branch: false }, at: [350, 636], scale: 0.66, depth: 0, enter: { kind: "paint", at: 0.8, seconds: 6 } },
