@@ -104,6 +104,25 @@ export function inkBloom(pen: InkRisoPen, plate: string, shape: PenShape, o: Ink
     if (layer) inkMarkHit(layer, q, mark + 0.999 * clamp((wide ? x / W : y / H) * 0.72 + 0.28 * (1 - Math.min(1, inside / (0.3 * Math.min(W, H) / S + 1)))), buf[q] - was);
   }
 }
+/** Ink (over 0) or water (under 0) let into a wet wash: where, how far it ran along and across, the way it ran in radians (0 to the right), how much. */
+export interface InkDrop { at: PenPoint; size: PenPoint; turn?: number; ink: number }
+/**
+ * A wash as it is worked: one tone, and drops let into it while it is wet, as a tone at a place. Wet ink does not stop on an ellipse, so
+ * every drop's edge runs: `run` is how far, as a share of its size (default 0.35), and `wave` the length of that wandering, in the same
+ * units as the drops.
+ */
+export function inkDrops(base: number, drops: readonly InkDrop[], o: { run?: number; wave?: number; seed: number }): (x: number, y: number) => number {
+  const run = o.run ?? 0.35, wave = o.wave ?? 40, D = drops.map(d => ({ ...d, c: Math.cos(d.turn ?? 0), n: Math.sin(d.turn ?? 0) }));
+  return (x, y) => {
+    const wx = inkFbm2(o.seed * 7 + 1, x / wave, y / wave, 3) - 0.5, wy = inkFbm2(o.seed * 7 + 2, x / wave, y / wave, 3) - 0.5;
+    let t = base;
+    for (const d of D) {
+      const X = x - d.at[0], Y = y - d.at[1], u = (X * d.c + Y * d.n) / d.size[0] + 2 * run * wx, v = (-X * d.n + Y * d.c) / d.size[1] + 2 * run * wy;
+      t += d.ink * Math.exp(-(u * u + v * v));
+    }
+    return t;
+  };
+}
 /** The outline of a swollen line: [x, y, radius] nodes in the pen's units, as a shape in sheet units. */
 export function inkBlob(pen: InkRisoPen, nodes: readonly (readonly [number, number, number])[]): number[][] {
   const P = inkSpline(nodes, 2), L: number[][] = [], R: number[][] = [], n = P.length;

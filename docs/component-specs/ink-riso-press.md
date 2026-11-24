@@ -6,9 +6,9 @@ Chinese brush ink (水墨) drawn on the CPU, shown as ink on xuan paper or print
 |---|---|
 | `registry/video/ink-riso-press.ts` | `createInkRisoSheet`, `brush`, `wash`, `knock`, `pressInkRiso`, noise and splines |
 | `registry/video/ink-riso-pen.ts` | `createInkRisoPens` (local frames), `inkSplatter` |
-| `registry/video/ink-riso-wet.ts` | `inkBloom`, `inkBlob`, `inkSide`, `inkHair`, `inkThread`, and `paintInk` (ink on xuan paper, no press) |
+| `registry/video/ink-riso-wet.ts` | `inkBloom`, `inkBlob`, `inkSide`, `inkHair`, `inkThread`, `inkDrops` (ink and water let into a wet wash), and `paintInk` (ink on xuan paper, no press) |
 | `registry/video/ink-riso-coiffure.ts` | Hair forms: `inkGuideSheet` (hair laid along guide hairs read off a drawing), `inkCombSheet` (hair combed over the skull in 3D), `inkCoil` (a bun or a ribbon wound round a place, hidden sides left out), `inkHang` (a lock that settles under its own weight) |
-| `registry/video/ink-riso-hair.ts` | `inkSweep` (one swept lock), `inkTress` (one lock of a form), `inkGap` (paper let into a mass), `inkPlies` (looser locks over one lock), `inkClumps` (loose locks over a sheet), `inkFlyaways` (single hairs that stand off a sheet), `inkWisps` (fine loose hairs between guides) |
+| `registry/video/ink-riso-hair.ts` | `inkSweep` (one swept lock), `inkTress` (one lock of a form), `inkHank` (one lock as a wet wash, its hairs dragged over it), `inkAcross`, `inkGap` (paper let into a mass), `inkPlies` (looser locks over one lock), `inkClumps` (loose locks over a sheet), `inkFlyaways` (single hairs that stand off a sheet), `inkWisps` (fine loose hairs between guides) |
 | `registry/video/ink-riso-face.ts` | `poseInkHead`: every line of a face from one posed, measured head; `inkFaceRatios`, `INK_FACE_RANGE` |
 | `registry/video/ink-riso-face-paint.ts` | `paintInkFace`, `paintInkEar`, `paintInkEarring`, `inkDab`: the brush marks over those lines |
 | `registry/video/ink-riso-press-react.tsx` | `InkRisoCanvas` (`finish`: `riso` or `ink`) |
@@ -96,6 +96,22 @@ What separated a plain face from an attractive one, side by side with ink portra
 
 - **Do not tune a drawing to a face detector.** MediaPipe put the drawn chin about 10 % of the face too low and nose wings up to 60 % too wide, and the same drawing scored 0.49 to 0.60 on one ratio at different render sizes. Tuning to it made the chin too short and the upper lip too long. Measure the drawing from its own geometry, and read references by hand.
 
+## Faces in skin earth
+
+Optional (`InkFaceStyle.earth`). 清風 and 墨梅 use it; a face drawn without it keeps its pixels. Modern ink portraits warm the skin with thin 赭石 and draw the skin's lines in it. Sampled off studied pictures, what made them look alive was this:
+
+- **The earth is a water, not a tint.** It lies on the side the head is turned away from the light: the near side of the nose, the lids and sockets, the near cheek, and the planes under nose, lip and chin. The far cheek, the forehead's middle, the bridge and the strip over the lid stay paper. `flesh` sets its strength.
+- **Skin lines are earth with some black in it** (`warmLine`): outline, nose, ear, fold. A man's outline takes less of it (0.42) than a woman's. The lid's line and the parting of the lips stay black, or the face goes soft.
+- **The white of an eye is not white.** It takes the same earth, deepest under the lid. The socket and the crescent under the eye (`underEye`) take warm and earth together. Bare paper in the eye stares.
+- **The iris stands out of its rim and pupil** (`iris` under 1), brown for a woman, nearly ink for a man (`browWarm`). Two catchlights, and none that the lid covers.
+- **The end of the lid's line decides the mood** (`lids.flick`): over 1 it lifts, under 0 it runs out level on a raised eye. Let it change as the lid shuts, or the corner kinks. `liner` is the red line over it.
+- **A long nose needs its tip** (`noseTip`, `straight`): the one line runs down to the tip and round it. A short one stops at the wing.
+- **Lips are let out into the skin** (`lipSoft`), with the parting the only hard line (`lipLine`); `lipFull` widens the lower lip's foot. `blush` is a soft place on the near cheek, in place of the breath under the eye.
+- **A turned and tipped head sways** (`lean`): nose, mouth and chin drift toward the near side below the eyes.
+- **The far brow is its own** (`brow.far`): the turn takes its tail away.
+
+Method: put drawing and reference side by side, both levelled on the irises and scaled to one pupil distance, with a grid. Read the outline, each eye corner, brow, nose, mouth, ear and hair edge off the grid, then sample the colours of the same places in both. Repeat one feature at a time until no reading is off by more than about 0.03. Keep the references outside the repository; take the readings and draw your own marks.
+
 ## Hair: where it starts, then masses, then paper
 
 1. **All of it starts from one short part.** Over the forehead lies a ragged strip of paper, narrow at its foot, that ends in a star of five to seven tapered points. Every lock leaves the strip and runs *along* the hairline before it leaves it: the crown up and over, the near side out along the temple, the far lock down past the far brow. Hair combed straight back from the whole forehead edge, with soft grey roots, is the look this replaced. It was the largest difference from the portraits.
@@ -110,6 +126,18 @@ What separated a plain face from an attractive one, side by side with ink portra
 10. **The near front is strands.** Five leave the hairline just beside the part, part from each other, and cross the end of the brow: one broad, the rest 1 to 3 page units. They turn back in under the cheek. Root them inside the mass (`root` near 0.02), or each starts with a blunt, airbrushed end.
 11. **Single hairs, few.** `inkFlyaways` and `inkWisps` on the outline, over the paper wedges, and from the tails. Every one starts from a lock and keeps its direction.
 12. Let a free lock settle with `inkHang`: leave direction, stiffness, its own wave, and `avoid` for the cheek and the back. Draw one lock at a time, back to front, with `inkTress` or `inkSweep`.
+
+### Hair painted wet
+
+`inkSweep` is a loaded brush. `inkHank` is water with ink in it, and reads softer and rounder; 清風 and 墨梅 are built from it.
+
+- One tone for the whole head (`inkDrops`: a base, with drops of ink and water let into it), passed to every hank (`tone`) so that the locks share one light. Each hank is let down along its middle (`round`) and takes a thin warm earth under it.
+- **Locks end in points.** Give the last node no width, and the first too when a lock starts in the open. `lock`'s `pinch` is told the sheet's share of the length: if a lock stops before the sheet's end (`to`), rescale `pinch`, or its end is blunt with a pale rim.
+- A hank over another needs the black plate in `clear`, or both print. Two or three tan or paper leaves (`inkGap`) at the turns are enough.
+- **Hair grows out of skin.** Between the locks at the part: a soft wash that deepens into the hair, small tufts, then single hairs of unlike length. The same before the ear: the temple's mass crosses the ear's front with a soft lower edge and fine strands, never a cut edge.
+- A cel needs paper under each lock (`knock`), no wider than its ink: past a soft edge it takes off the skin and leaves a halo.
+
+### Values
 
 Dark hair (luminance under 110 of 255) in four boxes of the levelled frame, as mean / spread / share covered, with every picture reduced to the portrait's 91 px between the pupils ([reference-match](../reference-match.md), `values`):
 
