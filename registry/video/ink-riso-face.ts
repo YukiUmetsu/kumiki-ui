@@ -58,8 +58,19 @@ export interface InkHeadShape {
   outline?: InkProfile;
   /** Height of the hairline's peak above the brows, as a share of brow-to-chin (measured faces: about 0.28). Default 0.42. */
   forehead?: number;
-  /** Ear size (default 0.76: portraits draw it small and high). */
+  /** Ear size (default 0.76: portraits draw it small and high). With `side` it is not read. */
   ear?: number;
+  /** Draws the side of a turned head: a jaw that runs on past its corner up to the ear, and an ear where the turn puts it (default: left out, the near side stays narrow). For a head turned 15° to 40°. */
+  side?: InkHeadSide;
+}
+/** The side of the head, from the jaw's corner back to the ear. Places are in the frame `InkHead.level` reads: 1 = the distance between the irises. */
+export interface InkHeadSide {
+  /** The jaw: 0 one long soft turn, 1 straight along its foot with a corner under the ear (default 0.5). */
+  square?: number;
+  /** Where the ear's lobe joins the face: how far from the middle and how far below the eyes (defaults from the turn and the bow of the head: [1.36, 0.55] at 25° and 5°). */
+  lobe?: readonly [number, number];
+  /** Height of the ear (default 0.87: its top lies level with the brow, its lobe a little above the foot of the nose), and its width as a share of what the turn shows (default 1). */
+  ear?: number; earWidth?: number;
 }
 export interface InkHeadPose {
   /** Degrees. Negative yaw turns the face to the viewer's left; positive pitch bows it; negative roll tips it to the viewer's left. */
@@ -112,6 +123,8 @@ export interface InkHead {
   jaw: PenPoint[];
   /** Near ear: outline from its top front round the rim to the lobe and back; and the inner ridge. */
   ear: PenPoint[]; earRidge: PenPoint[];
+  /** What is drawn inside an ear seen from the side, with `side`: the inner edge of the rim, the fold before it down to the notch, the bowl between fold and cheek, the flap before the bowl, and where the lobe joins the face. */
+  earParts?: { rim: PenPoint[]; fold: PenPoint[]; bowl: PenPoint[]; flap: PenPoint[]; join: PenPoint };
   /** Far temple over the peak to the near temple. */
   hairline: PenPoint[];
   lips: { upper: PenPoint[]; lower: PenPoint[]; line: PenPoint[] };
@@ -145,10 +158,28 @@ const BROW = [[0.153, -0.024, 0.66], [0.235, -0.01, 1], [0.32, 0.005, 1.1], [0.4
 const BROW_POINTS = [66, 105, 63, 70, 296, 334, 293, 300] as const;
 /** Far temple to near temple: level across the forehead, a corner on each side, then straight down the near temple. Height runs from the brows (0) to the peak (1). */
 const HAIRLINE = [[-0.56, -0.24], [-0.563, 0.111], [-0.54, 0.38], [-0.482, 0.614], [-0.397, 0.824], [-0.267, 0.941], [-0.085, 0.97], [0.084, 0.959], [0.181, 0.894], [0.259, 0.772], [0.376, 0.567], [0.513, 0.327], [0.643, 0.094], [0.722, -0.158], [0.744, -0.45], [0.754, -0.801], [0.757, -1.081]] as const;
+/**
+ * The near jaw of a turned head from the chin to the ear's lobe: share of the way back, share of the way up. Read by hand off turned heads
+ * by different hands, drawn, painted and photographed. All of them run on past the corner and meet the lobe: a jaw that stops at a corner
+ * under the cheek reads as a mask.
+ */
+const JAW = {
+  soft: [[0.11, 0.014], [0.22, 0.046], [0.36, 0.115], [0.52, 0.215], [0.69, 0.36], [0.83, 0.55], [0.92, 0.755], [0.975, 0.9], [1, 1]],
+  square: [[0.1, 0.016], [0.22, 0.06], [0.384, 0.15], [0.53, 0.26], [0.69, 0.405], [0.836, 0.567], [0.925, 0.72], [0.985, 0.9], [1, 1]],
+} as const;
+/** The near ear of a head turned 25° and bowed 5°, its lobe joined to the face at `join`: from the top front round the rim and the lobe; then what lies inside. The front is covered by the cheek, or by hair. */
+const EAR = {
+  join: [1.36, 0.55], height: 0.9,
+  outer: [[1.47, -0.02], [1.5, -0.14], [1.555, -0.235], [1.64, -0.29], [1.74, -0.285], [1.83, -0.215], [1.885, -0.1], [1.895, 0.03], [1.86, 0.16], [1.79, 0.29], [1.705, 0.4], [1.63, 0.485], [1.56, 0.56], [1.48, 0.61], [1.405, 0.605], [1.36, 0.55]], front: [[1.365, 0.36], [1.39, 0.16], [1.43, 0.04]],
+  rim: [[1.555, -0.01], [1.585, -0.12], [1.655, -0.19], [1.74, -0.18], [1.8, -0.1], [1.812, 0.02], [1.782, 0.14], [1.72, 0.255], [1.65, 0.35]],
+  fold: [[1.655, -0.08], [1.7, 0.01], [1.7, 0.12], [1.655, 0.22], [1.59, 0.305], [1.53, 0.37], [1.49, 0.415]],
+  bowl: [[1.6, 0.03], [1.66, 0.04], [1.69, 0.11], [1.65, 0.215], [1.588, 0.298], [1.528, 0.362], [1.488, 0.4], [1.464, 0.36], [1.49, 0.31], [1.496, 0.25], [1.474, 0.175], [1.5, 0.1], [1.55, 0.045]],
+  flap: [[1.44, 0.09], [1.47, 0.17], [1.495, 0.25], [1.488, 0.315], [1.46, 0.35]],
+} as const;
 const smooth = (a: number, b: number, v: number) => { const t = Math.max(0, Math.min(1, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 export function poseInkHead(src: InkHeadSource, pose: InkHeadPose, shape: InkHeadShape = {}): InkHead {
-  const { eye: [ex, ey] = [1.38, 1.1], eyeOut = 0.72, wrap = 0.64, eyeRoll = 2.7, eyeTilt = 0, open = 1, gaze = [0, 0.1], mouth = 0.7, nose = 0.69, noseHeight = 0.18, noseUnder = 5, length = 0.93, cheek = 1, chinWidth = 1, lift = 4.6, philtrum = 1.4, lips = 1.08, brow = {}, forehead = 0.42, ear: earSize = 0.76, iris = 1, lids = {}, outline = OUTLINE } = shape;
+  const { eye: [ex, ey] = [1.38, 1.1], eyeOut = 0.72, wrap = 0.64, eyeRoll = 2.7, eyeTilt = 0, open = 1, gaze = [0, 0.1], mouth = 0.7, nose = 0.69, noseHeight = 0.18, noseUnder = 5, length = 0.93, cheek = 1, chinWidth = 1, lift = 4.6, philtrum = 1.4, lips = 1.08, brow = {}, forehead = 0.42, ear: earSize = 0.76, iris = 1, lids = {}, outline = OUTLINE, side } = shape;
   const { tall: lidTall = 1, line: lidLine = 1, lineOut = lidLine, wing: wingLong = 1, fold: foldUp = 1 } = lids, browForm: InkProfile = brow.form ?? BROW;
   const V = src.vertices, mid = (a: number, b: number): InkVec3 => [(V[a][0] + V[b][0]) / 2, (V[a][1] + V[b][1]) / 2, (V[a][2] + V[b][2]) / 2];
   const mouthAt = mid(61, 291), noseY = (V[4][1] + V[2][1]) / 2, chinY = V[152][1], lipY = V[17][1], browY = (V[105][1] + V[334][1]) / 2, bridgeY = V[6][1];
@@ -231,23 +262,30 @@ export function poseInkHead(src: InkHeadSource, pose: InkHeadPose, shape: InkHea
     const n = browForm.length;
     return { lower: browForm.slice(0, n - 1).map((_, i) => on(i, 1)), upper: browForm.slice(0, n - 1).map((_, i) => on(i, -1)), mid: browForm.map((_, i) => on(i, 0)) };
   };
+  // ---- the frame portraits are measured in
+  const eyes = { near: eyeLines("near"), far: eyeLines("far") }, [iF, iN] = [eyes.far.iris, eyes.near.iris], lo: PenPoint = [(iF[0] + iN[0]) / 2, (iF[1] + iN[1]) / 2], lx: PenPoint = [iN[0] - iF[0], iN[1] - iF[1]], ly: PenPoint = [-lx[1] * dn, lx[0] * dn], ll = lx[0] ** 2 + lx[1] ** 2;
+  const level = (x: number, y: number): PenPoint => [lo[0] + x * lx[0] + y * ly[0], lo[1] + x * lx[1] + y * ly[1]], fromLevel = (q: PenPoint): PenPoint => { const x = q[0] - lo[0], y = q[1] - lo[1]; return [(x * lx[0] + y * lx[1]) / ll, (x * ly[0] + y * ly[1]) / ll]; };
   // ---- outline: it hangs on the features, so it keeps its taper at any size; a little more near side shows as the head turns
   // One curve, temple to chin to hinge, so the chin has no corner of its own.
   const more = Math.abs(pose.yaw) - 20, edge = (side: 1 | 2) => outline.map(q => { const low = smooth(0.55, 1, q[0]), c = -0.03, w = (q[side] - c) * (1 + (cheek - 1) * (1 - low) + (chinWidth - 1) * low); return face(c + w + (side === 1 ? 0.005 : 0.009) * more * (1 - low), q[0] * length); });
-  const round = inkSpline([...edge(1), ...edge(2).reverse().slice(1)], 0.5).map(q => [q[0], q[1]] as const), chin = round.reduce((b, q, i) => (local(q)[1] > local(round[b])[1] ? i : b), 0);
-  const contour = round.slice(0, chin + 1), jaw = round.slice(chin).filter(q => local(q)[1] > 0.16);
+  // With `side`, the near half is read in the level frame, from the chin to where the lobe joins the face.
+  const turned = Math.abs(pose.yaw), join: PenPoint = side?.lobe ?? [EAR.join[0] + 1.06 * (Math.tan(turned * rad) - Math.tan(25 * rad)), EAR.join[1] + 0.014 * (5 - pose.pitch)], far = edge(1);
+  const near = (k: number): PenPoint[] => { const c = fromLevel(far[far.length - 1]); return JAW.soft.map((q, i) => { const a = q[0] + (JAW.square[i][0] - q[0]) * k, b = q[1] + (JAW.square[i][1] - q[1]) * k; return level(c[0] + a * (join[0] - 0.012 - c[0]), c[1] + b * (join[1] + 0.02 - c[1])); }); };
+  const round = inkSpline([...far, ...(side ? near(side.square ?? 0.5) : edge(2).reverse().slice(1))], 0.5).map(q => [q[0], q[1]] as const), chin = round.reduce((b, q, i) => (local(q)[1] > local(round[b])[1] ? i : b), 0);
+  const contour = round.slice(0, chin + 1), jaw = side ? round.slice(chin) : round.slice(chin).filter(q => local(q)[1] > 0.16);
   // ---- ear: a plate standing off the skull behind the jaw's hinge
   const eTop = browY - 4, len = (browY - V[2][1] - lift) * earSize, eBot = eTop - len, vm = (eTop + eBot) / 2, O: InkVec3 = [ns * (rx - 3), vm, cZ + rz * 0.08 + 14], raw = (u: number, v: number) => at([O[0] + ns * 0.5 * u * 2.6 * earSize, v, O[2] - 0.866 * u * 2.6 * earSize]);
   // it stands on the jaw's line, not on the skull's width
   const lobe = local(raw(3, eBot)), hinge = local(jaw[jaw.length - 1]), dx = hinge[0] + 0.015 - lobe[0], dy = hinge[1] + 0.05 - lobe[1], earAt = (u: number, v: number): PenPoint => { const q = local(raw(u, v)); return face(q[0] + dx, q[1] + dy); };
-  const ear = inkSpline(([[0, eTop - len * 0.05], [5, eTop + 2], [10, eTop - len * 0.06], [12.5, eTop - len * 0.25], [11.5, eTop - len * 0.5], [9, eTop - len * 0.74], [6.5, eBot + 4], [4.5, eBot - 0.5], [1.8, eBot - 0.5], [0, eBot + 5]] as const).map(([u, v]) => earAt(u, v)), 2).map(q => [q[0], q[1]] as const);
-  const earRidge = ([[4, eTop - len * 0.12], [8, eTop - len * 0.2], [9, eTop - len * 0.42], [7, eTop - len * 0.62], [3.4, eBot + len * 0.28]] as const).map(([u, v]) => earAt(u, v));
+  // with `side`, where the turn of the head puts it: read off turned heads, it is taller and stands much farther from the eye
+  const tall = (side?.ear ?? 0.87) / EAR.height, wide = (tall * (side?.earWidth ?? 1) * Math.sin((turned + 20) * rad)) / Math.sin(45 * rad), turnedEar = (q: readonly (readonly [number, number])[]) => q.map(([x, y]) => level(join[0] + (x - EAR.join[0]) * wide, join[1] + (y - EAR.join[1]) * tall)), run = (q: readonly (readonly [number, number])[]) => inkSpline(turnedEar(q), 0.8).map(r => [r[0], r[1]] as const);
+  const earParts = side && { rim: run(EAR.rim), fold: run(EAR.fold), bowl: turnedEar([...EAR.bowl, EAR.bowl[0]]), flap: run(EAR.flap), join: level(...join) };
+  const ear = side ? [...run(EAR.outer), ...turnedEar(EAR.front)] : inkSpline(([[0, eTop - len * 0.05], [5, eTop + 2], [10, eTop - len * 0.06], [12.5, eTop - len * 0.25], [11.5, eTop - len * 0.5], [9, eTop - len * 0.74], [6.5, eBot + 4], [4.5, eBot - 0.5], [1.8, eBot - 0.5], [0, eBot + 5]] as const).map(([u, v]) => earAt(u, v)), 2).map(q => [q[0], q[1]] as const);
+  const earRidge = earParts ? earParts.fold : ([[4, eTop - len * 0.12], [8, eTop - len * 0.2], [9, eTop - len * 0.42], [7, eTop - len * 0.62], [3.4, eBot + len * 0.28]] as const).map(([u, v]) => earAt(u, v));
   // ---- hairline
-  const peak = forehead * (length + 0.23), hairline = inkSpline(HAIRLINE.map(([u, h]) => { const w = u < 0 ? 0.005 : 0.009; return face(u * cheek + w * more, -0.23 - h * peak); }), 2).map(q => [q[0], q[1]] as const);
-  const eyes = { near: eyeLines("near"), far: eyeLines("far") }, [iF, iN] = [eyes.far.iris, eyes.near.iris], lo: PenPoint = [(iF[0] + iN[0]) / 2, (iF[1] + iN[1]) / 2], lx: PenPoint = [iN[0] - iF[0], iN[1] - iF[1]], ly: PenPoint = [-lx[1] * dn, lx[0] * dn], ll = lx[0] ** 2 + lx[1] ** 2;
-  const level = (x: number, y: number): PenPoint => [lo[0] + x * lx[0] + y * ly[0], lo[1] + x * lx[1] + y * ly[1]], fromLevel = (q: PenPoint): PenPoint => { const x = q[0] - lo[0], y = q[1] - lo[1]; return [(x * lx[0] + y * lx[1]) / ll, (x * ly[0] + y * ly[1]) / ll]; };
+  const peak = forehead * (length + 0.23), hairline = inkSpline(HAIRLINE.map(([u, h]) => { const w = u < 0 ? 0.005 : 0.009; return face(u * cheek + w * more + (side && u > 0 ? Math.max(0, local(level(join[0] + 0.06, 0))[0] - u * cheek - w * more) * smooth(0.25, -0.75, h) : 0), -0.23 - h * peak); }), 2).map(q => [q[0], q[1]] as const);
   return {
-    unit: pose.scale, yaw: pose.yaw, p, at, face, local, span, level, fromLevel, skull, onSkull, facing, scalp: (lon, lat, off = 0) => ball(lon, lat, off), depth: v => turn(v)[2], hides, nearSide, peak: -0.23 - peak, contour, jaw, ear, earRidge, hairline,
+    unit: pose.scale, yaw: pose.yaw, p, at, face, local, span, level, fromLevel, skull, onSkull, facing, scalp: (lon, lat, off = 0) => ball(lon, lat, off), depth: v => turn(v)[2], hides, nearSide, peak: -0.23 - peak, contour, jaw, ear, earRidge, ...(earParts && { earParts }), hairline,
     eyes, brows: { near: browLines("near"), far: browLines("far") },
     lips: { upper: [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291].map(p), lower: [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291].map(p), line: [61, 191, 80, 81, 82, 13, 312, 311, 310, 415, 291].map(p) },
     nose: { tip: p(4), base: p(2), wingNear: IDX[nearSide].wing.map(p), wingFar: IDX[farSide].wing.map(p), nostrilNear: IDX[nearSide].nostril.map(p), nostrilFar: IDX[farSide].nostril.map(p) },

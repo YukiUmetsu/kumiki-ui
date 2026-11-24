@@ -33,6 +33,8 @@ export interface InkFaceStyle {
   contour?: number; jaw?: number;
   /** A breath of grey under the near cheekbone, 0–1 (default 0). */
   hollow?: number;
+  /** How dark an ear seen from the side is inside its bowl (default 1). */
+  bowl?: number;
   seed?: number;
 }
 type P = readonly [number, number];
@@ -52,7 +54,7 @@ interface Hand { f: InkRisoPen; z: number; w: (v: number) => number; d: number; 
 function hand(f: InkRisoPen, head: InkHead, style: InkFaceStyle): Hand {
   const a = f.at(0, 0), b = f.at(1, 0), page = Math.hypot(b[0] - a[0], b[1] - a[1]), z = head.unit / 0.78;
   let s = 1000 + (style.seed ?? 0) * 200;
-  return { f, z, w: v => v * z * page / 2.1, d: head.eyes.near.dir, st: { rouge: 1, lip: 1, shade: 1, brow: 0.74, smile: 0.24, lashes: 6, lashSize: 1, browHead: 0, lowerLid: 1, fold: 1, bridge: 0, underNose: 1, contour: 1, jaw: 0.78, hollow: 0, seed: 0, ...style }, seed: () => s++ };
+  return { f, z, w: v => v * z * page / 2.1, d: head.eyes.near.dir, st: { rouge: 1, lip: 1, shade: 1, brow: 0.74, smile: 0.24, lashes: 6, lashSize: 1, browHead: 0, lowerLid: 1, fold: 1, bridge: 0, underNose: 1, contour: 1, jaw: 0.78, hollow: 0, bowl: 1, seed: 0, ...style }, seed: () => s++ };
 }
 
 /** The outline the face fills: far contour, jaw and hairline. */
@@ -229,16 +231,45 @@ function mouth({ f, w, st, seed }: Hand, head: InkHead): void {
 
 /** One stroke from under the hair at the far temple to the chin: present the whole way, easing over the cheekbone, pressed at the turn of the chin. Then the near jaw: at full strength from the chin to well past the mouth's corner, then out of ink before the jaw's own corner. */
 function contour({ f, w, st, seed }: Hand, head: InkHead): void {
-  const far = pick(head.contour, 30), jaw = pick(head.jaw, 40), [u, v] = head.local(far[0]), turn = head.local(jaw[0])[0], reach = turn + st.jaw * (head.local(jaw[jaw.length - 1])[0] - turn), run = jaw.slice(0, 1 + jaw.findIndex(q => head.local(q)[0] > reach));
+  const far = pick(head.contour, 30), jaw = pick(head.jaw, head.earParts ? 64 : 40), [u, v] = head.local(far[0]), turn = head.local(jaw[0])[0], reach = turn + st.jaw * (head.local(jaw[jaw.length - 1])[0] - turn), run = jaw.slice(0, 1 + jaw.findIndex(q => head.local(q)[0] > reach));
   inkThread(f, st.ink, press([head.face(u - 0.008, v - 0.08), ...far, ...jaw.slice(1, 5)], t => 0.03 + 0.42 * ss(0, 0.14, t) + 0.08 * bump(t, 0.2, 0.12) + 0.26 * ss(0.42, 0.68, t) - 0.08 * ss(0.8, 0.9, t) - 0.12 * ss(0.9, 1, t)), w(3.6 * st.contour), { ink: 0.82, mid: 0.9, inkEnd: 0.94, seed: seed() });
+  // the jaw of a head whose side is seen runs on to the lobe: full along its foot, eased over the corner, thin where it meets the ear
+  if (head.earParts) {
+    const way = jaw.map((_, i) => (i ? Math.hypot(jaw[i][0] - jaw[i - 1][0], jaw[i][1] - jaw[i - 1][1]) : 0)), all = way.reduce((a, b) => a + b, 0), s = way.reduce<number[]>((a, b) => [...a, (a[a.length - 1] ?? 0) + b / all], []), end = clamp(st.jaw, 0.2, 1), to = jaw.filter((_, i) => s[i] <= end + 1e-6), share = s.filter(q => q <= end + 1e-6);
+    inkThread(f, st.ink, to.map((q, i) => { const t = share[i]; return [q[0], q[1], (0.5 + 0.5 * ss(0.03, 0.22, t) - 0.16 * ss(0.5, 0.64, t) - 0.42 * ss(0.6, 0.94, t)) * (1 - 0.94 * ss(end - 0.06, end, t) * (end < 1 ? 1 : 0.3))] as const; }), w(3.3 * st.contour), { tone: t => 0.95 - 0.16 * ss(0.6, 1, t), seed: seed() });
+    return;
+  }
   // a line drawn past the default run keeps its ink up to the corner of the jaw
   const hold = 0.3 * clamp((st.jaw - 0.78) / 0.2);
   inkThread(f, st.ink, press(run, t => 0.5 + 0.5 * ss(0.04, 0.3, t) - 0.14 * ss(0.5 + hold, 0.7 + hold, t) - 0.5 * ss(0.7 + 0.9 * hold, 1, t)), w(3.3 * st.contour), { tone: t => 0.94 * (1 - ss(0.6 + hold, 0.98, t)) + 0.02, seed: seed() });
 }
 
-/** The near ear: a warm water, one stroke round the rim, two for the fold inside. */
+/** An ear seen from the side: water pooled in the bowl, warm on the lobe and the rim; one stroke round the rim, a thin one inside it, and the fold, which gathers its ink at the notch over the lobe. */
+function sideEar({ f, w, d, st, seed }: Hand, head: InkHead, parts: NonNullable<InkHead["earParts"]>): PenPoint {
+  const E = head.ear, outer = E.slice(0, E.length - 3), lobe = E.reduce((a, q) => (q[1] > a[1] ? q : a)), fold = parts.fold, notch = fold[fold.length - 1], u = Math.hypot(notch[0] - fold[0][0], notch[1] - fold[0][1]);
+  const ear = f.shape([...pick(outer, 40), ...E.slice(E.length - 3)]), bowl = f.shape(inkSpline(parts.bowl, 0.6).map(q => [q[0], q[1]] as const)), down = (X: number, Y: number) => { const [x, y] = f.local(X, Y); return clamp(1 - Math.hypot(x - notch[0], y - notch[1]) / (0.9 * u)); };
+  // toward the cheek the ear has no edge: its water runs out there
+  const front = [parts.join, ...E.slice(-3), E[0]], open = (x: number, y: number) => Math.min(...front.slice(1).map((b, i) => { const a = front[i], l = (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2, k = clamp(((x - a[0]) * (b[0] - a[0]) + (y - a[1]) * (b[1] - a[1])) / l); return Math.hypot(x - lerp(a[0], b[0], k), y - lerp(a[1], b[1], k)); }));
+  f.knock(ear);
+  // skin thin enough for the light to come through: the lobe, the rim, the bowl
+  inkBloom(f, st.warm, ear, { tone: (X, Y) => { const [x, y] = f.local(X, Y); return st.rouge * ss(0, 0.3 * u, open(x, y)) * (0.05 + 0.15 * spot(x, y, off(lobe, 0, -0.25 * u), 0.5 * u, 0.5 * u) + 0.1 * spot(x, y, fold[Math.round(fold.length * 0.4)], 0.5 * u, 0.7 * u)); }, soft: 1, wander: 0, fringe: 0, rim: 0.24, rimWidth: w(5), mottle: 0.36, cloud: w(12), seed: seed() });
+  // the bowl: clear above, dark where it runs out under the flap
+  inkBloom(f, st.warm, bowl, { tone: (X, Y) => st.rouge * lerp(0.08, 0.3 * Math.min(1, st.bowl), ss(0, 1, down(X, Y))), soft: w(1.2), wander: w(0.3), fringe: 0, rim: 0.2, mottle: 0.3, cloud: w(10), seed: seed() });
+  inkBloom(f, st.ink, bowl, { tone: (X, Y) => { const t = down(X, Y); return st.bowl * (0.02 + 0.16 * ss(0, 0.7, t) + 0.3 * ss(0.55, 1, t)); }, soft: w(1.2), wander: w(0.3), fringe: 0, rim: 0.24, rimWidth: w(3), mottle: 0.3, cloud: w(10), seed: seed() });
+  // the hollow under the rim
+  inkSide(f, st.ink, press(pick(parts.rim, 14), t => 0.1 + 0.9 * Math.sin(Math.PI * t) ** 0.8), w(5), { tip: 0.16, belly: 0.02, side: d > 0 ? -1 : 1, head: 0, rim: 0, bleed: w(1), seed: seed() });
+  inkThread(f, st.ink, press(pick(outer, 32), t => 0.01 + 0.65 * ss(0.05, 0.22, t) + 0.24 * bump(t, 0.36, 0.14) + 0.34 * bump(t, 0.82, 0.12) - 0.5 * ss(0.9, 1, t)), w(2.8 * st.contour), { ink: 0.9, mid: 0.9, inkEnd: 0.8, seed: seed() });
+  inkThread(f, st.ink, press(pick(parts.rim, 18), t => 0.06 + 0.9 * ss(0, 0.2, t) - 0.9 * ss(0.5, 1, t)), w(2.1), { ink: 0.7, mid: 0.64, inkEnd: 0.4, seed: seed() });
+  inkThread(f, st.ink, press(pick(fold, 18), t => 0.05 + 0.5 * ss(0, 0.3, t) + 0.5 * bump(t, 0.86, 0.14) - 0.5 * ss(0.94, 1, t)), w(2.4), { ink: 0.5, mid: 0.7, inkEnd: 0.92, seed: seed() });
+  inkThread(f, st.ink, press(pick(parts.flap, 12), t => 0.05 + 0.5 * Math.sin(Math.PI * Math.min(1, t * 1.05)) + 0.4 * bump(t, 0.86, 0.14)), w(1.9), { ink: 0.5, mid: 0.6, inkEnd: 0.86, seed: seed() });
+  return lobe;
+}
+
+/** The near ear: a warm water, one stroke round the rim, two for the fold inside. A head posed with `side` has its ear drawn in full. */
 export function paintInkEar(f: InkRisoPen, head: InkHead, style: InkFaceStyle): PenPoint {
-  const h = hand(f, head, { ...style, seed: (style.seed ?? 0) + 3 }), { z, w, d, st, seed } = h, E = head.ear, r = head.earRidge, ear = f.shape(pick(E, 26)), lobe = E.reduce((a, q) => (q[1] > a[1] ? q : a));
+  const h = hand(f, head, { ...style, seed: (style.seed ?? 0) + 3 }), { z, w, d, st, seed } = h, E = head.ear;
+  if (head.earParts) return sideEar(h, head, head.earParts);
+  const r = head.earRidge, ear = f.shape(pick(E, 26)), lobe = E.reduce((a, q) => (q[1] > a[1] ? q : a));
   f.knock(ear);
   inkBloom(f, st.warm, ear, { tone: (X, Y) => { const [x, y] = f.local(X, Y); return st.rouge * (0.04 + 0.13 * spot(x, y, off(lobe, 0, -4 * z), 7 * z, 8 * z)); }, soft: 1, wander: 0, fringe: 0, rim: 0.2, mottle: 0.36, cloud: w(10), seed: seed() });
   inkSide(f, st.ink, [[...off(r[1], -d * 1.2 * z, 1.6 * z), 0.3], [...off(r[2], -d * 1.2 * z, 0), 1], [...off(r[3], -d * 1.4 * z, 0), 0.8], [...off(r[4], -d * 0.4 * z, -1.4 * z), 0.1]], w(7), { tip: 0.24, belly: 0.02, side: d > 0 ? 1 : -1, head: 0, rim: 0, bleed: w(1.4), seed: seed() });
