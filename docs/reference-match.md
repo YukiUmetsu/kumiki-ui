@@ -27,6 +27,7 @@ Needs Python 3, Pillow and numpy. `python3 -I scripts/reference-match.py -h` giv
 | `side` | What differs, by eye, in the same frame and size? Add `--grid 0.1` to read points |
 | `overlap` | Do the dark shapes cover each other? Grey is both, blue is only the reference, orange is only the drawing |
 | `values` | In a named box, how dark, how busy (`spread`) and how full (`covered`) is the dark? |
+| `colours` | At a named place, which colour, and which share of the lit skin for red, green and blue? Give `--lit` a place in full light |
 | `trace` | Along a line, how far off is it, how thick and how dark? `--by x` for a lying line, `--by y` for a standing one. Give it only a stretch where both lines are in the open: near hair it finds the hair. A gap with a plus sign is down or to the right |
 | `swap` | Which part makes the difference? It pastes polygons that you name, both ways. Look at the picture it writes |
 
@@ -38,6 +39,27 @@ Needs Python 3, Pillow and numpy. `python3 -I scripts/reference-match.py -h` giv
 **Read the anchors to half a pixel.** Zoom on one eye at a time, with a box of about half the distance between the eyes. Take the middle of the iris's whole circle, from its left and right rims and its foot. The lid hides the top, so the middle of the visible part is too low. Then check them: in `side --box=-0.8,-0.3,0.8,0.3 --scale 700 --grid 0.1` a red cross must sit on the middle of each of the four irises. If one does not, correct it first. An error of 4 pixels at one eye tilts everything by a degree and a half.
 
 All other numbers are in the levelled frame: origin between the anchors, their distance is 1, y down. Write a value that starts with a minus sign with `=`: `--box=-1.3,-2,2,1.6`. For a drawing from code, take the anchors from its geometry (`head.level` for an INK-RISO1 head).
+
+## Faces
+
+Numbers, examples and faults for each feature: [human anatomy, "Face features to get right"](component-specs/human-anatomy.md#face-features-to-get-right-one-by-one). Compare in this order and write one line for each: *feature, reference, ours, gap*.
+
+| Step | Compare | Read | An owner saw a gap of |
+|---|---|---|---|
+| 1 | Bone: visible width, far edge, near cheek, jaw, ear, neck | x at each 0.1 from brow to chin, on both edges, with slope | 0.09 at the far cheek beside the mouth, 0.03 at the temple |
+| 2 | Hair edge: hairline, part, temple lock, crown | Where each mass starts and what it runs along | A part that leans the wrong way |
+| 3 | Eye outline, both eyes | Corners, peak, lowest point, length, height | |
+| 4 | Upper lid | Lash line to fold at the inner third, peak, outer third | 0.02 |
+| 5 | Lash line, lashes, iris, white | Thickness at three places, what the lids cut off the iris | Pale or straight lashes |
+| 6 | Shade on and under the eye | A column of colours each 0.04 from the lid down to 0.3 | One even band |
+| 7 | Brow, nose, lips | Both ends, peak, thickness, foot, corners, parting | |
+| 8 | Shade of nose and lower lip | Where it starts, its sharp side, where it ends | A missing plane |
+| 9 | Colours | `colours`, the places below | Cheeks too pink, skin too grey |
+| 10 | Head to body | Width at 0.6 and 1.0 head heights below the chin, sash | 1.26 drawn as 0.95 |
+
+**Places for `colours`:** forehead, temple, between the brows, lid at three places, under the eye (column), white at both corners, iris top, foot and rim, bridge, side of the nose, underside, its thrown shade, near cheek, cheek's edge, far cheek, both lips, parting, under the lip, chin, jaw's edge, neck, ear bowl and rim, brow head, middle and tail, hair at the root, crown and light. Compare the ratio to the lit skin first: it stays true when the two pictures are not equally bright.
+
+Zoom until one feature fills the sheet (`side --scale 900`). Work on one feature until places and colours agree, then go on.
 
 ## What the numbers mean
 

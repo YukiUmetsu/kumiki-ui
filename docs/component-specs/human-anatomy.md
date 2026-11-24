@@ -263,6 +263,78 @@ the checks and sources.
 rule 14 still applies to the pencil portrait style). The mask is one average face, so individuals differ only by the
 parameters above.
 
+## Face features to get right, one by one
+
+Use this list when a drawn face must be beautiful or must match a reference, in any style. Each row is a fault that an
+owner saw on a face that looked finished. All ranges above can pass while one of these is wrong. Work from the top down:
+bone first, then eyes, then the other features, then colour. [reference-match](../reference-match.md#faces) gives the
+order, the points to read and the places to sample.
+
+**Frame:** the irises are level, their distance is 1 (pd), the origin is between them, +x is the near side of a turned head,
+y is down. **Examples:** one drawn young woman, turned 17° and bowed 7°, fitted to a studied drawing by hand (grade S).
+"25°" marks readings from six turned heads. They are examples, not population data: read your own reference, and use
+`beautifulFace` or a face type when there is none. The code for ink is in
+[ink-riso-press](ink-riso-press.md#faces-in-layers-over-white-工筆).
+
+**Bone and outline**
+
+| Feature | What to get right | Example | The fault, as seen |
+|---|---|---|---|
+| Turn | A flat front view is a mask. Turn the head 15–25°. Nose tip, mouth and chin lie on one midline | 17°, 25° | "Awkward", a mask |
+| Width you can see | From the far edge to the hair or ear, at the irises, the mouth and the jaw. The near hair covers the temple | −0.92 to 1.05 at the irises, −0.62 to 0.94 at the mouth | "Too wide", with each feature in its place |
+| Far edge, brow to chin | One curve. Its slope only grows, and it turns less than 5° in each 0.1 before the chin. Read it at every 0.1 from the brow down | x at y: −0.93 at −0.2, −0.92 at 0, −0.90 at 0.2, −0.87 at 0.4, −0.78 at 0.7, −0.62 at 1.0, −0.36 at 1.3 | Out and in again at the temple: a bump, and the face looks wide. Equal steps: a straight, hollow cheek beside the mouth |
+| Near cheek | Fullness is the curve between the jaw's corner and the lobe. Ear, lobe and chin stay | 1.05 at 0.4–0.6, 1.0 at 0.9, 0.89 at 1.1, 0.69 at 1.3 | Straight: thin and old. Wider at the ear or the jaw: fat |
+| Jaw and chin | One line from the chin through a soft corner up to the lobe. The lower face narrows to a small chin | Chin 1.55 below. 25°: corner (1.08, 1.12) | Jaw that stops under the cheek, kink at the chin |
+| Ear | It shows that the head has a side. Top at the brow, lobe above the nose's foot | 25°: rim 1.8–1.9 out, top −0.25, lobe (1.5, 0.58) | Small ear close behind the cheek |
+| Neck | The back line starts behind the lobe, the throat under the mouth's near corner | 25°: 1.44 out at 0.62, throat 0.25 at 1.5 | Thick neck, or a neck under the chin only |
+| Hairline and part | Small and irregular. The part lies on the middle of the skull, which leans to the near side as it runs back. Each lock starts on it | Foot of the part 1.25 above | Helmet, "hair comes from a weird place" |
+| Temple lock | It lies on the face's edge down to the cheekbone and then hangs | Leaves the edge at 0.1 | A gap shows each flaw of the edge |
+
+**Eyes**
+
+| Feature | What to get right | Example (near eye) | The fault, as seen |
+|---|---|---|---|
+| Opening | Longer than it is open, inner corner low, peak over the iris, level outer corner. The far eye has a curve of its own | 0.49 long, 0.17 high. Inner corner 0.10 low, outer −0.01. Far eye 0.41 long | Round: stares. Copied far eye: turned head breaks |
+| Height of the upper lid | The gap from the top of the lash line to the fold, at the inner third, the peak and the outer third | 0.017, 0.027, 0.030. The far eye's fold touches the line on its inner half | "Eyelid too tall" at 0.05: sleepy, swollen |
+| Fold | One fine red-brown line that starts inside the corner and follows the lash line | 0.007 thick | Black or thick: a second eyeliner |
+| Lash line | Near black and crisp. Thickest at the outer third. It runs past the corner into the wing | 0.041 inner, 0.055 peak, 0.063 outer third thick, wing 0.2 | One even band |
+| Lashes | Few, crisp, bent through a third point, on the outer quarter. They start in the line | 3 above | Straight, pale or fanned: thorns |
+| Iris | Both lids cut it. Rim darker than the inside, shade of the lid on top, light lower half with rays, two small lights | 0.24 wide, 0.20 high, in an opening of 0.17 | Whole circle: stares. Flat black: a button |
+| White of the eye | Warm grey, darkest under the lid and in the outer corner, red in the tear corner | | Paper white: a doll |
+| Shade on the lid | The lid's own brown or rose between lashes and fold, deeper toward the wing. A soft shade beside the root of the nose | #D9A283 on #EFD6C4 | None: flat. Red: sore |
+| Shade under the eye | Three layers: wide and soft, along the fold, tight to the lid. A point at the tear corner, deepest 0.05–0.08 below the lid, thickest under the iris, gone at 0.25. The far one narrow and grey, deepest under its outer half | #DBAD99 on #FAEADA | One even band: a smear. Wide on the far side: a bruise |
+| Outer ends | They set the mood. Let them rise when open and lie level when shut | | Sad, hard or sly |
+
+**Brow, nose, mouth**
+
+| Feature | What to get right | Example | The fault, as seen |
+|---|---|---|---|
+| Brow | A mass with lost edges: soft head, full middle, pointed tail, peak two thirds out. Value from the picture: brown for a woman, near black for a man. The far brow is shorter and more level | (0.07, −0.23) to (0.92, −0.29), peak −0.38 at 0.6, 0.11 thick. Far: 0.54 long, peak −0.35 | Flat black bar, flying tail, far brow as a copy |
+| Nose shape | Straight bridge, small round tip, short foot. The wings are soft turns. The two nostrils are not a pair: a far wedge, a near arch | Wings −0.29 and 0.18, foot 0.78 | Wide, long, a symbol for a nose |
+| Nose shade | Planes, not lines: one side plane down to the wing, a light on the bridge, a warm underside. The shade that the nose throws is sharp toward the light and gone before the far cheek | #CFC2B2 on #F4EBDF, 0.79 to 0.97 below | Line down the bridge, two parallel greys, crease without a plane |
+| Lips | Small and crisp. The parting is the only hard line. Near corner a wedge, far edge let out, lower lip lighter to its edge, one or two small lights. Upper to lower height about 2 : 3 | 0.59 wide, bow 0.935, parting 1.05, foot 1.21, corners 0.07 higher than the parting | Pink (no earth under the red), outlined, even |
+| Below the lip | One soft shade with a sharp lower edge, then a light on the chin | 1.20 to 1.40 | Pale ring round the lip, flat chin |
+
+**Colour and light**
+
+| Feature | What to get right | The fault, as seen |
+|---|---|---|
+| Skin | Ivory, light in the middle of the face, warmer at the edge. On cream paper it needs white under it. About 50 sampled places | Paper colour, grey or yellow skin |
+| Shade | A ratio to the lit skin for red, green and blue, with blue lowest: 0.88, 0.74, 0.70 under the eye, 0.85, 0.83, 0.80 beside the nose | Grey shade: dirty. One tone: flat |
+| Light | Drawn planes with one sharp side: bridge, under the near eye, far cheek, brow | A well-drawn flat face |
+| Cheek | Colour only where it turns away. Blush only if the reference has it | Pink spots |
+| Hair | Warm dark grey, near black at roots and overlaps, a light seam beside each dark one, some blue or rust | Solid black with white threads |
+| Focus | The darkest, crispest marks are lash line, pupil and parting | Hair or collar darker and busier than the eyes |
+
+**Head and body.** Read the body in head heights (hair top without the knot to chin), at fixed levels below the chin. Four
+half figures with turned heads are 1.25–1.27 wide at 0.6 and 1.4–1.55 at 1.0 with the sleeves. A waist sash lies
+0.9–1.4 below the chin. A young woman at 0.95 and 1.0 was "too small". Make the head smaller before you make the
+shoulders wide.
+
+**Proof.** A face that looks finished as a whole fails at the zoom of one feature. Look at each row at 3× beside the
+reference, make the table of sampled colours, and look at your own comparison sheet as the owner will. Change one row at
+a time and keep what was accepted.
+
 ## Rendering in pages: workers, caches, previews (`foundation-render.ts`, `foundation-render-react.tsx`)
 
 `FacePortrait`, `HandView`, `HandFlipbook`, `SkinSwatchView` (and MATL1's `MaterialSwatch`, SKY1's `CloudSky`, WATER1's

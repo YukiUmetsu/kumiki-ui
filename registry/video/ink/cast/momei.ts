@@ -5,7 +5,8 @@
  * A young woman of about twenty, turned to the viewer's right beside a plum branch: wide calm eyes, a small mouth, warm cheeks, the plum
  * blossom mark of 梅花妝 on her brow. Her hair is parted in two soft masses and wound into a coil on the crown (髻); behind it hangs the
  * hollow loop of an unmarried girl (垂鬟), with a spray of white plum and a pin whose bead chain swings (步搖), and one tress tied with a
- * red cord comes down over the shoulder. The robe closes the wearer's left over right; a thin scarf (披帛) lies over the crooks of the arms.
+ * red cord comes down over the shoulder. The robe closes the wearer's left over right; a long shawl of gauze (披帛) lies
+ * over the far shoulder, goes round behind her and is held in the crook of the near arm.
  */
 import { inkSplatter } from "../../ink-riso-pen";
 import type { InkRisoPen, PenNode as N3, PenPoint as P2 } from "../../ink-riso-pen";
@@ -58,9 +59,11 @@ function soften(h: InkHead): InkHead {
 }
 
 /** The middle between the pupils, pen units, and where it lies on the page; the distance between them on the page. */
-const EYES = HEAD.level(0, 0), AT = { x: 622, y: 640, pd: 134 };
+const EYES = HEAD.level(0, 0), AT = { x: 632, y: 611, pd: 104 };
 const UNIT = Math.hypot(HEAD.level(1, 0)[0] - EYES[0], HEAD.level(1, 0)[1] - EYES[1]), FZ = AT.pd / UNIT;
 const FACE = { x: AT.x + FZ * EYES[0], y: AT.y - FZ * EYES[1], scale: FZ };
+/** Ornaments are drawn for a head whose pupils are 134 apart. */
+const Z = AT.pd / 134;
 const FRAMES = { face: FACE, page: { x: 0, y: 0, scale: 1 } };
 
 // ---- the face --------------------------------------------------------------------------------------------------------------------
@@ -355,124 +358,166 @@ function drawTress(f: InkRisoPen) {
   for (let i = 0; i < 4; i++) { const x = 1.655 - 0.004 * i, y = 1.02 + 0.034 * i; paintGongbiLock(h, { outline: gongbiBand([[x - 0.084, y - 0.014, 0.008], [x - 0.045, y + 0.01, 0.019], [x, y + 0.018, 0.021], [x + 0.045, y + 0.01, 0.019], [x + 0.084, y - 0.014, 0.008]]), places: [red(x - 0.02, y, 0.02), red(x - 0.08, y, 0.3), red(x + 0.08, y, 0.26), red(x, y + 0.04, 0.34)], soft: 0.007, wash: { mottle: 0.1, rim: 0.1, rimWidth: 0.008 } }, 755 + i); lines(h, [[[[x - 0.08, y + 0.006], [x - 0.04, y + 0.03], [x, y + 0.038], [x + 0.04, y + 0.03], [x + 0.08, y + 0.006]], 0.003, 0.5]]); }
   for (const [i, q] of ([[[1.645, 1.14, 0.012], [1.71, 1.3, 0.015], [1.725, 1.5, 0.013], [1.775, 1.74, 0.011], [1.75, 1.96, 0.003]], [[1.67, 1.14, 0.012], [1.77, 1.28, 0.014], [1.82, 1.46, 0.012], [1.88, 1.62, 0.01], [1.87, 1.78, 0.003]]] as readonly Lock[]).entries()) paintGongbiLock(h, { outline: gongbiBand(q), places: [red(q[0][0], q[0][1], 0.2), red(q[2][0], q[2][1], 0), red(q[4][0], q[4][1], 0.1)], soft: 0.007, wash: { mottle: 0.1, rim: 0.16, rimWidth: 0.008 } }, 761 + i);
 }
-// ---- neck and robe, in page units --------------------------------------------------------------------------------------------------
-/** The figure's ground: paper, so nothing behind her shows through. */
-const FIGURE: P2[] = [[430, 560], [424, 660], [420, 720], [414, 780], [406, 816], [386, 848], [354, 886], [320, 926], [290, 972], [266, 1032], [252, 1110], [238, 1200], [226, 1290], [219, 1372], [226, 1440], [206, 1530], [160, 1640], [862, 1640], [824, 1560], [782, 1490], [762, 1420], [761, 1340], [759, 1250], [750, 1160], [732, 1078], [704, 1014], [676, 980], [642, 953], [620, 936], [598, 918], [580, 900], [571, 888], [567, 878], [573, 860], [583, 838], [560, 700]];
+// ---- neck, robe and shawl, in page units -------------------------------------------------------------------------------------------
+/** The figure's ground: paper, so nothing behind her shows through. Her shoulders are a third wider than her head is high, as they are on a slight girl. */
+const FIGURE: P2[] = [[471, 528], [466, 613], [462, 664], [457, 715], [452, 746], [441, 778], [422, 807], [398, 830], [348, 864], [304, 896], [268, 932], [244, 978], [226, 1034], [212, 1096], [203, 1150], [186, 1196], [174, 1262], [168, 1340], [176, 1420], [184, 1450], [166, 1510], [142, 1570], [118, 1640], [912, 1640], [880, 1570], [850, 1500], [828, 1440], [818, 1360], [812, 1280], [805, 1200], [796, 1120], [784, 1052], [768, 992], [750, 946], [724, 908], [690, 878], [652, 854], [630, 846], [612, 832], [598, 817], [591, 807], [587, 798], [592, 783], [601, 764], [581, 647]];
 /** The collars' edges toward the throat, from behind the neck down. */
-const NEAR_IN: P2[] = [[420, 808], [409, 834], [411, 869], [425, 908], [452, 951], [488, 995], [528, 1037], [564, 1075], [596, 1110], [616, 1134]];
-const FAR_IN: P2[] = [[569, 898], [576, 930], [584, 966], [587, 1008], [585, 1052], [578, 1100], [560, 1152], [538, 1206], [514, 1260], [490, 1312], [466, 1362], [446, 1408]];
-const draws = (p: InkRisoPen, from: number) => {
-  let s = from;
-  const th = (pts: N3[], w: number, ink = 0.85, inkEnd = ink * 0.6, mid?: number) => inkThread(p, K, pts, w, { ink, inkEnd, mid, seed: s++ });
-  const side = (pts: N3[], w: number, o: Omit<Parameters<typeof inkSide>[4], "seed">, plate = K) => inkSide(p, plate, pts, w, { ...o, bristles: o.bristles ?? Math.max(6, w * 0.45), seed: s++ });
-  const wash = (plate: string, pts: readonly (readonly number[])[], o: Omit<Parameters<typeof inkBloom>[3], "seed">) => inkBloom(p, plate, p.shape(pts as readonly P2[]), { ...o, seed: s++ });
-  const loc = (fn: (x: number, y: number) => number) => (X: number, Y: number) => { const [x, y] = p.local(X, Y); return fn(x, y); };
-  /** A contour: the brush presses where the form turns and lifts where it runs on; water on the form's side. */
-  const edge = (pts: N3[], w: number, sd: 1 | -1, o: Partial<Parameters<typeof inkSide>[4]> = {}) => side(pts, w, { tip: 0.92, belly: 0.1, side: sd, head: 0.3, rim: 0.15, dry: 0.06, dryEnd: 0.4, grain: 0.8, ...o });
-  const fold = (pts: N3[], w: number, sd: 1 | -1, o: Partial<Parameters<typeof inkSide>[4]> = {}) => side(pts, w, { tip: 0.82, belly: 0.02, side: sd, head: 0.3, rim: 0.1, dry: 0.1, dryEnd: 0.8, grain: 1.1, ...o });
-  return { th, side, wash, loc, edge, fold };
-};
+const NEAR_IN: P2[] = [[462, 739], [453, 761], [454, 791], [466, 824], [489, 861], [520, 898], [554, 934], [585, 966], [612, 996], [640, 1030]];
+const FAR_IN: P2[] = [[590, 806], [595, 843], [602, 873], [604, 909], [603, 947], [597, 987], [582, 1032], [564, 1080], [542, 1130], [518, 1184], [490, 1242], [452, 1326]];
 /** A line set off to one side by a distance of its own. */
 const aside = (q: readonly P2[], d: (t: number) => number): P2[] => q.map(([x, y], i) => { const a = q[Math.max(0, i - 1)], z = q[Math.min(q.length - 1, i + 1)], l = Math.hypot(z[0] - a[0], z[1] - a[1]), k = d(i / (q.length - 1)); return [x - ((z[1] - a[1]) / l) * k, y + ((z[0] - a[0]) / l) * k] as const; });
 const press = (q: readonly (readonly number[])[], ...k: number[]): N3[] => q.map((r, i) => { const t = (i / (q.length - 1)) * (k.length - 1), j = Math.min(k.length - 2, Math.floor(t)); return [r[0], r[1], lerp(k[j], k[j + 1], t - j)] as const; });
-/** The neck: the jaw throws a thin warm shade on it, no more. */
-const NECK: readonly GongbiPlace[] = [at(1.3, 0.8, "#E3C7B2", 0.2), at(1.46, 0.9, "#E9D2C0", 0.2), at(1.0, 1.1, "#CFAE96", 0.18), at(0.6, 1.5, "#C9A78E", 0.18), at(0.24, 1.66, "#CFB09A", 0.16), at(0.4, 1.9, "#E6CFBD", 0.2), at(0.9, 1.5, "#E2C9B5", 0.2), at(1.3, 1.4, "#E7D1BF", 0.24), at(0.8, 2.1, "#EBD7C6", 0.3), at(0.42, 2.4, "#F0DECE", 0.3), at(0.4, 1.6, "#CDAC94", 0.14)];
-function drawBody(pen: Pens) {
-  const { page: p, face } = pen, { th, side, wash, loc, edge, fold } = draws(p, 800);
+/** A fold of cloth: the line, its width, how far its shade reaches to one side (+ the line's right hand, looking along it) and how dark it is. */
+type Fold = readonly [path: readonly P2[], line: number, reach: number, tone: number, ...press: number[]];
+const draws = (p: InkRisoPen, from: number) => {
+  let s = from;
+  const th = (pts: readonly N3[], w: number, ink = 0.85, inkEnd = ink * 0.6, mid?: number) => inkThread(p, K, pts, w, { ink, inkEnd, mid, seed: s++ });
+  const side = (pts: readonly N3[], w: number, o: Omit<Parameters<typeof inkSide>[4], "seed">, plate = K) => inkSide(p, plate, pts, w, { ...o, bristles: o.bristles ?? Math.max(6, w * 0.45), seed: s++ });
+  const wash = (plate: string, pts: readonly (readonly number[])[], o: Omit<Parameters<typeof inkBloom>[3], "seed">) => inkBloom(p, plate, p.shape(pts as readonly P2[]), { ...o, seed: s++ });
+  const loc = (fn: (x: number, y: number) => number) => (X: number, Y: number) => { const [x, y] = p.local(X, Y); return fn(x, y); };
   /** Where the wet ink of the hem ends: it runs to the paper's foot in some places and dries short of it in others. */
   const foot = (x: number, y: number) => ss(0, 90, 1640 - y - 90 * inkFbm2(21, x / 130, 0.4, 2));
-  /** Water in the valley of a fold: full on the fold's own line, gone `width` away from it, deeper toward the hem. */
-  const vale = (plate: string, q: readonly P2[], width: number, tone: number, seed: number) => {
-    const n = Math.abs(width), sg = Math.sign(width), far = aside(q, t => sg * n * (0.35 + 0.65 * t)), y0 = q[0][1], y1 = q[q.length - 1][1];
-    const off = (x: number, y: number) => { let b = 1e9; for (let i = 0; i < q.length - 1; i++) { const [ax, ay] = q[i], dx = q[i + 1][0] - ax, dy = q[i + 1][1] - ay, f = clamp(((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy)); b = Math.min(b, Math.hypot(x - ax - f * dx, y - ay - f * dy)); } return b; };
-    inkBloom(p, plate, p.shape([...q, ...[...far].reverse()]), { tone: loc((x, y) => { const t = clamp((y - y0) / (y1 - y0)), w = n * (0.3 + 0.6 * t); return tone * (0.3 + 0.7 * ss(0, 0.7, t)) * Math.exp(-((off(x, y) / w) ** 2) * 2.4) * (0.45 + 1.0 * inkFbm2(seed, x / 40, y / 150, 3)) * foot(x, y); }), soft: 2.4, wander: 1.4, wave: 60, fringe: 0.8, rim: 0.2, rimWidth: 5, mottle: 0.4, cloud: 60, seed });
+  /** The shade of a fold (分染): full on its line, washed out with water to one side; it comes in and goes out along the line. */
+  const shade = (inks: readonly (readonly [plate: string, share: number])[], q: readonly P2[], reach: number, tone: number, grow = (t: number) => ss(0, 0.25, t) * ss(1, 0.75, t)) => {
+    const n = Math.abs(reach), sg = Math.sign(reach), far = aside(q, () => sg * n), seed = s + 300, dark = loc((x, y) => {
+      let b = 1e9, t = 0; for (let i = 0; i < q.length - 1; i++) { const [ax, ay] = q[i], dx = q[i + 1][0] - ax, dy = q[i + 1][1] - ay, f = clamp(((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy)), l = Math.hypot(x - ax - f * dx, y - ay - f * dy); if (l < b) { b = l; t = (i + f) / (q.length - 1); } }
+      return tone * grow(t) * Math.exp(-((b / (n * 0.62)) ** 2) * 1.5) * ss(n, n * 0.6, b) * (0.65 + 0.7 * inkFbm2(seed, x / 70, y / 170, 3)) * foot(x, y);
+    });
+    for (const [plate, share] of inks) wash(plate, [...q, ...[...far].reverse()], { tone: (X, Y) => share * dark(X, Y), soft: 1.6, wander: 0, fringe: 0, rim: 0, mottle: 0.2, cloud: 60 });
   };
-  p.knock(p.shape(FIGURE));
+  return { th, side, wash, loc, foot, shade };
+};
+/** Shade on the white of the robe: ink warmed with a little earth. */
+const GREY = [[K, 1], [E, 0.5]] as const;
+/** The neck: the jaw throws a thin warm shade on it, no more. */
+const NECK: readonly GongbiPlace[] = [at(1.3, 0.8, "#E3C7B2", 0.2), at(1.46, 0.9, "#E9D2C0", 0.2), at(1.0, 1.1, "#CFAE96", 0.18), at(0.6, 1.5, "#C9A78E", 0.18), at(0.24, 1.66, "#CFB09A", 0.16), at(0.4, 1.9, "#E6CFBD", 0.2), at(0.9, 1.5, "#E2C9B5", 0.2), at(1.3, 1.4, "#E7D1BF", 0.24), at(0.8, 2.1, "#EBD7C6", 0.3), at(0.42, 2.4, "#F0DECE", 0.3), at(0.4, 1.6, "#CDAC94", 0.14)];
+/** Breast and upper sleeves: folds that sweep from the shoulders to the armpits and the elbows, and those drawn up out of the sash. */
+const ROBE_FOLDS: readonly Fold[] = [
+  // near sleeve
+  [[[318, 888], [346, 948], [356, 1030], [344, 1112], [312, 1186], [270, 1246]], 2.6, -54, 0.15, 0.03, 0.6, 0.8, 0.9, 0.6, 0.03],
+  [[[390, 1096], [374, 1156], [338, 1216], [288, 1262]], 3, -40, 0.18, 1, 0.8, 0.5, 0.03], [[[396, 1150], [386, 1212], [358, 1266], [322, 1304]], 2.4, -30, 0.14, 0.9, 0.7, 0.4, 0.03],
+  [[[270, 938], [260, 1010], [248, 1088], [232, 1158]], 2.4, 26, 0.12, 0.03, 0.6, 0.6, 0.03], [[[396, 1350], [350, 1342], [300, 1340], [252, 1356]], 3, 40, 0.16, 1, 0.7, 0.5, 0.03],
+  // from the collar and the shoulder into the armpit
+  [[[404, 842], [424, 908], [424, 980], [404, 1046], [380, 1092]], 2.8, -60, 0.14, 0.03, 0.5, 0.8, 0.9, 0.6], [[[466, 900], [470, 960], [452, 1022], [420, 1074], [394, 1098]], 2.4, -44, 0.12, 0.03, 0.6, 0.8, 0.6, 0.4], [[[520, 960], [512, 1020], [482, 1078], [440, 1124], [404, 1146]], 2.4, -44, 0.12, 0.03, 0.5, 0.8, 0.6, 0.03],
+  // drawn up out of the sash
+  [[[424, 1300], [420, 1254], [412, 1204], [400, 1160]], 2.8, 26, 0.16, 1, 0.7, 0.5, 0.03], [[[456, 1308], [454, 1256], [460, 1196], [478, 1140]], 2.8, 34, 0.18, 1, 0.8, 0.5, 0.03], [[[440, 1304], [436, 1274], [434, 1246]], 2.2, 18, 0.14, 1, 0.6, 0.03],
+  [[[548, 1314], [556, 1264], [578, 1204], [606, 1146], [624, 1110]], 2.8, 44, 0.18, 1, 0.8, 0.6, 0.4, 0.03], [[[588, 1312], [598, 1268], [618, 1216], [640, 1170]], 2.6, 34, 0.16, 1, 0.8, 0.5, 0.03], [[[624, 1306], [636, 1250], [656, 1184], [672, 1120]], 2.8, 36, 0.18, 1, 0.8, 0.5, 0.03], [[[654, 1298], [664, 1258], [678, 1214]], 2.4, 24, 0.16, 1, 0.6, 0.03], [[[566, 1313], [570, 1288], [580, 1262]], 2.2, 18, 0.14, 1, 0.6, 0.03], [[[520, 1314], [518, 1292], [522, 1268]], 2.2, 16, 0.12, 1, 0.6, 0.03],
+  // far breast
+  [[[634, 1036], [652, 1064], [676, 1084]], 2.4, -30, 0.12, 0.5, 0.7, 0.03], [[[640, 1052], [648, 1100], [648, 1150]], 2.4, 24, 0.12, 0.6, 0.6, 0.03], [[[636, 858], [634, 920], [644, 984], [658, 1040]], 2.4, -34, 0.12, 0.03, 0.6, 0.6, 0.03],
+];
+/** The fore-sleeves and the skirt between them. */
+const SLEEVE_FOLDS: readonly Fold[] = [
+  [[[344, 1462], [316, 1500], [296, 1552], [284, 1620]], 2.8, -54, 0.18, 0.2, 0.8, 0.6, 0.03], [[[404, 1422], [388, 1462], [372, 1524], [364, 1600]], 2.8, -44, 0.18, 0.3, 0.9, 0.6, 0.03], [[[424, 1406], [424, 1456], [420, 1520], [424, 1590]], 2.4, -36, 0.16, 0.9, 0.7, 0.5, 0.03],
+  [[[596, 1496], [556, 1520], [500, 1552], [452, 1592], [424, 1626]], 3, -54, 0.2, 0.4, 0.9, 0.8, 0.4, 0.03], [[[596, 1530], [570, 1560], [534, 1600], [510, 1632]], 2.6, -40, 0.18, 0.3, 0.8, 0.5, 0.03], [[[500, 1458], [488, 1480], [464, 1508], [446, 1536]], 2.4, -30, 0.14, 0.9, 0.6, 0.4, 0.03],
+  [[[702, 1384], [716, 1446], [738, 1512], [766, 1600]], 2.2, 30, 0.1, 0.8, 0.6, 0.5, 0.03], [[[656, 1462], [672, 1510], [684, 1570], [690, 1624]], 2.6, 36, 0.18, 0.5, 0.8, 0.6, 0.03],
+];
+function drawBody(pen: Pens) {
+  const { page: p, face } = pen, { th, side, wash, loc, foot, shade } = draws(p, 800);
+  const white = (q: readonly P2[]) => { p.knock(p.shape(q)); wash(W, q, { tone: loc((x, y) => 0.6 * foot(x, y)), soft: 0.8, wander: 0, fringe: 0, rim: 0, mottle: 0.1, exact: true }); };
+  const folds = (list: readonly Fold[]) => { for (const [q, , reach, tone] of list) shade(GREY, q, reach, tone); for (const [q, w, , , ...k] of list) th(press(q, ...k), w, 0.84, 0.6); };
+  p.knock(p.shape(FIGURE)); white(FIGURE.slice(5, 42));
   // ---- neck and chest
-  const throat: P2[] = [[582, 838], [573, 862], [567, 886], [566, 910]];
-  const neck = p.shape([...throat, [600, 1060], [560, 1080], [500, 1000], [424, 900], [404, 836], [412, 790], [415, 740], [418, 690], [430, 630], [500, 620], [560, 760]]);
+  const throat: P2[] = [[600, 764], [592, 785], [587, 805], [586, 826]];
+  const neck = p.shape([...throat, [615, 953], [581, 970], [530, 902], [466, 817], [449, 763], [450, 724], [452, 694], [456, 664], [464, 630], [471, 587], [530, 579], [581, 698]]);
   gongbiSkin(gongbiHand(face, HEAD, GONGBI, 14), neck, NECK, { soft: 0.016, mottle: 0.1, cloud: 0.3 });
   // ---- inner collars, a breath of indigo
-  const nearIn2 = aside(NEAR_IN.slice(0, 8), t => -lerp(3, 20, ss(0, 0.45, t))), farIn2 = aside(FAR_IN.slice(0, 6), t => lerp(2, 20, ss(0, 0.45, t)));
+  const nearIn2 = aside(NEAR_IN.slice(0, 8), t => -lerp(3, 18, ss(0, 0.45, t))), farIn2 = aside(FAR_IN.slice(0, 6), t => lerp(2, 18, ss(0, 0.45, t)));
   p.knock(p.shape([...NEAR_IN.slice(0, 8), ...[...nearIn2].reverse()]));
-  wash(B, [...NEAR_IN.slice(0, 8), ...[...nearIn2].reverse()], { tone: 0.24, soft: 2, wander: 1, rim: 0.4, rimWidth: 3, mottle: 0.4, cloud: 40 });
-  th(press(nearIn2, 0.1, 0.5, 0.9, 0.7, 0.9, 0.8, 0.3), 2.6, 0.74, 0.5);
+  wash(B, [...NEAR_IN.slice(0, 8), ...[...nearIn2].reverse()], { tone: 0.24, soft: 1.4, wander: 0.6, rim: 0.4, rimWidth: 3, mottle: 0.4, cloud: 40, exact: true });
+  th(press(nearIn2, 0.1, 0.5, 0.9, 0.7, 0.9, 0.8, 0.3), 2.4, 0.74, 0.5);
   p.knock(p.shape([...FAR_IN.slice(0, 6), ...[...farIn2].reverse()]));
-  wash(B, [...FAR_IN.slice(0, 6), ...[...farIn2].reverse()], { tone: 0.28, soft: 2, wander: 1, rim: 0.4, rimWidth: 3, mottle: 0.4, cloud: 40 });
-  th(press(farIn2, 0.1, 0.5, 0.9, 0.7, 0.9, 0.6, 0.1), 2.6, 0.78, 0.5);
+  wash(B, [...FAR_IN.slice(0, 6), ...[...farIn2].reverse()], { tone: 0.28, soft: 1.4, wander: 0.6, rim: 0.4, rimWidth: 3, mottle: 0.4, cloud: 40, exact: true });
+  th(press(farIn2, 0.1, 0.5, 0.9, 0.7, 0.9, 0.6, 0.1), 2.4, 0.78, 0.5);
   // the throat stands before the far collar; the nape is one long line from behind the ear to the collar
-  th(press(throat, 0.3, 1, 1, 0.9, 0.6, 0.05), 3.2, 0.86, 0.5);
-  th(press([[424, 712], [421, 744], [418, 776], [412, 806], [403, 834]], 0.04, 0.6, 0.9, 0.9, 0.4), 2.2, 0.7, 0.5);
-  th([[565, 992, 0.05], [553, 1000, 0.7], [535, 999, 0.4], [514, 988, 0.02]], 2.4, 0.4, 0.12);
-  th([[470, 866, 0.02], [499, 896, 0.5], [532, 936, 0.7], [556, 972, 0.05]], 2, 0.1, 0.3);
+  th(press(throat, 0.3, 1, 1, 0.9, 0.6, 0.05), 3, 0.86, 0.5);
+  th(press([[464, 640], [457, 664], [453, 694], [451, 724], [448, 761]], 0.04, 0.6, 0.9, 0.9, 0.4), 2, 0.7, 0.5);
+  th([[586, 895, 0.05], [575, 902, 0.7], [560, 901, 0.4], [542, 892, 0.02]], 2.2, 0.4, 0.12);
+  th([[505, 788, 0.02], [529, 814, 0.5], [557, 848, 0.7], [578, 878, 0.05]], 1.8, 0.1, 0.3);
+  // ---- the robe: whites stand, and grey goes where cloth turns away or lies in shade
+  const ARM: P2[] = [[378, 1084], [394, 1130], [402, 1200], [400, 1280], [394, 1344]], FAR_ARM: P2[] = [[706, 1090], [710, 1170], [708, 1250], [702, 1350]];
+  shade(GREY, ARM, -46, 0.2, t => ss(0, 0.4, t)); shade(GREY, FAR_ARM, 44, 0.22, t => ss(0, 0.4, t));
+  shade(GREY, [[268, 932], [244, 978], [226, 1034], [212, 1096], [203, 1150], [196, 1240], [190, 1340]], -44, 0.16); shade(GREY, [[768, 992], [784, 1052], [796, 1120], [805, 1200], [812, 1280], [818, 1360], [828, 1440]], 44, 0.14);
+  shade(GREY, [[398, 1294], [460, 1306], [560, 1312], [650, 1298], [704, 1276]], -44, 0.12, () => 1);
+  folds(ROBE_FOLDS);
   // ---- near collar: it comes out from behind the nape and stands away from it
-  const nearW = (t: number) => lerp(3, 26, ss(0, 0.14, t)) + 22 * ss(0.12, 0.6, t), nearOut = aside(NEAR_IN, nearW);
+  const nearW = (t: number) => lerp(3, 24, ss(0, 0.14, t)) + 24 * ss(0.12, 0.6, t), nearOut = aside(NEAR_IN, nearW);
+  shade(GREY, nearOut.slice(2), 30, 0.2, t => ss(0, 0.3, t));
   p.knock(p.shape([...NEAR_IN, ...[...nearOut].reverse()]));
-  wash(K, [...NEAR_IN, ...[...nearOut].reverse()], { tone: loc((_x, y) => lerp(0.97, 0.6, ss(920, 1180, y))), soft: 1.6, wander: 1.4, fringe: 0.2, tooth: 6, rim: 0.2, mottle: 0.3, cloud: 70 });
-  side(press(aside(NEAR_IN, t => nearW(t) / 2), 0.05, 0.5, 0.7, 0.85, 1, 1, 1), 42, { tip: 0.94, belly: 0.6, side: 1, head: 0, rim: 0.1, dry: 0.08, dryEnd: 0.8 });
+  wash(K, [...NEAR_IN, ...[...nearOut].reverse()], { tone: loc((_x, y) => lerp(0.97, 0.6, ss(850, 1060, y))), soft: 1.2, wander: 0.8, fringe: 0.2, tooth: 6, rim: 0.2, mottle: 0.3, cloud: 70, exact: true });
+  side(press(aside(NEAR_IN, t => nearW(t) / 2), 0.05, 0.5, 0.7, 0.85, 1, 1, 1), 40, { tip: 0.94, belly: 0.6, side: 1, head: 0, rim: 0.1, dry: 0.08, dryEnd: 0.8 });
   // ---- the far panel, over it: the wearer's left over her right
-  const farW = (t: number) => lerp(3, 54, ss(0, 0.42, t)), farOut = aside(FAR_IN, t => -farW(t));
+  const farW = (t: number) => lerp(5, 52, ss(0, 0.4, t)), farOut = aside(FAR_IN, t => -farW(t));
+  shade(GREY, farOut.slice(3), -40, 0.2, t => 0.7 * ss(0, 0.3, t));
   p.knock(p.shape([...FAR_IN, ...[...farOut].reverse()]));
-  wash(K, [...FAR_IN, ...[...farOut].reverse()], { tone: loc((_x, y) => lerp(0.98, 0.3, ss(1080, 1430, y))), soft: loc((_x, y) => lerp(1.6, 10, ss(1320, 1420, y))), wander: 2, fringe: 0.2, tooth: 6, rim: 0.2, mottle: 0.36, cloud: 90 });
-  side(press(aside(FAR_IN, t => -farW(t) / 2), 0.04, 0.34, 0.66, 0.9, 1, 1, 0.9, 0.8), 48, { tip: 0.94, belly: 0.6, side: -1, head: 0, rim: 0.1, dry: 0.08, dryEnd: 1 });
-  // ---- waters of the robe: whites stand, grey goes where cloth turns away
-  wash(K, [[696, 1060], [730, 1080], [750, 1160], [758, 1250], [758, 1340], [752, 1410], [716, 1404], [684, 1390], [698, 1300], [712, 1200]], { tone: loc((x, y) => 0.2 * ss(1060, 1200, y) * (0.5 + 0.9 * inkFbm2(5, x / 50, y / 130, 2))), soft: 12, wander: 5, mottle: 0.5 });
-  wash(K, [[470, 1130], [430, 1190], [412, 1290], [384, 1390], [470, 1430], [520, 1330], [560, 1210]], { tone: loc((x, y) => 0.06 * ss(1150, 1300, y) * (0.4 + 1.1 * inkFbm2(15, x / 70, y / 50, 2))), soft: 24, wander: 8, mottle: 0.5 });
-  // ---- sash
-  wash(K, [[438, 1404], [480, 1418], [552, 1424], [622, 1414], [682, 1390], [694, 1424], [652, 1488], [600, 1500], [540, 1482], [480, 1456], [440, 1432]], { tone: 0.62, soft: 2, wander: 2, wave: 60, fringe: 0.3, tooth: 6, rim: 0.2, rimWidth: 6, mottle: 0.3, cloud: 120 });
-  for (const [q, w, tip] of [[[[436, 1410, 0.5], [500, 1430, 1], [580, 1430, 1], [660, 1406, 0.9], [694, 1392, 0.4]], 34, 0.97], [[[452, 1438, 0.3], [520, 1458, 0.9], [596, 1456, 1], [676, 1424, 0.5]], 32, 0.9], [[[540, 1478, 0.2], [596, 1484, 0.9], [652, 1460, 0.4]], 30, 0.86]] as const) side(q as unknown as N3[], w, { tip, belly: 0.55, side: -1, head: 0.1, rim: 0.1, dry: 0.12, dryEnd: 0.7, bristles: 13, grain: 0.9 });
+  wash(K, [...FAR_IN, ...[...farOut].reverse()], { tone: loc((_x, y) => lerp(0.98, 0.6, ss(1000, 1300, y))), soft: 1.2, wander: 0.8, fringe: 0.2, tooth: 6, rim: 0.2, mottle: 0.36, cloud: 90, exact: true });
+  side(press(aside(FAR_IN, t => -farW(t) / 2), 0.04, 0.34, 0.66, 0.9, 1, 1, 0.9, 0.8), 46, { tip: 0.94, belly: 0.6, side: -1, head: 0, rim: 0.1, dry: 0.08, dryEnd: 1 });
+  // ---- the skirt, and the sash over it: the robe is drawn up out of it in small folds
+  for (const [x, long, dark] of [[426, 70, 0.16], [452, 104, 0.22], [484, 84, 0.14], [514, 110, 0.2], [538, 76, 0.1], [572, 108, 0.2], [604, 92, 0.16], [632, 104, 0.22], [664, 78, 0.18]] as const) { const q: P2[] = [[x, 1366], [lerp(x, 556, 0.05), 1366 + long * 0.5], [lerp(x, 556, 0.16), 1366 + long]]; shade(GREY, q, x < 556 ? 24 : -24, dark, t => ss(1.05, 0, t)); th(press(q, 0.9, 0.6, 0.04), 2.4, 0.74, 0.4); }
+  const SASH: P2[] = [[398, 1294], [440, 1304], [500, 1312], [560, 1314], [620, 1308], [672, 1294], [704, 1278], [706, 1326], [702, 1366], [660, 1382], [600, 1392], [540, 1395], [470, 1388], [398, 1370]];
+  p.knock(p.shape(SASH));
+  wash(B, SASH, { tone: loc((x, y) => 0.5 + 0.16 * ss(1330, 1390, y) + 0.2 * ss(460, 400, x) + 0.2 * ss(650, 704, x)), soft: 1.2, wander: 0.6, fringe: 0.2, rim: 0.2, rimWidth: 6, mottle: 0.2, cloud: 120, exact: true });
+  wash(K, SASH, { tone: loc((x, y) => 0.34 + 0.16 * ss(1330, 1390, y) + 0.24 * ss(460, 400, x) + 0.24 * ss(650, 704, x)), soft: 1.2, wander: 0.6, fringe: 0.2, rim: 0.2, rimWidth: 6, mottle: 0.2, cloud: 120, exact: true });
+  for (const q of [[[402, 1318], [480, 1336], [570, 1338], [650, 1322], [704, 1304]], [[400, 1346], [480, 1364], [570, 1366], [650, 1352], [702, 1336]]] as const) { shade([[K, 1]], q as unknown as P2[], 16, 0.3, () => 1); th(press(q, 0.6, 0.9, 1, 0.8, 0.6), 2.2, 0.8, 0.7); }
+  th(press(SASH.slice(0, 7), 0.8, 1, 0.8, 1, 0.8), 3, 0.9, 0.8); th(press(SASH.slice(7), 0.6, 0.9, 1, 0.9, 0.8), 3, 0.9, 0.8);
   // ---- the far sleeve, then the near one
-  p.knock(p.shape([[704, 1392], [672, 1438], [640, 1486], [620, 1530], [616, 1640], [862, 1640], [824, 1560], [782, 1490], [758, 1440], [726, 1404]]));
-  wash(B, [[690, 1420], [660, 1456], [634, 1500], [628, 1640], [870, 1640], [822, 1560], [780, 1490], [752, 1440]], { tone: loc((x, y) => 0.26 * ss(1400, 1560, y) * foot(x, y) * (0.25 + 1.1 * inkFbm2(9, x / 70, y / 170, 3))), soft: 4, wander: 4, wave: 70, fringe: 1, mottle: 0.5 });
-  vale(K, [[706, 1400], [720, 1458], [738, 1520], [760, 1580], [776, 1640]], 62, 0.46, 1101); vale(B, [[712, 1394], [736, 1408], [762, 1440], [786, 1490], [824, 1560], [862, 1640]], 80, 0.5, 1102); vale(K, [[640, 1494], [664, 1536], [674, 1590], [680, 1640]], 40, 0.4, 1103);
-  edge(press([[706, 1388], [684, 1424], [658, 1458], [632, 1500]], 0.04, 0.8, 0.7, 0.05), 13, -1);
-  p.knock(p.shape([[376, 1392], [430, 1424], [500, 1456], [560, 1482], [616, 1500], [628, 1560], [632, 1640], [164, 1640], [206, 1540], [226, 1446]]));
-  wash(B, [[430, 1440], [520, 1474], [612, 1506], [626, 1640], [190, 1640], [214, 1540], [300, 1500], [360, 1430]], { tone: loc((x, y) => 0.24 * ss(1430, 1580, y) * foot(x, y) * (0.2 + 1.2 * inkFbm2(3, x / 90, y / 190, 3))), soft: 14, wander: 12, wave: 110, fringe: 1.2, rim: 0.2, mottle: 0.55, cloud: 120 });
-  vale(K, [[384, 1404], [350, 1436], [306, 1484], [276, 1540], [262, 1590], [256, 1640]], -84, 0.44, 1111); vale(B, [[392, 1410], [374, 1452], [352, 1516], [342, 1580], [340, 1640]], -70, 0.6, 1112); vale(K, [[600, 1502], [560, 1524], [500, 1552], [450, 1592], [400, 1640]], -60, 0.5, 1113); vale(B, [[618, 1500], [628, 1556], [632, 1640]], 90, 0.5, 1114);
-  vale(K, [[225, 1440], [205, 1530], [172, 1604], [156, 1640]], -50, 0.3, 1115);
-  wash(K, [[250, 1360], [330, 1380], [374, 1400], [350, 1440], [300, 1490], [250, 1520], [232, 1470]], { tone: loc((_x, y) => 0.11 * ss(1340, 1400, y) * ss(1530, 1440, y)), soft: 30, wander: 12, mottle: 0.5 });
-  // ---- lines
-  edge(press([[372, 874], [350, 896], [320, 928], [290, 972], [266, 1032], [250, 1110], [237, 1200], [225, 1290], [218, 1372], [225, 1440], [205, 1530], [172, 1604]], 0.1, 0.5, 0.7, 1, 0.8, 0.5, 0.6, 0.9, 0.8, 1, 0.6, 0.04), 19, 1, { dryEnd: 0.8 });
-  edge(press([[626, 942], [642, 952], [676, 980], [704, 1014], [732, 1078], [750, 1160], [759, 1250], [761, 1340], [762, 1420], [782, 1490], [824, 1560], [852, 1600]], 0.05, 0.4, 0.8, 1, 0.6, 0.4, 0.7, 0.6, 0.9, 0.6, 0.3, 0.04), 16, -1, { dryEnd: 0.8 });
-  edge([[716, 1120, 0.02], [718, 1180, 0.4], [710, 1250, 0.8], [696, 1318, 0.6], [684, 1386, 0.1]], 13, 1);
-  edge([[424, 1172, 0.02], [420, 1236, 0.4], [406, 1306, 0.8], [376, 1392, 0.7], [430, 1424, 0.8], [500, 1456, 1], [560, 1482, 0.8], [616, 1500, 0.9], [628, 1556, 0.5], [632, 1600, 0.04]], 15, -1, { dryEnd: 0.7 });
-  fold([[384, 1404, 0.03], [350, 1436, 0.8], [306, 1484, 0.9], [276, 1540, 0.5], [266, 1590, 0.03]], 18, 1);
-  fold([[392, 1410, 0.03], [374, 1452, 0.7], [352, 1516, 0.7], [344, 1580, 0.03]], 15, 1);
-  fold([[604, 1504, 0.03], [560, 1524, 0.7], [500, 1552, 0.8], [450, 1592, 0.03]], 16, -1);
-  fold([[370, 1380, 0.03], [336, 1362, 0.7], [298, 1352, 0.4], [266, 1354, 0.02]], 13, 1);
-  fold([[712, 1398, 0.05], [736, 1380, 0.7], [756, 1356, 0.03]], 11, 1);
-  fold([[706, 1391, 0.05], [732, 1404, 0.8], [760, 1438, 0.7], [776, 1476, 0.5], [796, 1530, 0.03]], 14, -1);
-  fold([[706, 1412, 0.05], [718, 1458, 0.7], [738, 1520, 0.5], [760, 1580, 0.03]], 13, -1);
-  fold([[644, 1494, 0.05], [664, 1536, 0.7], [672, 1590, 0.03]], 13, -1);
-  fold([[336, 934, 0.02], [352, 984, 0.6], [356, 1040, 0.5], [350, 1096, 0.02]], 11, 1);
-  fold([[258, 1090, 0.02], [262, 1150, 0.6], [256, 1220, 0.5], [244, 1290, 0.02]], 13, 1);
-  fold([[660, 1010, 0.02], [670, 1060, 0.6], [668, 1110, 0.4], [658, 1150, 0.02]], 10, -1);
+  white([[702, 1352], [686, 1400], [664, 1440], [640, 1468], [614, 1488], [612, 1640], [912, 1640], [880, 1570], [850, 1500], [828, 1440], [812, 1380], [760, 1350]]);
+  wash(B, [[680, 1430], [650, 1480], [630, 1540], [628, 1640], [900, 1640], [862, 1560], [834, 1490], [806, 1430]], { tone: loc((x, y) => 0.16 * ss(1440, 1600, y) * foot(x, y) * (0.25 + 1.1 * inkFbm2(9, x / 70, y / 170, 3))), soft: 8, wander: 4, wave: 70, fringe: 0.4, mottle: 0.5 });
+  white([[394, 1350], [420, 1396], [454, 1430], [500, 1456], [556, 1474], [614, 1486], [632, 1540], [642, 1640], [390, 1640], [388, 1440]]);
+  wash(B, [[430, 1450], [520, 1480], [608, 1500], [626, 1640], [150, 1640], [180, 1560], [300, 1500], [360, 1430]], { tone: loc((x, y) => 0.18 * ss(1450, 1600, y) * foot(x, y) * (0.2 + 1.2 * inkFbm2(3, x / 90, y / 190, 3))), soft: 14, wander: 12, wave: 110, fringe: 0.6, rim: 0.1, mottle: 0.5, cloud: 120 });
+  shade(GREY, [[192, 1396], [184, 1450], [166, 1510], [142, 1570], [120, 1630]], -50, 0.2, t => ss(0, 0.3, t)); shade(GREY, [[420, 1396], [454, 1430], [500, 1456], [556, 1474], [614, 1486]], 40, 0.1, () => 1);
+  folds(SLEEVE_FOLDS);
+  // ---- contours: the brush presses where the form turns and lifts where it runs on
+  th(press([[449, 754], [440, 779], [421, 807], [398, 830], [348, 864], [304, 896], [268, 932], [244, 978], [226, 1034], [212, 1096], [203, 1150], [199, 1190]], 0.1, 0.4, 0.6, 0.7, 0.85, 1, 0.8, 0.7, 0.6, 0.5, 0.3), 5.4, 0.94, 0.8); th(press([[203, 1150], [196, 1240], [191, 1320], [190, 1390], [186, 1440]], 0.7, 1, 1, 1, 0.8), 1.9, 0.6, 0.6); th(press([[188, 1420], [184, 1450], [166, 1510], [142, 1570], [124, 1616]], 0.4, 0.8, 0.8, 0.5, 0.04), 4.2, 0.9, 0.7);
+  th([[592, 808, 0.05], [600, 819, 0.3], [613, 833, 0.4], [630, 846, 0.8], [647, 853, 0.8], [664, 861, 0.7]], 4.4, 0.94, 0.9); th(press([[724, 908], [750, 946], [768, 992], [784, 1052], [796, 1120], [805, 1200], [812, 1280], [818, 1360], [828, 1440], [850, 1500], [880, 1570], [900, 1612]], 0.1, 0.8, 0.8, 0.7, 0.7, 0.7, 0.8, 0.9, 0.9, 0.6, 0.04), 2.2, 0.6, 0.6);
+  th(press(ARM, 0.1, 0.8, 0.6, 0.8, 1), 4, 0.9, 0.9); th(press(FAR_ARM, 0.1, 0.6, 0.7, 0.9), 3.4, 0.8, 0.9);
+  th(press([[394, 1350], [420, 1396], [454, 1430], [500, 1456], [556, 1474], [614, 1486], [632, 1540], [640, 1610]], 0.8, 1, 0.7, 0.7, 0.9, 1, 0.6, 0.04), 4.4, 0.94, 0.8); th(press([[702, 1352], [686, 1400], [664, 1440], [640, 1468], [616, 1484]], 0.9, 0.8, 0.7, 0.6, 0.2), 4, 0.9, 0.8);
 }
 
-/** A length of the scarf: thin indigo inside two edges that swell and thin. `w` is half its width along the way; `tone` is asked how far along and how far across (−1..1). */
-function scarfBand(d: ReturnType<typeof draws>, q: readonly P2[], w: readonly number[], tone: (t: number, u: number) => number, o: Partial<Parameters<typeof inkBloom>[3]> = {}, ends: readonly P2[] = []) {
-  const at = (t: number) => { const x = t * (w.length - 1), i = Math.min(w.length - 2, Math.floor(x)); return lerp(w[i], w[i + 1], x - i); }, L = aside(q, t => -at(t)), M = aside(q, t => at(t)), k = ends.length ? 1 : 0;
-  const thin = d.loc((x, y) => { let b = 1e9, bt = 0, bu = 0; for (let i = 0; i < q.length - 1; i++) { const [ax, ay] = q[i], dx = q[i + 1][0] - ax, dy = q[i + 1][1] - ay, f = clamp(((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy)), l = Math.hypot(x - ax - f * dx, y - ay - f * dy); if (l < b) { b = l; bt = (i + f) / (q.length - 1); bu = (dx * (y - ay) - dy * (x - ax) > 0 ? 1 : -1) * l; } } return tone(bt, bu / Math.max(4, at(bt))) * (0.6 + 0.8 * inkFbm2(27, x / 46, y / 120, 3)); });
-  d.wash(B, [...L.slice(k), ...[...M.slice(k)].reverse(), ...ends], { tone: thin, soft: 1.6, wander: 2.4, wave: 60, fringe: 0.8, rim: 0.5, rimWidth: 5, mottle: 0.4, cloud: 60, ...o });
-  return { L, M };
+// ---- 披帛: a long shawl of gauze. One end lies over her far shoulder and falls in front; from there it goes round behind her, comes forward low over the near arm and is held in the crook of the elbow.
+/** A piece of it: one thin wash, its folds, its borders with the hem line inside them (`hem` away, to the piece's own side). So thin that the robe's lines show through. */
+interface Gauze { outline: readonly P2[]; tone: (x: number, y: number) => number; folds: readonly Fold[]; borders: readonly (readonly [path: readonly P2[], hem: number, ...press: number[]])[] }
+const ROSE = [[W, 1.6], [R, 0.42], [E, 0.18], [K, 0.05]] as const, VALLEY = [[R, 0.46], [E, 0.4], [K, 0.14]] as const;
+function drawGauze(p: InkRisoPen, seed: number, { outline, tone, folds, borders }: Gauze) {
+  const d = draws(p, seed), line = (q: readonly N3[], w: number, ink: number, end: number) => { d.th(q, w, ink * 0.7, end * 0.7); inkThread(p, R, q, w * 1.1, { ink: ink * 0.6, inkEnd: end * 0.6, seed: seed + 90 }); };
+  for (const [plate, k] of ROSE) d.wash(plate, outline, { tone: d.loc((x, y) => k * tone(x, y) * (0.74 + 0.52 * inkFbm2(27, x / 60, y / 130, 3)) * d.foot(x, y)), soft: 1, wander: 0, fringe: 0.1, rim: 0.2, rimWidth: 5, mottle: 0.2, cloud: 70, exact: true });
+  for (const [q, , reach, t] of folds) d.shade(VALLEY, q, reach, t * 0.8);
+  for (const [q, w, , , ...k] of folds) if (w) line(press(q, ...k), w, 0.56, 0.5);
+  for (const [q, hem, ...k] of borders) { line(press(q, ...k), 2.4, 0.7, 0.6); if (hem) line(press(aside(q, () => hem), ...k.map(v => v * 0.8)), 1.3, 0.34, 0.3); }
 }
-/** 披帛: the end of the scarf that is out on the air behind her far arm. It turns over once. */
-function drawScarfEnd({ page: p }: Pens) {
-  const d = draws(p, 1000), { th } = d;
-  const out1: P2[] = [[716, 1276], [760, 1262], [806, 1260], [856, 1284], [896, 1330], [916, 1386], [914, 1436]], out2: P2[] = [[915, 1420], [905, 1468], [910, 1518], [938, 1554], [982, 1570], [1034, 1562]];
-  const b2 = scarfBand(d, out2, [3, 17, 30, 31, 22, 3], (t, u) => 0.52 - 0.2 * u - 0.16 * t), b1 = scarfBand(d, out1, [26, 30, 32, 35, 30, 17, 2], (t, u) => 0.28 + 0.14 * u + 0.12 * t);
-  th(press(b1.L, 0.3, 0.5, 0.9, 1, 0.5, 0.8, 0.3), 3.4, 0.72, 0.6); th(press(b1.M, 0.2, 0.9, 0.5, 0.4, 1, 0.8, 0.3), 3.8, 0.8, 0.6); th(press(b2.L, 0.3, 0.9, 1, 0.6, 0.4, 0.05), 3.8, 0.84, 0.5); th(press(b2.M, 0.3, 0.8, 0.5, 1, 0.6, 0.05), 3, 0.7, 0.4);
-  th([[782, 1256, 0.05], [836, 1284, 0.6], [878, 1332, 0.7], [903, 1390, 0.5], [912, 1430, 0.1]], 2, 0.4, 0.5); th([[914, 1446, 0.1], [912, 1490, 0.6], [928, 1532, 0.6], [968, 1556, 0.05]], 2, 0.5, 0.3);
-}
-/** The scarf over the near arm, gathered in the crook and let fall: so thin that the robe's lines show through. */
-function drawScarf({ page: p }: Pens) {
-  const d = draws(p, 1040), { th, loc } = d;
-  const near: P2[] = [[226, 1276], [262, 1302], [304, 1340], [346, 1380], [382, 1416], [408, 1456], [424, 1504], [428, 1554], [418, 1612]];
-  const b = scarfBand(d, near, [42, 43, 40, 32, 21, 19, 29, 37, 44], (t, u) => (0.24 + 0.2 * Math.exp(-(((t - 0.54) / 0.2) ** 2)) + (t < 0.54 ? -0.08 : 0.1) * u) * ss(1.04, 0.72, t), { soft: loc((_x, y) => lerp(1.6, 16, ss(1520, 1600, y))) }, [[222, 1338], [214, 1322], [216, 1270], [230, 1232], [240, 1230]]);
-  th([[240, 1228, 0.1], [226, 1238, 0.7], [216, 1270, 1], [213, 1306, 0.9], [219, 1336, 0.5]], 3, 0.8, 0.7);
-  th(press([[232, 1230], ...b.L.slice(1)], 0.1, 0.5, 1, 0.6, 0.4, 1, 0.8, 0.4, 0.03), 4, 0.84, 0.4); th(press([[216, 1330], ...b.M.slice(1)], 0.1, 0.9, 0.45, 0.7, 1, 0.9, 0.5, 0.4, 0.03), 4, 0.84, 0.4);
-  th([[256, 1278, 0.03], [312, 1330, 0.5], [364, 1386, 0.8], [398, 1430, 0.9], [420, 1486, 0.5], [426, 1546, 0.03]], 2.6, 0.55, 0.3); th([[296, 1352, 0.03], [346, 1398, 0.6], [388, 1436, 0.9], [402, 1482, 0.6], [402, 1540, 0.03]], 2.2, 0.5, 0.3); th([[392, 1420, 0.7], [416, 1462, 0.8], [442, 1528, 0.4], [450, 1578, 0.03]], 2.2, 0.55, 0.3);
-}
+const about = (x: number, y: number, r: number) => (px: number, py: number) => Math.exp(-(((px - x) ** 2 + (py - y) ** 2) / (r * r)));
+const HELD = about(404, 1384, 100);
+/** What hangs behind her, seen outside the near arm. */
+const BEHIND: Gauze = {
+  outline: [[196, 1210], [170, 1290], [150, 1380], [130, 1470], [108, 1560], [92, 1640], [132, 1640], [154, 1570], [178, 1510], [196, 1450], [206, 1390], [214, 1300]],
+  tone: () => 0.36,
+  folds: [[[[184, 1280], [166, 1380], [148, 1480], [124, 1590]], 1.8, -26, 0.3, 0.03, 0.7, 0.8, 0.03], [[[188, 1400], [172, 1480], [150, 1570]], 1.6, -22, 0.3, 0.03, 0.7, 0.03]],
+  borders: [[[[196, 1210], [170, 1290], [150, 1380], [130, 1470], [108, 1560], [94, 1626]], -7, 0.5, 0.9, 1, 0.9, 0.6, 0.05]],
+};
+const OVER_ARM: Gauze = {
+  outline: [[203, 1148], [186, 1196], [174, 1262], [168, 1340], [174, 1412], [192, 1460], [222, 1490], [264, 1504], [314, 1494], [362, 1456], [398, 1412], [418, 1390], [414, 1372], [396, 1368], [356, 1356], [306, 1322], [260, 1270], [226, 1208]],
+  tone: (x, y) => 0.18 + 0.16 * HELD(x, y) + 0.08 * ss(204, 172, x),
+  folds: [
+    // two long ones into the crook, and what runs into them
+    [[[184, 1222], [222, 1296], [282, 1350], [346, 1376], [406, 1380]], 2, 40, 0.34, 0.03, 0.6, 0.8, 0.9, 1], [[[170, 1330], [200, 1396], [260, 1430], [336, 1424], [408, 1388]], 2, 40, 0.36, 0.03, 0.7, 0.9, 0.9, 1],
+    [[[236, 1226], [266, 1286], [312, 1334], [366, 1362]], 1.6, 20, 0.22, 0.03, 0.6, 0.7, 0.03], [[[262, 1290], [292, 1340], [340, 1366]], 1.5, -16, 0.2, 0.03, 0.7, 0.03], [[[196, 1180], [204, 1260], [232, 1318], [262, 1346]], 1.6, -22, 0.24, 0.03, 0.8, 0.6, 0.03],
+    [[[182, 1428], [222, 1466], [280, 1468], [344, 1440], [406, 1394]], 1.9, 26, 0.32, 0.03, 0.8, 0.9, 0.9, 0.9], [[[216, 1400], [262, 1404], [320, 1396], [372, 1384]], 1.6, -18, 0.24, 0.03, 0.8, 0.6, 0.03], [[[270, 1484], [330, 1466], [380, 1424], [408, 1396]], 1.6, 14, 0.24, 0.03, 0.7, 0.8, 0.8],
+  ],
+  borders: [[[[203, 1148], [226, 1208], [260, 1270], [306, 1322], [356, 1356], [396, 1368], [414, 1372]], 8, 0.4, 0.9, 0.8, 0.9, 1, 0.7], [[[203, 1148], [186, 1196], [174, 1262], [168, 1340], [174, 1412], [192, 1460], [222, 1490]], 0, 0.5, 0.9, 1, 0.9, 0.8, 0.8], [[[192, 1460], [222, 1490], [264, 1504], [314, 1494], [362, 1456], [398, 1412], [418, 1390]], -8, 0.6, 0.9, 0.9, 0.8, 0.6]],
+};
+const FALL: Gauze = {
+  outline: [[662, 860], [672, 852], [694, 864], [730, 892], [760, 932], [782, 982], [800, 1046], [812, 1120], [822, 1200], [830, 1280], [840, 1360], [862, 1440], [898, 1530], [950, 1640], [752, 1640], [728, 1560], [710, 1480], [698, 1400], [690, 1310], [688, 1220], [686, 1130], [676, 1040], [664, 960], [658, 900]],
+  tone: (_x, y) => 0.18 + 0.2 * ss(1150, 1600, y),
+  folds: [
+    [[[688, 866], [690, 970], [704, 1080], [712, 1200], [716, 1330], [734, 1460], [778, 1620]], 1.9, -34, 0.3, 0.03, 0.7, 0.8, 0.9, 0.8, 0.6, 0.03], [[[732, 898], [746, 1010], [764, 1120], [774, 1230], [788, 1350], [818, 1470], [866, 1620]], 2, -40, 0.34, 0.03, 0.8, 0.9, 0.8, 0.9, 0.6, 0.03],
+    [[[704, 874], [722, 960], [734, 1060], [744, 1180], [756, 1330]], 1.6, 24, 0.24, 0.03, 0.7, 0.6, 0.6, 0.03], [[[778, 1130], [792, 1230], [808, 1340], [840, 1450], [888, 1580]], 1.7, -26, 0.3, 0.03, 0.7, 0.8, 0.7, 0.03], [[[696, 1200], [706, 1320], [722, 1440], [756, 1570]], 1.6, 20, 0.26, 0.03, 0.8, 0.7, 0.03], [[[756, 936], [776, 1030], [790, 1110], [798, 1180]], 1.6, -20, 0.22, 0.03, 0.8, 0.6, 0.03], [[[746, 1260], [760, 1380], [792, 1500], [836, 1600]], 1.6, 20, 0.28, 0.03, 0.7, 0.7, 0.03],
+  ],
+  borders: [[[[672, 852], [662, 862], [658, 900], [664, 960], [676, 1040], [686, 1130], [688, 1220], [690, 1310], [698, 1400], [710, 1480], [728, 1560], [748, 1626]], -8, 0.5, 0.9, 1, 0.8, 0.9, 0.6, 0.05], [[[664, 856], [672, 852], [694, 864], [730, 892], [760, 932], [782, 982], [800, 1046], [812, 1120], [822, 1200], [830, 1280], [840, 1360], [862, 1440], [898, 1530], [944, 1626]], 8, 0.4, 0.9, 0.9, 0.9, 1, 0.9, 0.6, 0.05]],
+};
+/** How much of what it hides is left toward the foot of the page. */
+const FOOT = (_: number, y: number) => 1 - ss(1480, 1592, y);
+const gauze = (g: Gauze, seed: number) => ({ page: p }: Pens) => drawGauze(p, seed, g);
+/** In a film, paper under what hangs outside the body, so that it keeps its colour over any scene. */
+const hangs = (g: Gauze) => ({ page: p }: Pens) => { inkCover(p, p.shape(g.outline)); inkFade(p, [0, 1440, PAGE.width, 160], FOOT, { coverOnly: true }); };
 /** Ink and water thrown behind her: one great blot that leaves her face on clean paper, dry strokes pulled down out of it, drops. */
 function drawSplash({ page: p }: Pens) {
   const lo = (fn: (x: number, y: number) => number) => (X: number, Y: number) => { const [x, y] = p.local(X, Y); return fn(x, y); };
@@ -494,7 +539,7 @@ function drawSplash({ page: p }: Pens) {
 }
 /** A few petals on the air. */
 function drawPetals({ page: p }: Pens) {
-  for (const [x, y, r, a, seed] of [[892, 1180, 9, 0.6, 51], [1010, 1250, 7, 2.2, 52], [148, 1242, 8, 1.2, 53], [960, 1420, 6, -0.4, 54]] as const) inkBloom(p, R, p.shape([[-1, 0], [-0.4, -0.5], [0.4, -0.56], [1, -0.1], [0.86, 0.3], [0.2, 0.42], [-0.6, 0.3]].map(([u, v]) => [x + r * (u * Math.cos(a) - v * Math.sin(a)), y + r * (u * Math.sin(a) + v * Math.cos(a))] as const)), { tone: 0.62, soft: 0.9, wander: 0.6, wave: 8, fringe: 0.5, rim: 0.4, rimWidth: 3, mottle: 0.5, cloud: 10, seed });
+  for (const [x, y, r, a, seed] of [[892, 1180, 9, 0.6, 51], [1010, 1250, 7, 2.2, 52], [106, 1300, 8, 1.2, 53], [960, 1420, 6, -0.4, 54]] as const) inkBloom(p, R, p.shape([[-1, 0], [-0.4, -0.5], [0.4, -0.56], [1, -0.1], [0.86, 0.3], [0.2, 0.42], [-0.6, 0.3]].map(([u, v]) => [x + r * (u * Math.cos(a) - v * Math.sin(a)), y + r * (u * Math.sin(a) + v * Math.cos(a))] as const)), { tone: 0.62, soft: 0.9, wander: 0.6, wave: 8, fringe: 0.5, rim: 0.4, rimWidth: 3, mottle: 0.5, cloud: 10, seed });
 }
 // ---- plum blossom ------------------------------------------------------------------------------------------------------------------
 interface BlossomOptions { turn?: number; squash?: number; lean?: number; line?: number; blush?: number; seed: number }
@@ -541,11 +586,11 @@ function ground(p: InkRisoPen, q: readonly N3[], width: number) {
 /** The spray in her hair, over the place where the coil is bound. */
 function drawSpray(p: InkRisoPen) {
   const on = (q: readonly (readonly [number, number, number])[]): N3[] => q.map(([x, y, k]) => [...onPage(x, y), k] as const);
-  const twig = (q: readonly (readonly [number, number, number])[], w: number, seed: number) => { const n = on(q); ground(p, n, w * 0.86); inkThread(p, K, n, w * 0.62, { ink: 0.86, seed }); };
+  const twig = (q: readonly (readonly [number, number, number])[], w: number, seed: number) => { const n = on(q); ground(p, n, w * 0.86 * Z); inkThread(p, K, n, w * 0.62 * Z, { ink: 0.86, seed }); };
   twig([[1.5, -2.3, 0.4], [1.7, -2.2, 0.9], [1.9, -2.04, 1], [2.04, -1.8, 0.9], [2.1, -1.52, 0.6], [2.08, -1.34, 0.1]], 5, 1200);
   twig([[1.98, -1.9, 0.8], [2.2, -1.86, 0.6], [2.34, -1.72, 0.1]], 4, 1201);
   const at = (x: number, y: number) => onPage(x, y);
-  const b = (x: number, y: number, r: number, o: BlossomOptions) => { const q = at(x, y); blossom(p, q[0], q[1], r, o); }, d = (x: number, y: number, r: number, a: number, o: Parameters<typeof bud>[5]) => { const q = at(x, y); bud(p, q[0], q[1], r, a, o); };
+  const b = (x: number, y: number, r: number, o: BlossomOptions) => { const q = at(x, y); blossom(p, q[0], q[1], r * Z, o); }, d = (x: number, y: number, r: number, a: number, o: Parameters<typeof bud>[5]) => { const q = at(x, y); bud(p, q[0], q[1], r * Z, a, o); };
   d(2.08, -1.3, 7, 1.2, { red: 0.75, seed: 1210 }); d(2.36, -1.69, 6.6, 2.4, { red: 0.8, seed: 1215 }); d(2.13, -1.5, 5.6, 2, { red: 0.6, seed: 1220 }); d(1.46, -2.33, 5.6, -0.6, { red: 0.7, seed: 1221 });
   b(2.06, -1.68, 20, { turn: 0.5, squash: 0.66, lean: 0.7, line: 0.4, seed: 1230 });
   b(1.64, -2.22, 23, { turn: 0.2, squash: 0.74, lean: -0.5, line: 0.4, seed: 1240 });
@@ -586,25 +631,28 @@ function bead(p: InkRisoPen, x: number, y: number, rx: number, ry: number, o: { 
   else { inkBloom(p, K, shape, { tone: (X, Y) => { const [a, b] = p.local(X, Y); return 0.2 * ss(0.2, 1, (a - x) / rx + (b - y) / ry); }, soft: 0.8, wander: 0, fringe: 0, rim: 0, mottle: 0.3, cloud: 8, seed: o.seed }); inkThread(p, K, [[x - rx * 0.3, y - ry * 0.95, 0.5], [x + rx * 0.62, y - ry * 0.8, 0.8], [x + rx, y + ry * 0.1, 1], [x + rx * 0.5, y + ry * 0.88, 1], [x - rx * 0.5, y + ry * 0.88, 0.8], [x - rx, y, 0.5], [x - rx * 0.66, y - ry * 0.72, 0.1]], 1.6, { ink: 0.9, inkEnd: 0.6, seed: o.seed }); }
 }
 const HOOK: P2 = onPage(2.66, -2.82);
+type Bead = Parameters<typeof bead>[5];
+/** Beads strung from a place on the head, at the head's own size. */
+const strung = (p: InkRisoPen, [x, y]: P2) => ({ bead: (u: number, v: number, rx: number, ry: number, o: Bead) => bead(p, x + Z * u, y + Z * v, Z * rx, Z * ry, o), at: (u: number, v: number, k: number): N3 => [x + Z * u, y + Z * v, k] });
 /** 步搖: the pin behind the blossoms, and the chain that swings from its head. */
 function drawPin(p: InkRisoPen) {
-  const [x, y] = HOOK, q = (u: number, v: number, k: number): N3 => [x + u, y + v, k], shaft: N3[] = [q(112, 26, 0.9), q(78, 18, 1), q(40, 9, 0.9), q(11, 2, 0.8)];
-  inkThread(p, K, shaft, 5.6, { ink: 0.97, inkEnd: 0.95, seed: 1400 });
-  bead(p, x + 11, y + 1.6, 3, 6.4, { plate: K, tone: 0.97, seed: 1405 }); bead(p, x, y - 1, 9.4, 8.8, { seed: 1403 }); bead(p, x - 12, y - 3, 4.4, 4.4, { plate: R, tone: 0.95, seed: 1404 });
+  const { bead: b, at: q } = strung(p, HOOK);
+  inkThread(p, K, [q(112, 26, 0.9), q(78, 18, 1), q(40, 9, 0.9), q(11, 2, 0.8)], 5.6 * Z, { ink: 0.97, inkEnd: 0.95, seed: 1400 });
+  b(11, 1.6, 3, 6.4, { plate: K, tone: 0.97, seed: 1405 }); b(0, -1, 9.4, 8.8, { seed: 1403 }); b(-12, -3, 4.4, 4.4, { plate: R, tone: 0.95, seed: 1404 });
 }
 function drawChain(p: InkRisoPen) {
-  const [x, y] = HOOK;
-  inkThread(p, K, [[x, y - 2, 0.6], [x + 0.6, y + 60, 0.7], [x, y + 122, 0.6], [x - 0.4, y + 184, 0.5]], 1.3, { ink: 0.8, inkEnd: 0.7, seed: 1410 });
-  for (const [i, [d, r]] of ([[14, 2.2], [25, 2.6], [37, 2.2], [74, 2.4], [86, 2.1], [99, 2.5], [142, 2.2], [153, 2]] as const).entries()) bead(p, x + (i % 2 ? 0.5 : -0.3), y + d, r, r, { plate: K, tone: 0.95, seed: 1420 + i });
-  bead(p, x, y + 55, 6.4, 6.8, { seed: 1430 }); bead(p, x + 0.2, y + 121, 6, 9.5, { plate: B, tone: 0.8, seed: 1431 }); bead(p, x - 0.2, y + 170, 4, 4.4, { seed: 1432 }); bead(p, x - 0.3, y + 190, 4.4, 8, { plate: R, tone: 0.95, seed: 1433 });
+  const { bead: b, at: q } = strung(p, HOOK);
+  inkThread(p, K, [q(0, -2, 0.6), q(0.6, 60, 0.7), q(0, 122, 0.6), q(-0.4, 184, 0.5)], 1.3, { ink: 0.8, inkEnd: 0.7, seed: 1410 });
+  for (const [i, [d, r]] of ([[14, 2.2], [25, 2.6], [37, 2.2], [74, 2.4], [86, 2.1], [99, 2.5], [142, 2.2], [153, 2]] as const).entries()) b(i % 2 ? 0.5 : -0.3, d, r, r, { plate: K, tone: 0.95, seed: 1420 + i });
+  b(0, 55, 6.4, 6.8, { seed: 1430 }); b(0.2, 121, 6, 9.5, { plate: B, tone: 0.8, seed: 1431 }); b(-0.2, 170, 4, 4.4, { seed: 1432 }); b(-0.3, 190, 4.4, 8, { plate: R, tone: 0.95, seed: 1433 });
 }
 /** Where the earring hangs: a little above the foot of the lobe. */
 const LOBE: P2 = (q => onPage(q[0], q[1] - 0.05))(HEAD.ear.map(q => HEAD.fromLevel(q)).reduce((a, q) => (q[1] > a[1] ? q : a)));
 function drawEarring(p: InkRisoPen) {
-  const [x, y] = LOBE;
-  inkThread(p, K, [[x - 1, y - 6, 0.6], [x - 3.4, y + 1, 1], [x - 0.6, y + 7, 0.8], [x + 2, y + 2, 0.2]], 1.6, { ink: 0.9, seed: 1440 });
-  inkThread(p, K, [[x - 0.4, y + 7, 0.7], [x, y + 30, 0.6], [x, y + 54, 0.5]], 1.4, { ink: 0.85, seed: 1441 });
-  bead(p, x - 0.3, y + 14, 3, 3, { plate: K, tone: 0.95, seed: 1442 }); bead(p, x, y + 29, 5.6, 8.6, { plate: B, tone: 0.82, seed: 1443 }); bead(p, x, y + 44, 2.6, 2.6, { plate: K, tone: 0.95, seed: 1444 }); bead(p, x, y + 58, 4, 7, { plate: R, tone: 0.95, seed: 1445 });
+  const { bead: b, at: q } = strung(p, LOBE);
+  inkThread(p, K, [q(-1, -6, 0.6), q(-3.4, 1, 1), q(-0.6, 7, 0.8), q(2, 2, 0.2)], 1.6 * Z, { ink: 0.9, seed: 1440 });
+  inkThread(p, K, [q(-0.4, 7, 0.7), q(0, 30, 0.6), q(0, 54, 0.5)], 1.4 * Z, { ink: 0.85, seed: 1441 });
+  b(-0.3, 14, 3, 3, { plate: K, tone: 0.95, seed: 1442 }); b(0, 29, 5.6, 8.6, { plate: B, tone: 0.82, seed: 1443 }); b(0, 44, 2.6, 2.6, { plate: K, tone: 0.95, seed: 1444 }); b(0, 58, 4, 7, { plate: R, tone: 0.95, seed: 1445 });
 }
 /** What has come loose: long fine hairs over the near temple and before the ear, a thin lock and a long curl past the far cheek, wisps at the nape. */
 function drawStrands(f: InkRisoPen) {
@@ -659,14 +707,17 @@ export interface InkMomeiOptions {
 /** 墨梅 in layers. She breathes and blinks slowly; the beads of her hairpin and earring swing, the scarf, the branch and her loose hair move in a light wind. */
 export function inkMomei({ wash = true, branch = true, name = true, wind = 1 }: InkMomeiOptions = {}): InkSubject {
   const shown: Readonly<Record<string, boolean>> = { wash, branch, petals: branch, name };
+  const fall: InkPart["motion"] = [BREATH, { kind: "sway", from: [700, 900], to: [850, 1640], amount: 12 * wind, seconds: 6, lag: 0.34, power: 2.4, lean: 0.25 }];
   const parts: InkPart[] = [
     { id: "wash", draw: paint(drawSplash), depth: -0.25 },
-    { id: "branch", draw: c => drawBranch(pens(c).page), depth: 0.12, motion: [{ kind: "sway", from: [1236, 1104], to: [862, 872], amount: 6 * wind, seconds: 7.2, lag: 0.16, power: 1.5, lean: 0.1 }] },
+    { id: "branch", draw: c => drawBranch(c.pens({ bough: { x: 14, y: -80, scale: 1 } }).bough), depth: 0.12, motion: [{ kind: "sway", from: [1250, 1024], to: [876, 792], amount: 6 * wind, seconds: 7.2, lag: 0.16, power: 1.5, lean: 0.1 }] },
     { id: "petals", draw: paint(drawPetals), depth: 0.2, motion: [{ kind: "drift", by: [-16 * wind, 22 * wind], back: 8 }] },
     { id: "under", only: "film", group: "head", draw: c => inkCover(c.page, c.page.shape(COVER)) },
-    { id: "scarf-end", draw: paint(drawScarfEnd), motion: [{ kind: "sway", from: [740, 1264], to: [1034, 1562], amount: 16 * wind, seconds: 6, lag: 0.34, power: 1.6, lean: 0.25 }] },
-    { id: "body", draw: c => { paint(drawBody)(c); inkFade(c.page, [0, 1440, PAGE.width, 160], (_, y) => 1 - ss(1480, 1592, y), { coverOnly: true }); }, motion: [BREATH] },
-    { id: "scarf", draw: paint(drawScarf), motion: [BREATH, { kind: "sway", from: [392, 1430], to: [418, 1620], amount: 5 * wind, seconds: 6, lag: 0.3, power: 1.8, lean: 0.2, phase: 1.1 }] },
+    { id: "scarf-back", draw: paint(p => { hangs(BEHIND)(p); gauze(BEHIND, 1100)(p); }), motion: [BREATH] },
+    { id: "scarf-under", only: "film", draw: paint(hangs(FALL)), motion: fall },
+    { id: "body", draw: c => { paint(drawBody)(c); inkFade(c.page, [0, 1440, PAGE.width, 160], FOOT, { coverOnly: true }); }, motion: [BREATH] },
+    { id: "scarf", draw: paint(gauze(OVER_ARM, 1000)), motion: [BREATH] },
+    { id: "scarf-end", draw: paint(gauze(FALL, 1200)), motion: fall },
     { id: "face", group: "head", poses: { kind: "blink", open: "open", order: ["half", "shut"], every: 5.2, seconds: 0.36 }, draw: c => drawFace(pens(c).face, HEAD, LIDS[c.pose] ?? 1) },
     { id: "hair", group: "head", draw: paint(p => drawSides(p.face)) },
     { id: "chignon", group: "head", draw: paint(p => { drawCoil(p.face); drawPin(p.page); }) },
@@ -677,5 +728,5 @@ export function inkMomei({ wash = true, branch = true, name = true, wind = 1 }: 
     { id: "earring", group: "head", draw: paint(p => drawEarring(p.page)), motion: [{ kind: "turn", at: LOBE, degrees: 2.4 * wind, seconds: 2.9, phase: 0.7 }] },
     { id: "name", draw: paint(drawInscription) },
   ];
-  return { id: "momei", label: "Half figure of a girl turned to the right beside a branch of plum blossom: her hair parted in the middle and wound into a coil with one hollow loop hanging behind it, white blossom and a swinging chain of beads, one long tress tied with a red cord over her shoulder, a white robe with a broad dark collar, a thin blue scarf", page: PAGE, plates: PLATES, paper: "#F8F1E3", seed: 23, groups: { head: [{ kind: "turn", at: [520, 900], degrees: 0.42, seconds: 7.4 }, BREATH] }, parts: inkPaintOrder(parts.filter(p => shown[p.id] ?? true), ["under", "hair", "chignon", "face", "flowers", "pin", "strands", "tress", "earring", "body", "scarf", "scarf-end", "wash", "branch", "petals", "name"], ["face"]) };
+  return { id: "momei", label: "Half figure of a girl turned to the right beside a branch of plum blossom: her hair parted in the middle and wound into a coil with one hollow loop hanging behind it, white blossom and a swinging chain of beads, one long tress tied with a red cord over her shoulder, a white robe with a broad dark collar and an indigo sash, a long shawl of rose gauze over one shoulder and in the crook of the other arm", page: PAGE, plates: PLATES, paper: "#F8F1E3", seed: 23, groups: { head: [{ kind: "turn", at: [547, 817], degrees: 0.42, seconds: 7.4 }, BREATH] }, parts: inkPaintOrder(parts.filter(p => shown[p.id] ?? true), ["under", "hair", "chignon", "face", "flowers", "pin", "strands", "tress", "earring", "body", "scarf", "scarf-end", "scarf-under", "scarf-back", "wash", "branch", "petals", "name"], ["face"]) };
 }

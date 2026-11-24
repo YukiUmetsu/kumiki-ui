@@ -13,7 +13,7 @@ const CAST: InkFilm = {
     id: "cast", seconds: 18, label: "Three half figures in brush ink side by side: a girl with coiled hair and white blossom, a swordsman with a small crown, and a long-haired woman before the moon",
     layers: [
       { subject: "qingfeng", props: { name: false, mountain: false }, at: [962, 590], scale: 0.68, depth: 0, enter: { kind: "paint", at: 0.2, seconds: 6 } },
-      { subject: "momei", props: { name: false, branch: false }, at: [350, 636], scale: 0.66, depth: 0, enter: { kind: "paint", at: 0.8, seconds: 6 } },
+      { subject: "momei", props: { name: false, branch: false }, at: [352, 692], scale: 0.84, depth: 0, enter: { kind: "paint", at: 0.8, seconds: 6 } },
       { subject: "shuiyue-gongbi", props: { name: false }, at: [1570, 636], scale: 0.66, depth: 0, enter: { kind: "paint", at: 1.2, seconds: 6 } },
     ],
   }],
