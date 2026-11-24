@@ -5,6 +5,7 @@
   python3 -I scripts/reference-match.py side    pair.json --box=-1.3,-2,2,1.6 --grid 0.1 --out side.png
   python3 -I scripts/reference-match.py overlap pair.json --box=-1.3,-2.6,2.3,-0.4 --out over.png
   python3 -I scripts/reference-match.py values  pair.json --box crown=0.1,-2,1.1,-1.6 --box side=0.1,-1.5,1.3,-1
+  python3 -I scripts/reference-match.py colours pair.json --lit=0.6,0.45 --at cheek=1,0.7 --at under-eye=0.46,0.17
   python3 -I scripts/reference-match.py trace   pair.json --path=-0.25,1.45:0.1,1.49:0.5,1.31:0.85,1.06 --step 0.05
   python3 -I scripts/reference-match.py swap    pair.json --part eyes=-0.8,-0.2:0.8,-0.2:0.8,0.2:-0.8,0.2 --out swap.png
 
@@ -163,6 +164,21 @@ def values(args) -> None:
             print(f"{name:14}{who:11}" + (f"{dark.mean():6.1f}{dark.std():8.1f}{dark.size / light.size:9.3f}" if dark.size else "  no dark pixels"))
 
 
+def colours(args) -> None:
+    pair, r, hexa = Pair(args.pair), args.radius, lambda c: "#" + "".join(f"{round(v):02X}" for v in c)
+
+    def mean(who, at):
+        box = (at[0] - r, at[1] - r, at[0] + r, at[1] + r)
+        return np.asarray(pair.level(who, box, 4 / r, True)).reshape(-1, 3).astype(float).mean(0)
+
+    lit = {who: mean(who, args.lit) for who in SIDES}
+    print(f"lit place: reference {hexa(lit[SIDES[0]])}, drawing {hexa(lit[SIDES[1]])}. Ratios are to it, for red, green and blue.\n{'':14}reference             drawing               drawing - reference")
+    for name, at in args.at:
+        ref, ours = (mean(who, at) for who in SIDES)
+        ratios = ["/".join(f"{v:.2f}" for v in c / lit[who]) for who, c in zip(SIDES, (ref, ours))]
+        print(f"{name:14}{hexa(ref)} {ratios[0]:14}{hexa(ours)} {ratios[1]:14}" + "".join(f"{v:+5.0f}" for v in ours - ref))
+
+
 def found(light: np.ndarray, guess: float, reach: float, low: float, scale: float):
     """Where the darkest line near `guess` lies along one scan, its thickness at half its darkness, and its darkness."""
     start = max(0, round((guess - reach - low) * scale))
@@ -269,6 +285,11 @@ def main() -> None:
     p = command("values", values, "mean, spread and cover of the dark in named boxes")
     p.add_argument("--box", type=lambda t: named(t, box_of), action="append", required=True)
     p.add_argument("--dark", type=float, default=110)
+    place = lambda t: points(t)[0]
+    p = command("colours", colours, "the colour of named places, and its ratio to a lit place")
+    p.add_argument("--at", type=lambda t: named(t, place), action="append", required=True, help="name=x,y")
+    p.add_argument("--lit", type=place, required=True, help="a fully lit place of the skin, x,y")
+    p.add_argument("--radius", type=float, default=0.02, help="half the side of the square that is averaged")
     p = command("trace", trace, "a line's place, thickness and darkness at even steps")
     p.add_argument("--path", type=points, required=True, help="a rough guess of the line, x,y:x,y:…")
     p.add_argument("--path-drawing", type=points, help="a guess for the drawing, if its line lies elsewhere")

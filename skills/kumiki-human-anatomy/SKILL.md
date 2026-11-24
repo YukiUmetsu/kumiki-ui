@@ -13,7 +13,7 @@ The pack `human-anatomy` decides *where a person's forms are*; your style decide
    `decodeHumanBodyModel`). Start from `HUMAN_PRESETS`. For a named height use `stature`; children and teens follow CDC
    stature automatically. Check adults with `predictFromStature` (ANSUR II).
 2. **Pose with clinical angles** — `poseHumanBody(body, pose)`; begin from `POSE_PRESETS` and `HAND_POSES`. Keep
-   clamping on; read `outOfRange`. Look up ranges in `JOINTS` (sources graded) and `CDC_ROM` for age/sex.
+   clamping on; read `outOfRange`. Look up ranges in `JOINTS` and `CDC_ROM` for age/sex.
 3. **Frame it like a photographer** — `renderHumanFrame(body, posed.points, { yaw, pitch, distance }, viewport)`.
    Orthographic for model sheets; `distance` ≥ 3× height for photo-like perspective.
 4. **Paint in layers from the frame** — silhouette → `contours` (use `weight`) → `terminators` → `triangles[].band`
@@ -69,6 +69,8 @@ The pack `human-anatomy` decides *where a person's forms are*; your style decide
      head, a long chin, wide eyes), so give no number and name no pose or length difference before this.
    - Outline, hair silhouette and hairline, eyes: `overlap`, `trace`. Then darks and busyness: `values`. Then where each
      hair mass starts and what it runs along. `swap` when the cause is not clear.
+   - Then each row of **"Face features to get right"** (spec), at zoom: cheek, lid height, shade under the eye, nose shade,
+     `colours`, head to body.
    - Report each cause as *part, reference value, our value, gap* in pupil distances, with the command that gave it.
      Change one, render, measure again.
 
