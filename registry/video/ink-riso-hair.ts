@@ -4,7 +4,7 @@
  */
 import { inkHash2, inkNoise2, inkSpline } from "./ink-riso-press";
 import type { InkRisoPen, PenPoint } from "./ink-riso-pen";
-import { inkBlob, inkBloom, inkHair, inkThread } from "./ink-riso-wet";
+import { inkHair, inkThread } from "./ink-riso-wet";
 import type { InkSheetForm } from "./ink-riso-coiffure";
 
 /** A point of a lock's middle and half its width there, pen units. */
@@ -37,8 +37,6 @@ export interface InkSweepOptions {
   cover?: number;
   /** Plates cleared under it, so it reads in front of colour. */
   clear?: readonly string[];
-  /** The wash it is painted from: how much of its ink a place takes (1 all of it), pen units. Locks given the same one share one light, as hair painted wet does. */
-  wash?: (x: number, y: number) => number;
   dry?: number; dryEnd?: number;
   /** Plies laid over it (inkSweep only): see inkPlies. */
   plies?: Partial<Omit<InkPlyOptions, "seed">> & { n: number };
@@ -61,9 +59,7 @@ export function inkTress(pen: InkRisoPen, plate: string, guides: readonly (reado
   const wide = Math.max(...guides[0].map((p, i) => Math.hypot(guides[G][i][0] - p[0], guides[G][i][1] - p[1])));
   if (o.clear?.length) pen.knock(pen.shape([...guides[0], ...[...guides[G]].reverse()]), o.clear as string[]);
   const load = o.load ?? 0.92, end = o.loadEnd ?? load;
-  const wash = o.wash, W = 12, N = 32, field = wash && Array.from({ length: N + 1 }, (_, i) => Array.from({ length: W + 1 }, (_, j) => wash(...at(i / N, (2 * j) / W - 1))));
-  const washed = field ? (v: number, u: number) => { const y = clamp(v) * N, x = clamp(u) * W, i = Math.min(N - 1, Math.floor(y)), j = Math.min(W - 1, Math.floor(x)), f = y - i, g = x - j; return lerp(lerp(field[i][j], field[i][j + 1], g), lerp(field[i + 1][j], field[i + 1][j + 1], g), f); } : null;
-  inkHair(pen, plate, guides, { load, root: o.root ?? 0.06, tip: o.tip ?? 0.1, edge: o.edge ?? [0.16, 0.16], slits: o.slits, streak: o.streak ?? 0.3, sheen: o.sheen, round: o.round, strand: 1.1, along: washed ? (v, u) => lerp(1, end / load, ss(0.3, 1, v)) * washed(v, u) : v => lerp(1, end / load, ss(0.3, 1, v)), dry: o.dry, dryEnd: o.dryEnd, cover: o.cover ?? 1, seed: o.seed });
+  inkHair(pen, plate, guides, { load, root: o.root ?? 0.06, tip: o.tip ?? 0.1, edge: o.edge ?? [0.16, 0.16], slits: o.slits, streak: o.streak ?? 0.3, sheen: o.sheen, round: o.round, strand: 1.1, along: v => lerp(1, end / load, ss(0.3, 1, v)), dry: o.dry, dryEnd: o.dryEnd, cover: o.cover ?? 1, seed: o.seed });
   const H = o.hairs ?? 6, out = o.stray ?? 1.24;
   for (let i = 0; i < H; i++) {
     const r = (k: number) => inkHash2(o.seed * 13 + 5, i, k), u0 = (r(0) < 0.5 ? -1 : 1) * lerp(0.5, out, r(1) ** 0.7), t0 = 0.3 * r(2) ** 1.6, t1 = 1 - 0.22 * r(3) ** 2, bow = (r(4) - 0.5) * 0.5, m = 9;
@@ -116,19 +112,6 @@ export function inkGap(pen: InkRisoPen, plates: readonly string[], path: readonl
   pen.lift(n.map((p, i) => [p[0], p[1], Math.max(0.02, w(i / (n.length - 1)))] as const), width, plates);
 }
 
-/** Where a place lies in a lock, for a wash that rounds it: how far along (0 at the first node, 1 at the last) and how far across (−1 and 1 on its edges). Pen units. */
-export function inkAcross(nodes: readonly InkLockNode[]): (x: number, y: number) => readonly [along: number, across: number] {
-  const P = inkSpline(nodes as readonly (readonly number[])[], 4), n = P.length - 1;
-  return (x, y) => {
-    let best = Infinity, t = 0, d = 0;
-    for (let i = 0; i < n; i++) {
-      const a = P[i], b = P[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy || 1, k = clamp(((x - a[0]) * dx + (y - a[1]) * dy) / l2), px = x - a[0] - dx * k, py = y - a[1] - dy * k, q = px * px + py * py;
-      if (q < best) { best = q; t = (i + k) / n; d = Math.sign(dx * py - dy * px) * Math.sqrt(q) / Math.max(0.5, lerp(a[2], b[2], k)); }
-    }
-    return [t, d];
-  };
-}
-
 // ---- what makes a combed sheet soft ----------------------------------------------------------------------------------------------
 type Range = readonly [number, number];
 export interface InkClumpOptions extends Omit<InkSweepOptions, "load" | "loadEnd"> {
@@ -179,37 +162,6 @@ export function inkClumps(pen: InkRisoPen, plate: string, form: InkSheetForm, o:
     inkTress(pen, plate, guides, { ...o, ...ownLight(o, r(9), r(10)), load, loadEnd: o.loadEnd == null ? undefined : o.loadEnd * load, seed: o.seed + i * 7 });
   }
 }
-export interface InkHankOptions {
-  /** Ink of the wash, 0–1, or a function of the place (pen units). */
-  tone: number | ((x: number, y: number) => number);
-  /** How much the wash is let down along its middle, so that the hank is round, 0–1 (default 0.3), and which side the light is on, −1…1 (default −0.2). */
-  round?: number; light?: number;
-  /** Shares of the length over which it starts and ends (default 0.04, 0.12), and the ink left at its very end (default 0.6). */
-  root?: number; tip?: number; end?: number;
-  /** The earth plate under it (hair is warm), and how much (default none). */
-  earth?: string; earthTone?: number;
-  /** Softness of its edges (default 1.2), and the load, streaks and loose hairs of the dry glaze over it (default 0.3, 0.8, 2). */
-  soft?: number; glaze?: number; streak?: number; hairs?: number; stray?: number; hairWidth?: number;
-  /** Plates wiped from under it. */
-  clear?: readonly string[];
-  seed: number;
-}
-
-/** One hank of hair as a wet wash, rounded across, with its hairs dragged over it as a glaze. Where `inkSweep` is a loaded brush, this is water with ink in it. Given as a swollen line, or as a piece of a sheet (`InkSheetForm.lock`). */
-export function inkHank(pen: InkRisoPen, plate: string, of: readonly InkLockNode[] | { sheet: readonly (readonly PenPoint[])[] }, o: InkHankOptions): void {
-  const { round = 0.3, light = -0.2, root = 0.04, tip = 0.12, end = 0.6, soft = 1.2, glaze = 0.3, streak = 0.8, hairs = 2, stray = 1.4, hairWidth = 1.1, seed } = o, sheet = "sheet" in of ? of.sheet : null;
-  const nodes: readonly InkLockNode[] = sheet ? sheet[0].map((p, i) => { const z = sheet[sheet.length - 1][i]; return [(p[0] + z[0]) / 2, (p[1] + z[1]) / 2, Math.hypot(p[0] - z[0], p[1] - z[1]) / 2] as const; }) : of as readonly InkLockNode[];
-  const shape = sheet ? pen.shape([...sheet[0], ...[...sheet[sheet.length - 1]].reverse()]) : inkBlob(pen, nodes), where = inkAcross(nodes);
-  const ink = typeof o.tone === "number" ? () => o.tone as number : o.tone;
-  const tone = (x: number, y: number) => { const [t, d] = where(x, y); return clamp(ink(x, y) * (1 + 0.5 * round - 1.3 * round * Math.exp(-(((d - light) / 0.5) ** 2))) * (root > 0 ? lerp(0.5, 1, ss(0, root, t)) : 1) * lerp(1, end, ss(1 - tip, 1, t))); };
-  if (o.clear?.length) pen.knock(shape, [...o.clear]);
-  if (o.earth) inkBloom(pen, o.earth, shape, { tone: (X, Y) => (o.earthTone ?? 0.16) * lerp(1, end, ss(1 - tip, 1, where(...pen.local(X, Y))[0])), soft, wander: 0.5, wave: 50, fringe: 0.3, rim: 0.1, mottle: 0.2, seed: seed + 500 });
-  inkBloom(pen, plate, shape, { tone: (X, Y) => tone(...pen.local(X, Y)), soft, wander: 0.7, wave: 40, fringe: 0.3, rim: 0.24, rimWidth: 3, mottle: 0.34, cloud: 26, seed: seed + 501 });
-  if (glaze <= 0) return;
-  const dry: InkSweepOptions = { load: glaze, cover: 0, wash: (x, y) => 0.4 + tone(x, y), root, tip: tip * 0.5, edge: [0.12, 0.12], streak, hairs, stray, hairWidth, clear: [], seed };
-  if (sheet) inkTress(pen, plate, sheet, dry); else inkSweep(pen, plate, nodes, dry);
-}
-
 export interface InkFlyawayOptions {
   n: number;
   /** Along the root line; where along the strand a hair leaves and how much of it it runs (defaults [0, 1], [0, 0.35], [0.4, 0.8]). */

@@ -3795,7 +3795,7 @@
       "name": "ink-riso-press",
       "type": "registry:ui",
       "title": "Ink Brush Printed in Riso Spot Colours (INK-RISO1)",
-      "description": "CPU illustration engine for Chinese brush ink printed as risograph spot colours: pressure brush strokes with bristle splits and flying white, washes, per-ink solid and screened masters, round-dot and grain screens, per-drum registration, pinholes and mottle, overprint on cotton paper. Wet marks for ink on paper: spreading washes, side-tip strokes, sheets of hair, fine threads. Hair laid along guide hairs read off a drawing, or built on the skull: combed sheets, coiled buns and ribbons with their hidden sides left out, and hanging locks that settle under gravity against the cheek and the back; drawn as full lobes with pointed paper gaps cut where they part, looser locks and single hairs over them, lit strands, and fine face-framing hairs. A face posed from a measured 468-point head, painted with brush marks only (eyes, brows, nose, lips, ear, earring), with a checker for its proportions. Includes pens in local units, splatter, and a canvas component that shows ink on xuan paper or the print, with single-drum proofs.",
+      "description": "CPU illustration engine for Chinese brush ink printed as risograph spot colours: pressure brush strokes with bristle splits and flying white, washes, per-ink solid and screened masters, round-dot and grain screens, per-drum registration, pinholes and mottle, overprint on cotton paper. Wet marks for ink on paper: spreading washes, side-tip strokes, sheets of hair, fine threads. Hair laid along guide hairs read off a drawing, or built on the skull: combed sheets, coiled buns and ribbons with their hidden sides left out, and hanging locks that settle under gravity against the cheek and the back; drawn as full lobes with pointed paper gaps cut where they part, looser locks and single hairs over them, lit strands, and fine face-framing hairs. A face posed from a measured 468-point head, painted with brush marks only (eyes, brows, nose, lips, ear, earring), with a checker for its proportions. Or painted in gongbi layers over body white: skin read from named colours at named places, planes of shade and light, eyes cut by both lids, lips let out into the skin, a drawn ear, and hair as wet locks with dark and light lines along their seams. Includes pens in local units, splatter, and a canvas component that shows ink on xuan paper or the print, with single-drum proofs.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -3833,6 +3833,16 @@
           "path": "registry/video/ink-riso-face-paint.ts",
           "type": "registry:ui",
           "target": "components/video/ink-riso-face-paint.ts"
+        },
+        {
+          "path": "registry/video/ink-riso-gongbi.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-riso-gongbi.ts"
+        },
+        {
+          "path": "registry/video/ink-riso-gongbi-hair.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-riso-gongbi-hair.ts"
         },
         {
           "path": "registry/video/ink-riso-press-react.tsx",

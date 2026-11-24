@@ -6,11 +6,13 @@ Chinese brush ink (水墨) drawn on the CPU, shown as ink on xuan paper or print
 |---|---|
 | `registry/video/ink-riso-press.ts` | `createInkRisoSheet`, `brush`, `wash`, `knock`, `pressInkRiso`, noise and splines |
 | `registry/video/ink-riso-pen.ts` | `createInkRisoPens` (local frames), `inkSplatter` |
-| `registry/video/ink-riso-wet.ts` | `inkBloom`, `inkBlob`, `inkSide`, `inkHair`, `inkThread`, `inkDrops` (ink and water let into a wet wash), and `paintInk` (ink on xuan paper, no press) |
+| `registry/video/ink-riso-wet.ts` | `inkBloom`, `inkBlob`, `inkSide`, `inkHair`, `inkThread`, and `paintInk` (ink on xuan paper, no press) |
 | `registry/video/ink-riso-coiffure.ts` | Hair forms: `inkGuideSheet` (hair laid along guide hairs read off a drawing), `inkCombSheet` (hair combed over the skull in 3D), `inkCoil` (a bun or a ribbon wound round a place, hidden sides left out), `inkHang` (a lock that settles under its own weight) |
-| `registry/video/ink-riso-hair.ts` | `inkSweep` (one swept lock), `inkTress` (one lock of a form), `inkHank` (one lock as a wet wash, its hairs dragged over it), `inkAcross`, `inkGap` (paper let into a mass), `inkPlies` (looser locks over one lock), `inkClumps` (loose locks over a sheet), `inkFlyaways` (single hairs that stand off a sheet), `inkWisps` (fine loose hairs between guides) |
+| `registry/video/ink-riso-hair.ts` | `inkSweep` (one swept lock), `inkTress` (one lock of a form), `inkAcross`, `inkGap` (paper let into a mass), `inkPlies` (looser locks over one lock), `inkClumps` (loose locks over a sheet), `inkFlyaways` (single hairs that stand off a sheet), `inkWisps` (fine loose hairs between guides) |
 | `registry/video/ink-riso-face.ts` | `poseInkHead`: every line of a face from one posed, measured head; `inkFaceRatios`, `INK_FACE_RANGE` |
 | `registry/video/ink-riso-face-paint.ts` | `paintInkFace`, `paintInkEar`, `paintInkEarring`, `inkDab`: the brush marks over those lines |
+| `registry/video/ink-riso-gongbi.ts` | 工筆: `paintGongbiFace`, `paintGongbiEar` (a face in layers over body white, from colours at places), `gongbiColours` (a colour as a mix of plates), `gongbiHand` (wash, melt, light, line in the level frame) |
+| `registry/video/ink-riso-gongbi-hair.ts` | `paintGongbiLock`, `paintGongbiSeams`, `paintGongbiLines`, `paintGongbiFlow`, `paintGongbiDown`: hair as wet locks with colours at places |
 | `registry/video/ink-riso-press-react.tsx` | `InkRisoCanvas` (`finish`: `riso` or `ink`) |
 | `registry/video/ink/cast/shuiyue.ts` (`ink-cast`) | The example: 水月, a three-quarter figure on the ANAT1 East Asian face |
 
@@ -96,21 +98,22 @@ What separated a plain face from an attractive one, side by side with ink portra
 
 - **Do not tune a drawing to a face detector.** MediaPipe put the drawn chin about 10 % of the face too low and nose wings up to 60 % too wide, and the same drawing scored 0.49 to 0.60 on one ratio at different render sizes. Tuning to it made the chin too short and the upper lip too long. Measure the drawing from its own geometry, and read references by hand.
 
-## Faces in skin earth
+## Faces in layers over white (工筆)
 
-Optional (`InkFaceStyle.earth`). 清風 and 墨梅 use it; a face drawn without it keeps its pixels. Modern ink portraits warm the skin with thin 赭石 and draw the skin's lines in it. Sampled off studied pictures, what made them look alive was this:
+`paintGongbiFace` is the other way to paint a posed head. 清風 and 墨梅 use it; 水月 keeps `paintInkFace`, where the skin is paper. Everything is read in the level frame: irises level, 1 = the distance between them, +x the near side, y down. The pose still gives the outline, the hairline and the ear's place.
 
-- **The earth is a water, not a tint.** It lies on the side the head is turned away from the light: the near side of the nose, the lids and sockets, the near cheek, and the planes under nose, lip and chin. The far cheek, the forehead's middle, the bridge and the strip over the lid stay paper. `flesh` sets its strength.
-- **Skin lines are earth with some black in it** (`warmLine`): outline, nose, ear, fold. A man's outline takes less of it (0.42) than a woman's. The lid's line and the parting of the lips stay black, or the face goes soft.
-- **The white of an eye is not white.** It takes the same earth, deepest under the lid. The socket and the crescent under the eye (`underEye`) take warm and earth together. Bare paper in the eye stares.
-- **The iris stands out of its rim and pupil** (`iris` under 1), brown for a woman, nearly ink for a man (`browWarm`). Two catchlights, and none that the lid covers.
-- **The end of the lid's line decides the mood** (`lids.flick`): over 1 it lifts, under 0 it runs out level on a raised eye. Let it change as the lid shuts, or the corner kinks. `liner` is the red line over it.
-- **A long nose needs its tip** (`noseTip`, `straight`): the one line runs down to the tip and round it. A short one stops at the wing.
-- **Lips are let out into the skin** (`lipSoft`), with the parting the only hard line (`lipLine`); `lipFull` widens the lower lip's foot. `blush` is a soft place on the near cheek, in place of the breath under the eye.
-- **A turned and tipped head sways** (`lean`): nose, mouth and chin drift toward the near side below the eyes.
-- **The far brow is its own** (`brow.far`): the turn takes its tail away.
+- **Skin needs a white.** Inks only darken, so on cream paper no ink can make a light skin. An `opaque` plate (`white`, first in the list) covers the paper; earth, warm, cool and ink lie on it. `gongbiColours(specs, plates, paper)` turns a wanted colour into a mix, and `shade(to, on)` into what must be added to skin of a known colour. Give colours, not tones.
+- **Skin is colours at places**, about 50 of them, from the lit forehead to the shade under the jaw. Between places it runs. Shade goes by ratio: multiply the lit skin channel by channel, so that the shaded cheek turns redder and never grey.
+- **Light is drawn too.** The light on the bridge, under the near eye, on the far cheek and brow are `light` planes with an edge on one side and a `fade` on the other. Without them a well-drawn face stays flat.
+- **Eyes are cut by both lids.** The iris meets the upper lid and nearly meets the lower; a whole round iris stares. Rays and a light lower half keep it glass. The whites are grey-warm (`whites`), darkest under the lid and in the outer corner, red in the tear corner. Between fold and lashes lies the lid's own shade, brown or rose (`lids`); the fold is red-brown, the lash line near black and thickest at the outer third.
+- **Brows are a mass with a lost edge.** Head soft and hairy, middle full, tail a point. Take the value from the picture: a woman's brown, a man's nearly black. The far brow has its own shape.
+- **Lips**: the parting is the only hard line. The near end of the upper lip is a wedge, the near edge is let out (`near`), the lower lip pales to its edge (`fall`) and takes one or two small lights. Too little earth under the red turns them pink.
+- **The nose is planes**: one side plane down to the wing with the crease along its edge, a light down the bridge, a tip line. A crease without its plane looks like a scratch.
+- **An ear is drawn by hand** (`GongbiEar.drawn`): rim, valley, ridge with two legs, hollow, bowl, notch. A dark line lies exactly on the edge between ear and hair, or a pale seam shows.
+- **Open and shut.** `paintGongbiFace(f, head, face, open)` moves both lids and what lies on them. Look at 1, 0.5 and 0.04.
+- **Pose.** A turned and tipped head sways (`lean`): nose, mouth and chin drift toward the near side below the eyes. With `paintInkFace`, `lids.flick` sets the end of the lid's line (over 1 it lifts, under 0 it runs out level; let it change as the lid shuts) and `brow.far` gives the far brow its own form.
 
-Method: put drawing and reference side by side, both levelled on the irises and scaled to one pupil distance, with a grid. Read the outline, each eye corner, brow, nose, mouth, ear and hair edge off the grid, then sample the colours of the same places in both. Repeat one feature at a time until no reading is off by more than about 0.03. Keep the references outside the repository; take the readings and draw your own marks.
+Method: put drawing and reference side by side, both levelled on the irises and scaled to one pupil distance, with a grid. Read the outline, each eye corner, brow, nose, mouth, ear and hair edge off the grid, then make a table of sampled colours for the same places in both. Then zoom to one feature at a time (eyes, mouth, temple and ear) until places and colours agree to the eye. A face that looks finished as a whole still fails at this zoom. Keep the references outside the repository; take the readings and draw your own marks, hair ornaments, clothes and composition.
 
 ## Hair: where it starts, then masses, then paper
 
@@ -129,13 +132,14 @@ Method: put drawing and reference side by side, both levelled on the irises and 
 
 ### Hair painted wet
 
-`inkSweep` is a loaded brush. `inkHank` is water with ink in it, and reads softer and rounder; 清風 and 墨梅 are built from it.
+`inkSweep` is a loaded brush; a gongbi lock is a wash. 清風 and 墨梅 are built from it.
 
-- One tone for the whole head (`inkDrops`: a base, with drops of ink and water let into it), passed to every hank (`tone`) so that the locks share one light. Each hank is let down along its middle (`round`) and takes a thin warm earth under it.
-- **Locks end in points.** Give the last node no width, and the first too when a lock starts in the open. `lock`'s `pinch` is told the sheet's share of the length: if a lock stops before the sheet's end (`to`), rescale `pinch`, or its end is blunt with a pale rim.
-- A hank over another needs the black plate in `clear`, or both print. Two or three tan or paper leaves (`inkGap`) at the turns are enough.
-- **Hair grows out of skin.** Between the locks at the part: a soft wash that deepens into the hair, small tufts, then single hairs of unlike length. The same before the ear: the temple's mass crosses the ear's front with a soft lower edge and fine strands, never a cut edge.
-- A cel needs paper under each lock (`knock`), no wider than its ink: past a soft edge it takes off the skin and leaves a halo.
+- **A lock is an outline and colours at places** (`paintGongbiLock`, `gongbiHues`): warm brown-grey, lighter where it turns to the light, nearly black at the root and under the next lock, a little blue or rust in one or two places. Solid black hair was the largest difference in value from the studied pictures. Near-black hair takes a `mottle` of 0.03 to 0.05, or it looks like cloth; brown hair takes 0.1 to 0.3.
+- **Seams are pairs.** Where one lock lies on another, a dark line and a light one beside it (`paintGongbiSeams`). A few long hairs follow the lock's direction (`gongbiAlong`), never a regular comb.
+- **Edges:** crisp where a lock lies on another, `lost` where hair grows out of skin. Over a lost edge come short tufts (`paintGongbiDown`) of unlike length. Every lock ends in a point of no width.
+- **Melt, not glaze.** A lock takes the place of what it lies on: its soft edge goes from one colour straight into the other (`mode: "melt"`). A glaze over a wiped shape leaves a pale rim.
+- **In a film cel** a dark soft edge hides with its own ink and takes almost no paper under it (`InkBloomOptions.light`), or hair on a layer of its own gets pale grey roots.
+- A paper `knock` wider than its ink leaves a halo on dark hair.
 
 ### Values
 
@@ -161,6 +165,8 @@ The spread counts busyness: on the crown and the fall the rejected hair had two 
 ## Cost
 
 3000 × 4000 px with three drums: about 2.6 s to draw and 2.7 s to press on an Apple laptop, in Node. `InkRisoCanvas` works on the main thread and is for still pictures. For film, print once and move the result.
+
+The layered figures are painted without the press: about 4 s for 清風 and 3 s for 墨梅 at 1125 × 1350 px, in Node.
 
 ## Limits
 
