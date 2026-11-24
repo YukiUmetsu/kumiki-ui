@@ -134,7 +134,7 @@ export function gongbiColours(specs: readonly InkRisoPlateSpec[], plates: Partia
   };
 }
 /** How a wash lies: softness of its edge (one, or by place), unevenness and the size of its clouds, how far the edge wanders, how much pigment is carried to it. Level units. */
-export interface GongbiWash { soft?: number | ((x: number, y: number) => number); mottle?: number; cloud?: number; wander?: number; wave?: number; rim?: number; rimWidth?: number; /** One seed for all its plates: their edges and clouds then fall together. */ seed?: number }
+export interface GongbiWash { soft?: number | ((x: number, y: number) => number); mottle?: number; cloud?: number; wander?: number; wave?: number; rim?: number; rimWidth?: number; /** Follow the outline to a fraction of a pixel (see `inkBloom`). */ exact?: boolean; /** One seed for all its plates: their edges and clouds then fall together. */ seed?: number }
 /** A brush on the levelled frame of a posed head. */
 export interface GongbiHand {
   /** One level unit in page units. */
@@ -164,7 +164,7 @@ export function gongbiHand(f: InkRisoPen, head: InkHead, plates: GongbiPlates, s
   let s = 3000 + seed * 300;
   const plain = (pts: readonly PenPoint[]): number[][] => pts.map(p => { const q = head.level(p[0], p[1]); return f.at(q[0], q[1]); });
   const here = (X: number, Y: number): PenPoint => { const [x, y] = f.local(X, Y); return level(x, y); };
-  const edges = (q: GongbiWash) => { const soft = q.soft; return { soft: typeof soft === "function" ? (X: number, Y: number) => { const l = here(X, Y); return Math.min(58, soft(l[0], l[1]) * unit); } : (soft ?? 0.008) * unit, wander: (q.wander ?? 0) * unit, wave: (q.wave ?? 0.3) * unit, fringe: (q.wander ?? 0) * unit * 0.3 }; };
+  const edges = (q: GongbiWash) => { const soft = q.soft; return { soft: typeof soft === "function" ? (X: number, Y: number) => { const l = here(X, Y); return Math.min(58, soft(l[0], l[1]) * unit); } : (soft ?? 0.008) * unit, wander: (q.wander ?? 0) * unit, wave: (q.wave ?? 0.3) * unit, fringe: (q.wander ?? 0) * unit * 0.3, exact: q.exact }; };
   const lay: GongbiHand["lay"] = (key, shape, tone, q = {}) => {
     const plate = plates[key]; if (!plate) return;
     inkBloom(f, plate, shape, { tone: (X, Y) => { const l = here(X, Y); return 1 - Math.sqrt(1 - clamp(tone(l[0], l[1]))); }, ...edges(q), rim: q.rim ?? 0, rimWidth: (q.rimWidth ?? 0.03) * unit, mottle: q.mottle ?? 0, cloud: (q.cloud ?? 0.2) * unit, seed: q.seed ?? s++ });
