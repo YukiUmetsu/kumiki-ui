@@ -29,6 +29,8 @@ export interface InkRisoPlateSpec {
   density?: number;
   /** How unevenly the drum lays ink, and how many pinholes it leaves: 1 is a riso drum's usual. */
   mottle?: number; pinholes?: number;
+  /** A body colour (粉): it covers the paper and may be lighter than it. Only paintings know it (`paintInk`, film cels), and it must come before the inks laid over it. */
+  opaque?: boolean;
 }
 export interface InkRisoSheetSpec {
   /** Design size and output pixels per design unit. */

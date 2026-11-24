@@ -4,15 +4,16 @@
  */
 import { inkFbm2, inkSpline } from "../../ink-riso-press";
 import type { InkRisoPen, PenNode as N3, PenPoint as P2 } from "../../ink-riso-pen";
-import { inkBlob, inkBloom, inkDrops, inkSide, inkThread } from "../../ink-riso-wet";
-import { inkFlyaways, inkGap, inkHank } from "../../ink-riso-hair";
-import type { InkFlyawayOptions, InkGapShape, InkHankOptions } from "../../ink-riso-hair";
+import { inkBlob, inkBloom, inkSide, inkThread } from "../../ink-riso-wet";
+import { inkGap } from "../../ink-riso-hair";
 import { inkGuideSheet } from "../../ink-riso-coiffure";
-import type { InkSheetForm } from "../../ink-riso-coiffure";
 import { poseInkHead } from "../../ink-riso-face";
-import type { InkHead, InkProfile } from "../../ink-riso-face";
-import { inkDab, paintInkEar, paintInkFace } from "../../ink-riso-face-paint";
-import type { InkFaceStyle } from "../../ink-riso-face-paint";
+import type { InkProfile } from "../../ink-riso-face";
+import { inkDab } from "../../ink-riso-face-paint";
+import { gongbiColours, gongbiHand, gongbiSkin, gongbiTints, paintGongbiEar, paintGongbiFace } from "../../ink-riso-gongbi";
+import type { GongbiEar, GongbiFace, GongbiLine, GongbiNode, GongbiPlace } from "../../ink-riso-gongbi";
+import { gongbiAlong, gongbiBand, gongbiHues, liftGongbiHair, liftGongbiLines, paintGongbiDown, paintGongbiFlow, paintGongbiHair, paintGongbiLines, paintGongbiLock, paintGongbiSeams } from "../../ink-riso-gongbi-hair";
+import type { GongbiHairLine, GongbiLock } from "../../ink-riso-gongbi-hair";
 import { beautifulFace } from "../../../anatomy/face-beauty";
 import { eyeCentres } from "../../../anatomy/anatomy-face";
 import { inkPlates } from "../ink-pigments";
@@ -21,27 +22,22 @@ import { inkCover, inkFade } from "../ink-veil";
 import type { InkPaintContext, InkPart, InkSubject } from "../ink-cel";
 
 type Pens = Record<"face" | "robe" | "page", InkRisoPen>;
-const K = "black", R = "red", T = "indigo", E = "earth", PLATE = [E, R, T];
+const K = "black", R = "red", T = "indigo", E = "earth", W = "white";
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const ss = (a: number, b: number, v: number) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const PAGE = { width: 1200, height: 1600 };
-const PLATES = inkPlates({ [E]: "skin", [T]: "indigo", [R]: "cinnabar", [K]: "ink" });
+const PAPER = "#F8F1E3";
+const PLATES = inkPlates({ [W]: "white", [E]: "tan", [T]: "indigo", [R]: "cinnabar", [K]: "ink" });
 
 // ---- the head ---------------------------------------------------------------------------------------------------------------------
-/** A young man's brow: it sets in close over the eye and climbs in one straight stroke, full in its middle, to a long point over the temple. */
-const BROW: InkProfile = [[0.105, -0.034, 0.5], [0.18, -0.022, 0.96], [0.28, -0.004, 1.14], [0.385, 0.014, 1.1], [0.49, 0.026, 0.88], [0.59, 0.024, 0.54], [0.7, 0.006, 0.02]];
-/** The far one is shorter and steeper: its tail is round the corner. */
-const FAR_BROW: InkProfile = [[0.12, -0.03, 0.5], [0.185, -0.012, 0.96], [0.26, 0.012, 1.14], [0.335, 0.034, 1.06], [0.4, 0.05, 0.86], [0.45, 0.056, 0.56], [0.5, 0.058, 0.04]];
 /** The face's outline: share of its height, far side, near side. A long face: a flat cheek, then one straight line to a narrow chin. */
-const OUTLINE: InkProfile = [[-0.33, -0.47, 0.75], [-0.22, -0.445, 0.745], [-0.09, -0.425, 0.74], [0, -0.41, 0.735], [0.09, -0.396, 0.73], [0.18, -0.379, 0.72], [0.27, -0.374, 0.71], [0.36, -0.352, 0.7], [0.44, -0.323, 0.69], [0.53, -0.284, 0.655], [0.62, -0.237, 0.58], [0.7, -0.192, 0.5], [0.77, -0.156, 0.42], [0.84, -0.119, 0.35], [0.905, -0.083, 0.28], [0.945, -0.046, 0.23], [0.975, -0.004, 0.19], [0.992, 0.05, 0.15], [1, 0.1, 0.1]];
+const OUTLINE: InkProfile = [[-0.33, -0.47, 0.75], [-0.22, -0.445, 0.745], [-0.09, -0.425, 0.74], [0, -0.41, 0.735], [0.09, -0.396, 0.73], [0.18, -0.379, 0.72], [0.27, -0.368, 0.71], [0.36, -0.338, 0.7], [0.44, -0.302, 0.69], [0.53, -0.258, 0.65], [0.62, -0.208, 0.565], [0.7, -0.162, 0.48], [0.77, -0.126, 0.4], [0.84, -0.09, 0.33], [0.905, -0.054, 0.262], [0.945, -0.02, 0.214], [0.975, 0.016, 0.176], [0.992, 0.058, 0.142], [1, 0.1, 0.1]];
 const SITTER = beautifulFace({ sex: 1, faceType: "east-asian" });
-const pose = (open = 1): InkHead => poseInkHead({ vertices: SITTER.vertices, faces: SITTER.mesh.faces, eyes: eyeCentres(SITTER.vertices), head: { breadth: 154.2, length: 199.2, top: 131.4 } }, { yaw: 25, pitch: 5, roll: 4, scale: 0.78, at: [0, 0] }, {
-  open: open * 0.92, gaze: [0, -0.04], forehead: 0.38, eye: [1.44, 1.2], wrap: 0.74, iris: 1.06, eyeRoll: 0, eyeTilt: 4, lids: { tall: 0.95, line: 0.46, lineOut: 0.46, wing: 0.95, fold: 0.6, flick: lerp(1.2, 0.6, open) }, brow: { form: BROW, far: FAR_BROW, height: 0.74, thick: 1, roll: 0 },
-  lift: -4, noseUnder: 4.5, noseHeight: 0.85, nose: 0.66, philtrum: 0, mouth: 0.74, lips: 0.72, lean: 6, outline: OUTLINE, length: 1.09, side: { square: 0.9, lobe: [1.46, 0.57], ear: 0.92 },
+const HEAD = poseInkHead({ vertices: SITTER.vertices, faces: SITTER.mesh.faces, eyes: eyeCentres(SITTER.vertices), head: { breadth: 154.2, length: 199.2, top: 131.4 } }, { yaw: 25, pitch: 5, roll: 4, scale: 0.78, at: [0, 0] }, {
+  gaze: [0, -0.04], forehead: 0.38, eye: [1.44, 1.2], iris: 1.06, eyeTilt: 4,
+  lift: -4, noseUnder: 4.5, noseHeight: 0.85, nose: 0.66, mouth: 0.74, lips: 0.72, lean: 6, outline: OUTLINE, length: 1.09, side: { square: 0.9, lobe: [1.46, 0.57], ear: 0.92 },
 });
-const HEAD = pose();
-const FACE_STYLE: InkFaceStyle = { ink: K, warm: R, earth: E, rouge: 0.26, lip: 0.58, lipSoft: 0.65, noseTip: 1, liner: 0.22, lipLine: 1, shade: 0.12, flesh: 1.25, warmLine: 0.42, browWarm: 0.2, underEye: 0.35, lashes: 0, lowerLid: 0.4, fold: 0.7, browHead: 0.6, brow: 0.9, bridge: 1.4, straight: 1, iris: 0.78, underNose: 0.4, bowl: 0.5, smile: 0, jaw: 0.85, contour: 0.75 };
 /** The middle between the pupils, pen units, and where it lies on the page; the distance between them on the page. */
 const EYES = HEAD.level(0, 0), AT = { x: 592, y: 526, pd: 128 };
 const UNIT = Math.hypot(HEAD.level(1, 0)[0] - EYES[0], HEAD.level(1, 0)[1] - EYES[1]), FZ = AT.pd / UNIT;
@@ -51,261 +47,436 @@ const Z = 1.34;
 /** The robe is laid out upright on the page, its zero where the eyes are. */
 const FRAMES = { face: FACE, robe: { x: 590, y: 512, scale: Z }, page: { x: 0, y: 0, scale: 1 } };
 
+// ---- the face --------------------------------------------------------------------------------------------------------------------
+// Places and edges are in the level frame (+x the near side); skin is the colour it has there. The light comes from before him: it lies
+// along the bridge, on the far cheek and brow, and in one patch under the near eye; what is turned away keeps a warm, even half tone.
+const GONGBI = { ink: K, warm: R, earth: E, cool: T, white: W }, colour = gongbiColours(PLATES, GONGBI, PAPER);
+const at = (x: number, y: number, of: string, reach = 0.2): GongbiPlace => ({ at: [x, y], mix: colour(of), reach });
+/** What turns the skin there into this one. */
+const shade = (to: string, on: string) => colour(to, 0, on);
+const SKIN: readonly GongbiPlace[] = [
+  // forehead
+  at(0, -0.6, "#E6D0C3", 0.26), at(-0.3, -0.7, "#E8D3C6", 0.2), at(0.35, -0.62, "#E3CABC", 0.2), at(0.6, -0.42, "#DDC2B3", 0.18), at(0, -1.02, "#D3B5A4", 0.14), at(-0.35, -1.0, "#DABDAD", 0.14), at(0.34, -0.92, "#D2B3A1", 0.16), at(0.85, -0.4, "#D4B6A5", 0.18), at(-0.7, -0.75, "#DDB8AB", 0.1), at(-0.62, -0.5, "#E9D0C3", 0.12),
+  at(0.98, -0.2, "#D8BBAB", 0.16), at(0.98, 0, "#D6B5A4", 0.14), at(1.1, 0.14, "#D2AF9D", 0.16),
+  // between the brows, the bridge and the side of the nose
+  at(-0.13, -0.22, "#E3CBBD", 0.12), at(-0.17, 0.06, "#E2C6B8", 0.1), at(-0.2, 0.32, "#E2C1B3", 0.1), at(-0.24, 0.54, "#E0BDAF", 0.1), at(-0.3, 0.68, "#E2BCAD", 0.07), at(0.02, 0.1, "#E2CBBD", 0.12), at(0.02, 0.36, "#E3CBBE", 0.12), at(0.0, 0.62, "#E0C4B6", 0.12),
+  // lids and sockets
+  at(0.16, -0.12, "#DCBBAC", 0.08), at(0.45, -0.18, "#E3BFB0", 0.1), at(0.75, -0.14, "#DFB8A9", 0.12), at(0.14, 0.1, "#DFC4B7", 0.08), at(0.42, 0.16, "#DDBBAD", 0.1), at(0.72, 0.1, "#DDB7A8", 0.12), at(-0.36, -0.1, "#E7C2B2", 0.07), at(-0.54, -0.18, "#EBC4B3", 0.09), at(-0.72, -0.14, "#EDCCBD", 0.08), at(-0.44, 0.16, "#E9CFC2", 0.08),
+  // cheeks
+  at(0.3, 0.42, "#E5CDC0", 0.14), at(0.62, 0.42, "#E4C3B4", 0.2), at(0.95, 0.42, "#E0BBAC", 0.18), at(1.15, 0.6, "#D8B5A5", 0.18), at(0.62, 0.8, "#E3CBBE", 0.2), at(0.98, 0.92, "#DDC2B4", 0.18), at(0.4, 0.66, "#E4CEC1", 0.16), at(-0.5, 0.36, "#EDD0C3", 0.1), at(-0.5, 0.62, "#F5DDD1", 0.12), at(-0.62, 0.4, "#FAEADF", 0.1),
+  // mouth and chin
+  at(0.28, 0.94, "#E2CDC0", 0.16), at(0, 0.94, "#E0C8BB", 0.12), at(-0.2, 0.94, "#E3C5B8", 0.1), at(-0.4, 0.92, "#F8E2D7", 0.12), at(-0.1, 1.36, "#E2CFC3", 0.16), at(0.24, 1.3, "#E2CEC2", 0.16), at(0.5, 1.2, "#E3CDC1", 0.18), at(0, 1.58, "#E1CDC1", 0.14), at(-0.24, 1.24, "#F0DACD", 0.1), at(0.5, 1.46, "#DABFB0", 0.14),
+];
+const FACE_OF: GongbiFace = {
+  plates: GONGBI, skin: SKIN, seed: 5,
+  tints: [
+    // the side of the nose, from the edge of the bridge
+    { plane: [[-0.2, 0.06], [-0.25, 0.14], [-0.27, 0.26], [-0.31, 0.4], [-0.35, 0.53], [-0.385, 0.64], [-0.36, 0.71], [-0.24, 0.74], [-0.08, 0.74], [0.02, 0.7], [0.02, 0.56], [-0.04, 0.4], [-0.08, 0.2]], soft: 0.03, ...shade("#E0BDB0", "#E2C4B7"), fade: [[[-0.3, 0.46], [0.02, 0.4]], [[-0.26, 0.3], [-0.2, 0.04]]] },
+    // lights: along the bridge, on the far cheek and brow, under the near eye
+    { plane: [[-0.262, 0.05], [-0.282, 0.14], [-0.322, 0.27], [-0.366, 0.4], [-0.402, 0.52], [-0.424, 0.6], [-0.4, 0.62], [-0.37, 0.54], [-0.332, 0.42], [-0.29, 0.28], [-0.262, 0.16], [-0.248, 0.08]], soft: 0.016, light: 0.7, fade: [[[-0.36, 0.44], [-0.42, 0.64]], [[-0.27, 0.16], [-0.25, 0.03]]] },
+    { plane: [[-0.5, 0.16], [-0.58, 0.13], [-0.66, 0.1], [-0.7, 0.16], [-0.66, 0.42], [-0.6, 0.62], [-0.52, 0.8], [-0.48, 0.66], [-0.5, 0.48], [-0.53, 0.32]], soft: 0.045, light: 0.6, fade: [[[-0.6, 0.5], [-0.5, 0.86]]] },
+    { plane: [[-0.5, -0.3], [-0.6, -0.31], [-0.74, -0.34], [-0.72, -0.56], [-0.66, -0.8], [-0.6, -1.0], [-0.54, -0.82], [-0.53, -0.56]], soft: 0.05, light: 0.56, fade: [[[-0.62, -0.5], [-0.62, -1.02]]] },
+    { plane: [[0.03, 0.09], [0.06, 0.175], [0.12, 0.24], [0.2, 0.278], [0.29, 0.28], [0.3, 0.24], [0.22, 0.2], [0.14, 0.145], [0.08, 0.1]], soft: 0.022, light: 0.66, fade: [[[0.12, 0.18], [0.34, 0.28]]] },
+    { plane: [[-0.16, 1.5], [-0.24, 1.36], [-0.3, 1.24], [-0.27, 1.22], [-0.2, 1.34], [-0.1, 1.46]], soft: 0.05, light: 0.46 },
+    // the jaw turns under
+    { plane: [[1.2, 0.8], [1.12, 1.06], [0.94, 1.24], [0.7, 1.42], [0.46, 1.58], [0.22, 1.7], [0.1, 1.72], [0.24, 1.62], [0.46, 1.48], [0.7, 1.32], [0.92, 1.14], [1.06, 0.98]], soft: 0.1, ...shade("#E2BBAB", "#E2CDBF") },
+    // under the nose, and the shade the lower lip throws
+    { plane: [[-0.06, 0.8], [-0.12, 0.785], [-0.2, 0.79], [-0.25, 0.81], [-0.23, 0.86], [-0.2, 0.91], [-0.15, 0.91], [-0.1, 0.86]], soft: 0.045, ...shade("#CFA394", "#DFC2B4"), fade: [[[-0.24, 0.82], [-0.06, 0.86]]] },
+    { plane: [[0.1, 1.204], [0.0, 1.222], [-0.1, 1.228], [-0.19, 1.206], [-0.22, 1.24], [-0.13, 1.295], [0, 1.295], [0.08, 1.25]], soft: 0.034, ...shade("#CBA493", "#DFC9BC") },
+  ],
+  lids: {
+    near: [
+      { plane: [[0.21, 0.08], [0.29, 0.094], [0.38, 0.106], [0.47, 0.112], [0.55, 0.104], [0.63, 0.08], [0.66, 0.1], [0.58, 0.14], [0.47, 0.16], [0.36, 0.156], [0.26, 0.13]], soft: 0.022, ...shade("#CF9C8F", "#E0C0B2") },
+      { at: [0.72, 0.01], size: [0.1, 0.055], turn: -28, ...shade("#AE7460", "#DFBDAE") }, { at: [0.52, -0.162], size: [0.3, 0.034], turn: 2, ...shade("#DB9F8C", "#E2BFB0") }, { at: [0.12, -0.04], size: [0.06, 0.075], ...shade("#B98570", "#DFC0B0") }, { at: [0.2, -0.13], size: [0.11, 0.045], turn: 14, ...shade("#BE8775", "#E0C0B1") },
+    ],
+    far: [
+      { at: [-0.52, -0.162], size: [0.16, 0.036], turn: -10, ...shade("#DE9F84", "#EBCABA") }, { at: [-0.6, 0.095], size: [0.07, 0.032], turn: 38, ...shade("#B97A62", "#E9CDBF") }, { at: [-0.33, -0.01], size: [0.034, 0.08], ...shade("#C28C76", "#E6C6B8") },
+    ],
+  },
+  brows: {
+    near: { tone: 1, hairs: 0, upper: 0.97, soft: 0.011, top: [[-0.04, -0.212], [0, -0.234], [0.06, -0.257], [0.12, -0.275], [0.19, -0.289], [0.28, -0.302], [0.38, -0.313], [0.46, -0.323], [0.56, -0.335], [0.66, -0.344], [0.76, -0.344], [0.86, -0.333], [0.98, -0.302]], bottom: [[-0.04, -0.186], [0, -0.171], [0.06, -0.169], [0.12, -0.176], [0.19, -0.191], [0.28, -0.204], [0.38, -0.219], [0.46, -0.232], [0.56, -0.25], [0.66, -0.266], [0.76, -0.28], [0.86, -0.29], [0.98, -0.297]], along: t => 0.34 + 0.66 * ss(0.02, 0.22, t) },
+    far: { tone: 1, hairs: 0, upper: 0.97, soft: 0.009, top: [[-0.378, -0.15], [-0.4, -0.2], [-0.43, -0.234], [-0.48, -0.262], [-0.54, -0.283], [-0.6, -0.296], [-0.68, -0.307], [-0.74, -0.312], [-0.8, -0.314]], bottom: [[-0.378, -0.136], [-0.4, -0.14], [-0.43, -0.151], [-0.48, -0.17], [-0.54, -0.189], [-0.6, -0.207], [-0.68, -0.23], [-0.74, -0.247], [-0.8, -0.262]], along: t => 0.5 + 0.5 * ss(0, 0.3, t) },
+  },
+  eyes: {
+    near: {
+      upper: [[0.172, 0.05], [0.207, 0.014], [0.245, -0.018], [0.283, -0.041], [0.331, -0.057], [0.379, -0.067], [0.436, -0.072], [0.512, -0.073], [0.588, -0.069], [0.63, -0.056], [0.656, -0.03], [0.672, 0]], lower: [[0.172, 0.05], [0.22, 0.056], [0.283, 0.06], [0.34, 0.066], [0.417, 0.073], [0.5, 0.078], [0.569, 0.075], [0.616, 0.055], [0.652, 0.024], [0.672, 0]],
+      line: [[0.156, 0.06, 0.003], [0.176, 0.039, 0.009], [0.207, 0.005, 0.0115], [0.245, -0.028, 0.0135], [0.283, -0.051, 0.0155], [0.331, -0.067, 0.0175], [0.379, -0.077, 0.018], [0.436, -0.082, 0.0175], [0.512, -0.083, 0.0175], [0.588, -0.082, 0.0175], [0.664, -0.079, 0.0185], [0.731, -0.076, 0.0165], [0.798, -0.073, 0.0115], [0.855, -0.074, 0.006], [0.91, -0.081, 0.001]],
+      fold: [[0.145, -0.03, 0.001], [0.175, -0.066, 0.0055], [0.23, -0.102, 0.008], [0.31, -0.128, 0.0088], [0.4, -0.138, 0.0085], [0.5, -0.139, 0.0082], [0.6, -0.133, 0.0085], [0.7, -0.123, 0.0085], [0.79, -0.115, 0.006], [0.88, -0.113, 0.001]],
+      iris: [0.515, -0.008, 0.151, 0.126], pupil: 0.36, lights: [[0.493, -0.04, 0.0165, 0.0115, 0.94], [0.57, 0.04, 0.05, 0.026, 0.14]], under: [0.2, 1], foot: 0.009, wing: 0.9,
+    },
+    far: {
+      upper: [[-0.302, 0.06], [-0.32, 0.034], [-0.356, 0.002], [-0.394, -0.029], [-0.432, -0.05], [-0.48, -0.061], [-0.536, -0.066], [-0.59, -0.061], [-0.624, -0.043], [-0.643, -0.014], [-0.65, 0.002]], lower: [[-0.302, 0.06], [-0.336, 0.066], [-0.4, 0.08], [-0.46, 0.087], [-0.52, 0.084], [-0.575, 0.064], [-0.615, 0.036], [-0.64, 0.014], [-0.65, 0.002]],
+      line: [[-0.292, 0.074, 0.003], [-0.316, 0.04, 0.0095], [-0.354, -0.002, 0.012], [-0.392, -0.036, 0.013], [-0.431, -0.059, 0.015], [-0.48, -0.07, 0.0165], [-0.536, -0.076, 0.0175], [-0.593, -0.077, 0.0185], [-0.642, -0.07, 0.0175], [-0.688, -0.056, 0.014], [-0.73, -0.04, 0.0095], [-0.78, -0.024, 0.005], [-0.82, -0.014, 0.001]],
+      fold: [[-0.318, -0.012, 0.001], [-0.352, -0.055, 0.0065], [-0.4, -0.094, 0.0085], [-0.46, -0.12, 0.009], [-0.53, -0.134, 0.0085], [-0.6, -0.134, 0.0075], [-0.65, -0.124, 0.006], [-0.7, -0.106, 0.001]],
+      iris: [-0.461, 0.006, 0.096, 0.1], pupil: 0.4, lights: [[-0.452, -0.022, 0.012, 0.0115, 0.94], [-0.42, 0.046, 0.03, 0.02, 0.12]], under: [0.2, 1], foot: 0.009, wing: 0.9,
+    },
+  },
+  iris: { ink: 0.82, earth: 0.42, cool: 0.34, foot: 0.7, lash: 0.085, rays: 0.08 }, whites: { tone: { ink: 0.12, earth: 0.16, warm: 0.02 }, corner: 0.3 },
+  browLine: colour("#1a1210", 0), lidLine: colour("#28140f", 0), foldLine: colour("#5c2e21", 0), foldGlow: shade("#D9A490", "#E4C3B4"), underLine: colour("#7E4636", 0),
+  mouth: {
+    upper: [[0.28, 1.094], [0.2, 1.066], [0.1, 1.04], [0.0, 1.02], [-0.07, 1.014], [-0.12, 1.01], [-0.17, 1.004], [-0.22, 0.994], [-0.26, 0.994], [-0.285, 1.012], [-0.298, 1.036]],
+    parting: [[0.336, 1.11, 0.007], [0.318, 1.11, 0.0135], [0.288, 1.106, 0.0115], [0.2, 1.097, 0.009], [0.1, 1.087, 0.0076], [0.0, 1.076, 0.0072], [-0.06, 1.07, 0.006], [-0.1, 1.078, 0.0068], [-0.135, 1.086, 0.0068], [-0.18, 1.078, 0.0078], [-0.23, 1.064, 0.0105], [-0.27, 1.05, 0.0105], [-0.302, 1.035, 0.005]],
+    lower: [[0.28, 1.1], [0.2, 1.136], [0.1, 1.178], [0.02, 1.2], [-0.06, 1.212], [-0.13, 1.212], [-0.18, 1.2], [-0.22, 1.17], [-0.25, 1.115], [-0.298, 1.036]],
+    tone: 0.6, soft: 0.036, near: 0.24, far: 0.14, line: 0.96, earth: 0.56, ink: 0.08, bare: 0.3, lights: [[-0.1, 1.15, 0.07, 0.018, 4, 0.26]],
+  },
+  mouthLine: colour("#3A1711", 0),
+  lines: [
+    // the socket and the bridge, one line from under the brow, found again down the nose
+    { nodes: [[-0.43, -0.2, 0.001], [-0.384, -0.15, 0.006], [-0.333, -0.085, 0.0078], [-0.296, -0.025, 0.008], [-0.276, 0.04, 0.0076], [-0.278, 0.1, 0.0056], [-0.298, 0.18, 0.004], [-0.33, 0.28, 0.0034], [-0.366, 0.4, 0.0034], [-0.402, 0.52, 0.004], [-0.428, 0.61, 0.005], [-0.436, 0.656, 0.0065], [-0.428, 0.692, 0.0075], [-0.404, 0.722, 0.0075], [-0.35, 0.752, 0.0062], [-0.295, 0.776, 0.006], [-0.258, 0.802, 0.0075], [-0.242, 0.822, 0.004]], tone: colour("#4c291c", 0), soft: 0.007, along: t => 0.8 * ss(0, 0.1, t) - 0.3 * ss(0.22, 0.4, t) + 0.46 * ss(0.62, 0.76, t) },
+    { nodes: [[-0.06, 0.778, 0.003], [-0.094, 0.768, 0.0085], [-0.135, 0.765, 0.0105], [-0.172, 0.77, 0.009], [-0.198, 0.781, 0.002]], tone: colour("#4c291c", 0), soft: 0.008, along: t => 0.6 + 0.4 * t },
+    // under the lower lip
+    { nodes: [[0.07, 1.204, 0.002], [-0.02, 1.222, 0.008], [-0.1, 1.224, 0.009], [-0.16, 1.212, 0.008], [-0.21, 1.186, 0.001]], tone: shade("#9E6252", "#D9B3A4"), soft: 0.016 },
+    // the lid's line has a warm edge
+    { nodes: [[0.2, 0.0, 0.004], [0.28, -0.062, 0.016], [0.38, -0.092, 0.02], [0.5, -0.1, 0.021], [0.62, -0.097, 0.021], [0.74, -0.09, 0.018], [0.86, -0.084, 0.004]], tone: shade("#CE9F92", "#E0C0B2"), soft: 0.022 },
+    { nodes: [[-0.33, 0.004, 0.004], [-0.392, -0.05, 0.013], [-0.48, -0.086, 0.017], [-0.56, -0.094, 0.018], [-0.64, -0.088, 0.015], [-0.71, -0.066, 0.004]], tone: shade("#D6A696", "#EBCABA"), soft: 0.02 },
+    // the wedge of shade at the outer corners
+    { nodes: [[0.54, 0.092, 0.002], [0.6, 0.074, 0.013], [0.65, 0.036, 0.021], [0.69, -0.008, 0.026], [0.73, -0.044, 0.024], [0.77, -0.066, 0.01]], tone: colour("#54281c", 0), soft: 0.018, along: t => 0.2 + 0.66 * ss(0.05, 0.6, t) },
+    { nodes: [[-0.54, 0.088, 0.002], [-0.585, 0.066, 0.01], [-0.622, 0.034, 0.015], [-0.652, -0.004, 0.018], [-0.68, -0.036, 0.012]], tone: colour("#54281c", 0), soft: 0.015, along: t => 0.2 + 0.62 * ss(0.05, 0.6, t) },
+    // hairs at the head of the near brow run with it and come over to a point
+    ...([[[0.2, -0.272], [0.1, -0.262], [0.01, -0.232], [-0.055, -0.188]], [[0.2, -0.25], [0.1, -0.238], [0.02, -0.208], [-0.04, -0.176]], [[0.22, -0.228], [0.12, -0.214], [0.04, -0.19], [-0.015, -0.168]], [[0.3, -0.288], [0.18, -0.283], [0.07, -0.262], [0.0, -0.23]], [[0.26, -0.212], [0.16, -0.196], [0.07, -0.177], [0.02, -0.168]], [[-0.39, -0.16], [-0.415, -0.2], [-0.46, -0.236], [-0.53, -0.262]], [[-0.41, -0.158], [-0.45, -0.198], [-0.51, -0.226], [-0.59, -0.244]]] as const).map((q): GongbiLine => ({ nodes: q.map(([x, y], k) => [x, y, [0.001, 0.005, 0.0055, 0.0005][k]] as const), tone: colour("#1f1613", 0), soft: 0.006, along: t => 0.7 - 0.2 * t })),
+    // lashes of the lower lids, toward their outer ends
+    ...([[[0.594, 0.07], [0.63, 0.114]], [[0.618, 0.056], [0.666, 0.1]], [[0.642, 0.038], [0.7, 0.08]], [[0.664, 0.018], [0.732, 0.058]], [[0.686, -0.004], [0.758, 0.03]], [[0.564, 0.08], [0.588, 0.118]], [[-0.6, 0.056], [-0.646, 0.09]], [[-0.574, 0.072], [-0.606, 0.108]], [[-0.55, 0.08], [-0.566, 0.112]]] as const).map(([a, b]): GongbiLine => ({ nodes: [[a[0], a[1], 0.007], [lerp(a[0], b[0], 0.6), lerp(a[1], b[1], 0.5), 0.005], [b[0], b[1], 0.0006]], tone: colour("#5a2d20", 0), soft: 0.013, along: t => 0.85 - 0.3 * t })),
+  ],
+  outline: { tone: colour("#47261b", 0), half: 0.0088, glow: shade("#E6B19D", "#E2CDBF"), far: t => 0.8 + 0.2 * ss(0, 0.12, t) - 0.24 * ss(0.3, 0.6, t) + 0.3 * ss(0.78, 0.95, t), jaw: t => (1.05 - 0.4 * ss(0.3, 0.7, t)) * ss(1, 0.88, t) },
+};
+/** Its rim rolls in at the top and runs down to the lobe; before it the valley, the two legs of the inner ridge with a hollow between them, the bowl and its notch under the flap. */
+const EAR_OF: GongbiEar = {
+  plates: GONGBI, seed: 9, half: 0.0105,
+  skin: [at(1.97, -0.02, "#E0B9AB", 0.1), at(1.92, -0.2, "#DDB0A0", 0.1), at(1.78, -0.25, "#E0B7A9", 0.1), at(1.9, 0.3, "#E0B5A7", 0.1), at(1.76, 0.48, "#DFB9AC", 0.1), at(1.62, 0.52, "#DDB7A9", 0.1), at(1.52, 0.52, "#DAB3A4", 0.1), at(1.54, 0.2, "#DCBBAD", 0.08), at(1.8, 0.06, "#D2AC9C", 0.1), at(1.62, -0.1, "#C9A192", 0.1), at(1.6, 0.08, "#D3AD9F", 0.08)],
+  valley: {}, bowl: {}, deep: {}, line: colour("#3c2018", 0), front: 0.9,
+  drawn: {
+    tints: [
+      { plane: [[1.9, -0.13], [1.93, -0.02], [1.92, 0.1], [1.87, 0.23], [1.79, 0.34], [1.72, 0.4], [1.77, 0.29], [1.825, 0.18], [1.85, 0.06], [1.845, -0.05], [1.855, -0.14]], soft: 0.02, ...shade("#BC927F", "#D6AF9F"), fade: [[[1.9, 0.0], [1.82, 0.02]]] },
+      { plane: [[1.87, -0.16], [1.8, -0.195], [1.72, -0.16], [1.67, -0.08], [1.66, -0.01], [1.71, -0.03], [1.77, -0.05], [1.83, -0.09]], soft: 0.018, ...shade("#A5705E", "#CFA797"), fade: [[[1.76, -0.17], [1.79, -0.04]]] },
+      { plane: [[1.7, -0.01], [1.755, 0.04], [1.785, 0.12], [1.78, 0.2], [1.745, 0.275], [1.69, 0.32], [1.635, 0.32], [1.615, 0.22], [1.625, 0.1], [1.655, 0.02]], soft: 0.014, ...shade("#BD8F7F", "#D2AB9B") },
+      { plane: [[1.71, 0.0], [1.725, 0.06], [1.7, 0.14], [1.675, 0.24], [1.66, 0.32], [1.62, 0.3], [1.615, 0.18], [1.635, 0.06], [1.665, 0.0]], soft: 0.02, ...shade("#9C6756", "#BD8F7F"), fade: [[[1.64, 0.1], [1.71, 0.16]]] },
+      { plane: [[1.76, -0.03], [1.81, 0.03], [1.825, 0.1], [1.81, 0.19], [1.77, 0.27], [1.775, 0.2], [1.795, 0.12], [1.78, 0.05], [1.72, -0.02]], soft: 0.014, light: 0.42 },
+      { plane: [[1.6, 0.06], [1.61, 0.18], [1.595, 0.28], [1.54, 0.34], [1.5, 0.24], [1.52, 0.1]], soft: 0.03, light: 0.3 },
+    ],
+    lines: [
+      { nodes: [[1.67, -0.06, 0.001], [1.69, -0.13, 0.005], [1.73, -0.185, 0.0085], [1.8, -0.207, 0.0105], [1.875, -0.17, 0.0105], [1.925, -0.085, 0.0095], [1.935, 0.03, 0.0075], [1.91, 0.14, 0.006], [1.86, 0.25, 0.0055], [1.79, 0.35, 0.0045], [1.72, 0.41, 0.001]], tone: colour("#73402f", 0), soft: 0.012, along: t => 1 - 0.45 * ss(0.5, 1, t) },
+      { nodes: [[1.8, -0.2, 0.001], [1.87, -0.215, 0.005], [1.93, -0.205, 0.0055], [1.97, -0.175, 0.001]], tone: colour("#5c3024", 0), soft: 0.01 },
+      { nodes: [[1.67, -0.07, 0.002], [1.645, 0.0, 0.006], [1.63, 0.1, 0.0075], [1.635, 0.18, 0.0085], [1.652, 0.25, 0.012], [1.635, 0.31, 0.0175], [1.59, 0.355, 0.0165], [1.555, 0.39, 0.011], [1.53, 0.42, 0.002]], tone: colour("#532a1e", 0), soft: 0.012, along: t => 0.5 + 0.5 * ss(0.2, 0.55, t) },
+      { nodes: [[1.71, -0.015, 0.001], [1.755, 0.035, 0.0045], [1.792, 0.11, 0.006], [1.795, 0.19, 0.0065], [1.76, 0.27, 0.006], [1.7, 0.327, 0.0055], [1.645, 0.335, 0.003]], tone: colour("#8c5745", 0), soft: 0.013 },
+      { nodes: [[1.815, -0.1, 0.001], [1.77, -0.065, 0.0035], [1.72, -0.035, 0.004], [1.69, -0.01, 0.001]], tone: colour("#a06c5a", 0), soft: 0.012 },
+    ],
+  },
+};
+
 // ---- hair -------------------------------------------------------------------------------------------------------------------------
-// 束髮: the crown's hair is drawn up into a knot with a small crown, the rest hangs. Two locks leave one short part over the forehead and
-// frame the face: the near one bows over the temple, back over the ear; the far one lies along the cheek. Places are read in the frame
-// portraits are measured in: the irises level, 1 = the distance between them, +x toward the near side.
+// 束髮: the crown's hair is drawn up into a knot with a small silver crown, the rest hangs. Two locks leave one short part over the
+// forehead and frame the face: the near one bows over the temple, back over the ear; the far one comes down in points past the cheek.
+// Flat warm masses; what gives the hair its run is where one lock lies on another: a dark line and a light one beside it.
 type Run = readonly P2[];
-type Lock = readonly (readonly [number, number, number])[];
-const lv = (q: Run): P2[] => q.map(([x, y]) => HEAD.level(x, y));
+const hues = gongbiHues(colour);
+const guides = (list: readonly (readonly [s: number, path: Run])[]) => inkGuideSheet(HEAD, list.map(([s, path]) => ({ s, path: path.map(([x, y]) => HEAD.level(x, y)) })));
+const DARK = colour("#191514", 0), SOOT = colour("#2b2421", 0), BROWN = colour("#5c4d43", 0), STRAND = colour("#4a3f38", 0);
 /** The knot and its crown are laid out upright, then set on the skull, which slopes to the back there. */
-const KNOT_AT = { from: [0.6, -1.95], to: [0.74, -2.26], size: 0.86, lean: 0.24 } as const;
-const tip = ([x, y]: P2): P2 => { const { from, to, size, lean } = KNOT_AT, c = size * Math.cos(lean), n = size * Math.sin(lean), u = x - from[0], v = y - from[1]; return [to[0] + u * c - v * n, to[1] + u * n + v * c]; };
-const lock = (q: Lock) => q.map(([x, y, w]) => [...HEAD.level(x, y), w * UNIT] as const);
-const leaf = (t: number) => Math.sin(Math.PI * t) ** 0.8;
-/** A lock's width along it: full, then drawn in to a point from `a` on. */
-const pointed = (a: number) => (t: number) => 1 - ss(a, 1.02, t);
-const guides = (list: readonly (readonly [s: number, path: Run])[]) => inkGuideSheet(HEAD, list.map(([s, path]) => ({ s, path: lv(path) })));
-/** Up over the crown to the knot: from the far temple, the head's outline, to the part. */
+const KNOT_AT = { from: [0.6, -1.95], to: [1.0, -2.31], size: 0.84, lean: 0.34 } as const;
+const tip = ([x, y]: readonly number[]): P2 => { const { from, to, size, lean } = KNOT_AT, c = size * Math.cos(lean), n = size * Math.sin(lean), u = x - from[0], v = y - from[1]; return [to[0] + u * c - v * n, to[1] + u * n + v * c]; };
+const upto = (q: Run): Run => q.map(tip);
+const upHues = (list: readonly (readonly [x: number, y: number, of: string, reach?: number])[], white?: number): GongbiPlace[] => list.map(([x, y, of, reach = 0.16]) => ({ at: tip([x, y]), mix: colour(of, white), reach: reach * KNOT_AT.size }));
+/** Up over the crown to the knot: from the head's outline to the part. */
 const CROWN = guides([
-  [0, [[-0.98, -0.3], [-1.06, -0.72], [-1.04, -1.14], [-0.92, -1.54], [-0.68, -1.9], [-0.36, -2.16], [0, -2.33], [0.34, -2.4], [0.62, -2.38]]],
-  [0.25, [[-0.86, -0.62], [-0.9, -0.98], [-0.84, -1.32], [-0.66, -1.64], [-0.42, -1.92], [-0.1, -2.13], [0.22, -2.26], [0.46, -2.31], [0.64, -2.33]]],
-  [0.5, [[-0.64, -1.0], [-0.66, -1.24], [-0.58, -1.52], [-0.4, -1.78], [-0.14, -2.0], [0.14, -2.15], [0.38, -2.24], [0.54, -2.27], [0.67, -2.29]]],
-  [0.76, [[-0.4, -1.1], [-0.4, -1.28], [-0.32, -1.52], [-0.13, -1.75], [0.1, -1.95], [0.33, -2.1], [0.5, -2.19], [0.6, -2.23], [0.7, -2.25]]],
-  [1, [[-0.16, -1.12], [-0.15, -1.28], [-0.05, -1.5], [0.12, -1.7], [0.32, -1.9], [0.48, -2.05], [0.6, -2.14], [0.67, -2.19], [0.73, -2.21]]],
+  [0, [[-0.34, -1.95], [-0.1, -2.14], [0.2, -2.29], [0.5, -2.39], [0.8, -2.43], [1.0, -2.42]]],
+  [0.5, [[-0.26, -1.82], [-0.06, -1.97], [0.22, -2.11], [0.52, -2.22], [0.82, -2.28], [1.04, -2.29]]],
+  [1, [[-0.13, -1.68], [0.04, -1.8], [0.3, -1.95], [0.6, -2.08], [0.9, -2.17], [1.14, -2.2]]],
 ]);
-/** The near side to the knot, from the part round the temple to over the ear; its roots lie under the near lock. */
+/** The near side to the knot, from the part round the temple to the back of the head. */
 const SIDE = guides([
-  [0, [[-0.1, -1.3], [0, -1.5], [0.16, -1.7], [0.34, -1.88], [0.5, -2.03], [0.63, -2.13], [0.7, -2.2]]],
-  [0.25, [[0.06, -1.3], [0.28, -1.46], [0.48, -1.66], [0.64, -1.86], [0.75, -2.02], [0.8, -2.13], [0.8, -2.21]]],
-  [0.5, [[0.34, -1.1], [0.66, -1.22], [0.94, -1.42], [1.12, -1.68], [1.14, -1.92], [1.04, -2.09], [0.92, -2.2]]],
-  [0.75, [[0.68, -0.8], [1.06, -0.88], [1.4, -1.08], [1.62, -1.4], [1.62, -1.74], [1.42, -2.0], [1.1, -2.17]]],
-  [1, [[0.96, -0.46], [1.34, -0.48], [1.74, -0.66], [2, -1.04], [2.04, -1.5], [1.8, -1.88], [1.28, -2.12]]],
+  [0, [[0.16, -1.8], [0.4, -1.9], [0.66, -2.0], [0.94, -2.1], [1.2, -2.2]]],
+  [0.33, [[0.76, -1.66], [0.96, -1.66], [1.14, -1.74], [1.26, -1.92], [1.28, -2.16]]],
+  [0.66, [[1.16, -1.16], [1.4, -1.22], [1.58, -1.4], [1.62, -1.7], [1.44, -2.1]]],
+  [1, [[1.5, -0.7], [1.84, -0.86], [2.06, -1.2], [2.06, -1.64], [1.6, -2.12]]],
 ]);
 /** The back of the head: hair that was not drawn up comes down over the nape. */
 const BACK = guides([
-  [0, [[1.16, -2.17], [1.6, -2.03], [1.98, -1.72], [2.24, -1.3], [2.38, -0.8], [2.42, -0.26], [2.38, 0.28], [2.34, 0.8], [2.32, 1.3], [2.36, 2.0]]],
-  [0.5, [[1.12, -1.95], [1.52, -1.72], [1.86, -1.36], [2.06, -0.92], [2.15, -0.44], [2.14, 0.02], [2.1, 0.46], [2.04, 0.9], [2, 1.4], [2, 2.06]]],
-  [1, [[0.98, -1.42], [1.28, -1.1], [1.54, -0.8], [1.74, -0.46], [1.82, -0.12], [1.8, 0.2], [1.7, 0.54], [1.62, 0.92], [1.56, 1.4], [1.52, 2.1]]],
+  [0, [[2.2, -1.5], [2.36, -1.06], [2.43, -0.6], [2.44, -0.1], [2.41, 0.4], [2.37, 0.9], [2.35, 1.4], [2.38, 1.9], [2.43, 2.4]]],
+  [0.5, [[2.0, -1.2], [2.12, -0.8], [2.14, -0.4], [2.12, 0.1], [2.08, 0.5], [2.04, 1.0], [2.0, 1.4], [2.0, 1.8], [2.04, 2.2]]],
+  [1, [[1.7, -0.8], [1.84, -0.5], [1.86, -0.2], [1.8, 0.2], [1.7, 0.6], [1.62, 1.0], [1.56, 1.4], [1.56, 1.6], [1.58, 1.8]]],
 ]);
 /** The near lock: it leaves the part, stands up off the head, bows over the temple and goes back over the top of the ear. */
 const NEAR = guides([
-  [0, [[-0.12, -1.68], [0, -1.85], [0.22, -1.94], [0.46, -1.94], [0.7, -1.82], [0.92, -1.6], [1.12, -1.36], [1.32, -1.06], [1.56, -0.8], [1.86, -0.62], [2.12, -0.42], [2.22, -0.1]]],
-  [0.36, [[-0.12, -1.66], [0.04, -1.65], [0.24, -1.56], [0.44, -1.4], [0.64, -1.21], [0.84, -1.04], [1.06, -0.9], [1.3, -0.78], [1.56, -0.66], [1.82, -0.5], [2.02, -0.28], [2.12, 0.04]]],
-  [0.7, [[-0.12, -1.64], [0.03, -1.58], [0.17, -1.44], [0.31, -1.24], [0.46, -1.02], [0.64, -0.78], [0.86, -0.57], [1.1, -0.43], [1.38, -0.4], [1.68, -0.36], [1.92, -0.2], [2.04, 0.06]]],
-  [1, [[-0.12, -1.63], [-0.01, -1.55], [0.11, -1.4], [0.22, -1.2], [0.33, -0.98], [0.45, -0.76], [0.59, -0.53], [0.74, -0.3], [0.92, -0.1], [1.14, -0.02], [1.4, -0.08], [1.6, -0.2]]],
+  [0, [[-0.12, -1.68], [-0.02, -1.82], [0.2, -1.94], [0.46, -1.94], [0.72, -1.8], [0.92, -1.6], [1.12, -1.36], [1.32, -1.08], [1.58, -0.83], [1.88, -0.68], [2.14, -0.56]]],
+  [0.5, [[-0.12, -1.65], [0.04, -1.64], [0.24, -1.55], [0.44, -1.39], [0.64, -1.21], [0.84, -1.05], [1.06, -0.91], [1.3, -0.79], [1.56, -0.67], [1.82, -0.54], [2.06, -0.4]]],
+  [1, [[-0.12, -1.63], [-0.01, -1.58], [0.11, -1.48], [0.2, -1.32], [0.28, -1.12], [0.4, -0.86], [0.54, -0.62], [0.72, -0.42], [1.0, -0.3], [1.36, -0.3], [1.7, -0.34]]],
 ]);
-/** The far lock: up from the part, over, and down past the far temple. */
-const FAR = guides([
-  [0, [[-0.13, -1.68], [-0.28, -1.81], [-0.5, -1.85], [-0.72, -1.79], [-0.92, -1.62], [-1.08, -1.38], [-1.2, -1.1], [-1.3, -0.8], [-1.36, -0.5]]],
-  [0.5, [[-0.14, -1.66], [-0.3, -1.68], [-0.5, -1.65], [-0.68, -1.54], [-0.84, -1.36], [-0.96, -1.12], [-1.06, -0.85], [-1.13, -0.56], [-1.18, -0.26]]],
-  [1, [[-0.15, -1.63], [-0.28, -1.44], [-0.44, -1.42], [-0.58, -1.42], [-0.69, -1.29], [-0.76, -1.08], [-0.82, -0.84], [-0.87, -0.56], [-0.9, -0.28]]],
-]);
-/** Between the two locks hair rises from the hairline in two arches, and bends to the side it goes to. */
-const ROOTS = [
-  guides([[0, [[0.25, -1.02], [0.27, -1.08], [0.29, -1.14]]], [0.33, [[0.13, -1.03], [0.17, -1.14], [0.25, -1.26]]], [0.66, [[-0.02, -1.03], [0.03, -1.22], [0.12, -1.42]]], [1, [[-0.2, -1.06], [-0.17, -1.32], [-0.09, -1.6]]]]),
-  guides([[0, [[-0.26, -1.06], [-0.28, -1.22], [-0.33, -1.46]]], [0.33, [[-0.34, -1.04], [-0.43, -1.22], [-0.54, -1.44]]], [0.66, [[-0.47, -1.02], [-0.59, -1.17], [-0.7, -1.32]]], [1, [[-0.64, -1.0], [-0.72, -1.05], [-0.79, -1.1]]]]),
+
+/** Behind the trunk: what hangs down the back, taken by the wind. It is let out with water toward its ends. */
+const TAILS: readonly { band: readonly GongbiNode[]; of: readonly (readonly [number, number, string, number?])[] }[] = [
+  { band: [[2.04, -0.2, 0.2], [2.1, 0.3, 0.24], [2.1, 0.8, 0.26], [2.04, 1.3, 0.26], [2, 1.8, 0.28], [2.02, 2.3, 0.32], [2.12, 2.8, 0.28], [2.22, 3.2, 0.16], [2.32, 3.56, 0]], of: [[2.1, 0.4, "#1d1716"], [2.3, 0.8, "#362b28"], [2.0, 1.4, "#241c1b"], [2.2, 1.9, "#3c302b"], [1.9, 2.2, "#251e1c"], [2.2, 2.7, "#433530"], [2.3, 3.4, "#66534c"]] },
+  { band: [[2.2, 0.7, 0.04], [2.28, 1.1, 0.1], [2.42, 1.5, 0.13], [2.66, 1.84, 0.12], [2.96, 1.98, 0.092], [3.26, 1.94, 0.06], [3.48, 1.78, 0.026], [3.6, 1.6, 0]], of: [[2.3, 1.1, "#241c1b"], [2.4, 1.4, "#332825"], [2.7, 1.8, "#483a34"], [3.0, 1.92, "#584741"], [3.3, 1.9, "#6a5750"], [3.56, 1.66, "#85776b"]] },
+  { band: [[2.0, 1.0, 0.12], [2.08, 1.4, 0.17], [2.24, 1.84, 0.19], [2.48, 2.24, 0.18], [2.8, 2.5, 0.15], [3.14, 2.61, 0.11], [3.45, 2.54, 0.068], [3.74, 2.35, 0.032], [3.94, 2.12, 0]], of: [[2.06, 1.2, "#1a1514"], [2.2, 1.7, "#28201d"], [2.5, 2.1, "#443631"], [2.5, 2.4, "#2c2320"], [2.9, 2.5, "#54443e"], [3.2, 2.66, "#433530"], [3.5, 2.5, "#67544c"], [3.84, 2.24, "#8b7d70"]] },
 ];
-/** The knot: the hank goes up through the little crown, turns over and comes down behind. */
-const KNOT = guides(([
-  [0, [[0.27, -2.0], [0.2, -2.24], [0.22, -2.52], [0.37, -2.74], [0.62, -2.83], [0.88, -2.78], [1.08, -2.6], [1.16, -2.36], [1.12, -2.13], [1, -1.96]]],
-  [0.5, [[0.5, -2.0], [0.44, -2.22], [0.46, -2.42], [0.56, -2.56], [0.7, -2.6], [0.84, -2.55], [0.93, -2.42], [0.95, -2.26], [0.9, -2.1], [0.84, -1.98]]],
-  [1, [[0.62, -2.0], [0.62, -2.14], [0.63, -2.24], [0.66, -2.3], [0.69, -2.31], [0.72, -2.28], [0.73, -2.2], [0.74, -2.12], [0.74, -2.04], [0.74, -1.98]]],
-] as readonly (readonly [number, Run])[]).map(([k, q]) => [k, q.map(tip)] as const));
-/** The hair of the temple, which comes down over the front of the ear and gathers there into the long lock. */
-const TEMPLE: Run = [[0.8, -0.44], [0.88, -0.22], [0.97, -0.04], [1.08, 0.1], [1.22, 0.19], [1.36, 0.24], [1.5, 0.22], [1.58, 0.1], [1.64, -0.08], [1.72, -0.2], [1.82, -0.28], [1.84, -0.38], [1.56, -0.42], [1.2, -0.42]];
-/** What the drawn-up hair stands on, from the hairline to the knot. */
-const CAP: Run = [[-0.14, -1.64], [-0.28, -1.56], [-0.5, -1.54], [-0.7, -1.38], [-0.84, -1.1], [-0.92, -0.8], [-1, -0.5], [-1.06, -0.72], [-1.04, -1.14], [-0.92, -1.54], [-0.68, -1.9], [-0.36, -2.16], [0, -2.33], [0.34, -2.4], [0.62, -2.4], [0.9, -2.3], [1.28, -2.12], [1.8, -1.88], [2.04, -1.5], [2, -1.04], [1.9, -0.6], [1.6, -0.4], [1.3, -0.4], [1, -0.5], [0.7, -0.84], [0.46, -1.12], [0.2, -1.46]];
-/** The wash of the head: water where it is round to the light, ink where one lock goes in under another and where all is bound. */
-const HAIR_TONE = inkDrops(0.72, [
-  { at: [1.12, -0.16], size: [0.36, 0.13], turn: 0.3, ink: -0.4 }, 
-  { at: [0.5, -2.1], size: [0.5, 0.14], turn: 0.2, ink: -0.22 }, { at: [0.68, -1.5], size: [0.3, 0.17], turn: 0.8, ink: -0.34 }, { at: [1.3, -0.9], size: [0.34, 0.12], turn: 0.5, ink: -0.2 }, { at: [2.2, -0.9], size: [0.1, 0.4], turn: 0, ink: -0.24 }, { at: [-0.8, -1.56], size: [0.2, 0.14], turn: -0.7, ink: -0.3 }, { at: [1.5, -1.4], size: [0.12, 0.4], turn: -0.2, ink: -0.24 }, { at: [0.56, -0.98], size: [0.24, 0.1], turn: 0.8, ink: -0.16 }, { at: [-0.2, -2.06], size: [0.3, 0.1], turn: -0.5, ink: -0.16 },
-  { at: [0.2, -1.3], size: [0.2, 0.1], turn: 0.9, ink: 0.2 }, { at: [1.9, 0.2], size: [0.3, 0.3], turn: 0, ink: 0.16 }, { at: [0.75, -2.18], size: [0.4, 0.1], turn: 0, ink: 0.3 }, { at: [-0.12, -1.72], size: [0.14, 0.12], turn: 0, ink: 0.3 }, { at: [1, -1.1], size: [0.4, 0.08], turn: 0.7, ink: 0.2 }, { at: [1.8, -0.5], size: [0.4, 0.1], turn: 0.2, ink: 0.1 }, { at: [-0.8, -1.06], size: [0.1, 0.3], turn: 0, ink: 0.16 },
-], { wave: 0.5, run: 0.3, seed: 71 });
-/** Where hair hangs free the ink is let down. */
-const FALL_TONE = inkDrops(0.6, [{ at: [2.1, 1.2], size: [0.2, 0.5], turn: 0, ink: -0.2 }, { at: [1.8, 2.6], size: [0.3, 0.4], turn: 0, ink: 0.24 }, { at: [2.6, 2.2], size: [0.4, 0.14], turn: 0.6, ink: -0.2 }, { at: [3.2, 2.5], size: [0.4, 0.2], turn: 0, ink: -0.24 }, { at: [1.5, 3], size: [0.2, 0.6], turn: 0, ink: -0.2 }, { at: [1.4, 1.2], size: [0.2, 0.4], turn: 0, ink: 0.2 }, { at: [1.3, 4.6], size: [0.3, 0.6], turn: 0, ink: 0.16 }], { wave: 0.5, run: 0.3, seed: 73 });
-const inPen = (tone: (x: number, y: number) => number) => (x: number, y: number) => tone(...HEAD.fromLevel([x, y]));
-function comb(f: InkRisoPen, from: number) {
-  let s = from;
-  const m = Z / 1.04;
-  const hair = (q: Lock, w: number, ink: number, seed: number) => inkThread(f, K, q.map(([x, y, p]) => [...HEAD.level(x, y), p] as const), w, { ink, inkEnd: ink * 0.7, seed });
-  const strand = (q: Run, w: number, ink: number, seed: number) => hair(q.map(([x, y], k) => [x, y, 0.1 + 0.9 * leaf(k / (q.length - 1))] as const), w, ink, seed);
-  const flyaways = (form: InkSheetForm, o: Omit<InkFlyawayOptions, "seed">) => inkFlyaways(f, K, form, { seed: s++, ...o, width: [m * (o.width?.[0] ?? 0.6), m * (o.width?.[1] ?? 1.5)] });
-  const gap = (q: Run, w: number, shape?: InkGapShape) => inkGap(f, [K], lv(q), w * UNIT * FACE.scale, shape);
-  /** A wash on an outline read in the head's frame; the tone is read there too. */
-  const wash = (plate: string, q: Run, tone: (x: number, y: number) => number, o: Omit<Parameters<typeof inkBloom>[3], "seed" | "tone" | "soft"> & { soft?: number | ((x: number, y: number) => number) } = {}) => inkBloom(f, plate, f.shape(lv(q)), { wander: 0.8, wave: 60, fringe: 0.4, rim: 0.24, rimWidth: 3, mottle: 0.34, cloud: 26, seed: s++, ...o, tone: (X, Y) => clamp(tone(...HEAD.fromLevel(f.local(X, Y)))), soft: typeof o.soft === "function" ? (g => (X: number, Y: number) => g(...HEAD.fromLevel(f.local(X, Y))))(o.soft) : o.soft ?? 1.2 });
-  type Wet = Omit<InkHankOptions, "seed" | "tone"> & { seed?: number; tone?: InkHankOptions["tone"] };
-  const wet = (o: Wet): InkHankOptions => ({ tone: inPen(HAIR_TONE), earth: E, earthTone: 0.24, clear: PLATE, seed: (s += 2), ...o, hairWidth: m * (o.hairWidth ?? 1.1) });
-  /** A lock as a wash: given node by node, or as a piece of a sheet. */
-  const hank = (q: Lock, o: Wet = {}) => inkHank(f, K, lock(q), wet(o));
-  const band = (form: InkSheetForm, s0: number, s1: number, o: Wet & { from?: number; to?: number; pinch?: (t: number) => number } = {}) => { const { from, to, pinch, ...rest } = o; inkHank(f, K, { sheet: form.lock(s0, s1, { from, to, pinch: pinch && (t => pinch((t - (from ?? 0)) / ((to ?? 1) - (from ?? 0)))) }) }, wet(rest)); };
-  /** Hairs that leave the skin one by one. */
-  const rooted = (form: InkSheetForm, n: number, w: number, ink: number) => { for (let i = 0; i < n; i++) { const r = (k: number) => { const v = Math.sin((s + i * 7 + k) * 12.9898) * 43758.5453; return v - Math.floor(v); }, p = form.run((i + 0.2 + 0.6 * r(0)) / n, 0.2 * r(1), 1, 8); inkThread(f, K, p.map((c, k) => [c[0], c[1], Math.min(1, 0.06 + 1.3 * (k / 7))] as const), w * m * (0.6 + 0.8 * r(2)), { ink: ink * (0.7 + 0.3 * r(3)), inkEnd: 0.9, seed: s + 31 * i }); } s += n; };
-  /** And the soft points they gather into. */
-  const tufts = (form: InkSheetForm, n: number, half: number) => { for (let i = 0; i < n; i++) { const p = form.run((i + 0.5) / n, 1.1, 0.04 + 0.12 * (i % 3), 8); inkHank(f, K, p.map((c, k) => [c[0], c[1], half * UNIT * (1 - k / 7) ** 0.7] as const), wet({ tone: 0.5, earthTone: 0.3, round: 0, soft: 2.6, glaze: 0, tip: 0.7, end: 0.1, root: 0, clear: [] })); } };
-  return { hair, strand, flyaways, gap, wash, hank, band, rooted, tufts };
-}
-/** Behind the trunk: the hair that hangs, two tails taken by the wind, and some of it past the far side of the neck. */
+/** Past the far side of the neck: thin, it lies behind and against the light. */
+const PALE: readonly (readonly GongbiNode[])[] = [
+  [[-0.64, -0.5, 0.004], [-0.67, -0.1, 0.06], [-0.69, 0.2, 0.085], [-0.72, 0.6, 0.095], [-0.68, 1.1, 0.1], [-0.64, 1.6, 0.1], [-0.67, 2.1, 0.084], [-0.76, 2.5, 0.06], [-0.88, 2.9, 0.03], [-0.98, 3.2, 0]],
+  [[-0.82, -0.5, 0.004], [-0.84, -0.1, 0.03], [-0.87, 0.3, 0.05], [-0.89, 0.7, 0.052], [-0.87, 1.1, 0.046], [-0.89, 1.6, 0.04], [-0.96, 2.1, 0.03], [-1.08, 2.5, 0.014], [-1.18, 2.8, 0]],
+  [[-0.94, -0.4, 0.003], [-0.96, -0.05, 0.014], [-0.99, 0.3, 0.022], [-1.03, 0.7, 0.026], [-1.02, 1.1, 0.026], [-1.05, 1.5, 0.022], [-1.14, 1.9, 0.016], [-1.27, 2.3, 0.007], [-1.36, 2.6, 0]],
+];
 function drawFall({ face: f }: Pens) {
-  const { hank, hair, gap } = comb(f, 600), all = { tone: inPen(FALL_TONE), root: 0.02, tip: 0.2, hairs: 5, stray: 1.6, clear: [K, ...PLATE] };
-  // past the far side of the neck: a thin ink, it lies behind
-  const pale = { ...all, tone: 0.34, round: 0.4, tip: 0.5, earthTone: 0.1, glaze: 0.3, streak: 0.9, hairs: 4 };
-  hank([[-0.66, -0.3, 0.05], [-0.78, 0.1, 0.1], [-0.82, 0.6, 0.14], [-0.78, 1.1, 0.2], [-0.72, 1.6, 0.22], [-0.76, 2.1, 0.2], [-0.86, 2.5, 0.14], [-0.98, 2.9, 0.07], [-1.08, 3.2, 0.01]], pale);
-  hank([[-0.86, -0.1, 0.02], [-0.96, 0.3, 0.04], [-1, 0.7, 0.05], [-0.98, 1.1, 0.055], [-1, 1.5, 0.05], [-1.08, 1.9, 0.04], [-1.2, 2.3, 0.02], [-1.3, 2.6, 0]], { ...pale, tone: 0.3 });
-  for (const [q, w, ink, seed] of [[[[-0.94, 0.1, 0.2], [-1.06, 0.5, 0.8], [-1.1, 0.9, 0.9], [-1.08, 1.4, 0.8], [-1.16, 1.9, 0.6], [-1.3, 2.3, 0]], 1.6, 0.5, 619], [[[-0.8, 0.2, 0.2], [-0.9, 0.7, 0.8], [-0.9, 1.2, 0.9], [-0.86, 1.7, 0.8], [-0.92, 2.2, 0.6], [-1.02, 2.6, 0]], 1.4, 0.44, 618]] as const) hair(q, w, ink, seed);
-  // tails
-  hank([[2, 0.5, 0.03], [2.13, 1.0, 0.06], [2.32, 1.44, 0.075], [2.57, 1.78, 0.07], [2.88, 1.94, 0.055], [3.18, 1.9, 0.036], [3.4, 1.74, 0.016], [3.51, 1.6, 0]], all);
-  hank([[1.88, 0.9, 0.12], [1.98, 1.35, 0.17], [2.15, 1.8, 0.19], [2.4, 2.2, 0.18], [2.72, 2.48, 0.15], [3.07, 2.6, 0.11], [3.38, 2.54, 0.07], [3.68, 2.36, 0.036], [3.88, 2.16, 0.012], [3.96, 2.02, 0]], { ...all, round: 0.4, light: -0.4 });
-  hank([[2.06, -0.2, 0.18], [2.1, 0.3, 0.2], [2.06, 0.8, 0.22], [1.99, 1.3, 0.24], [1.95, 1.8, 0.28], [1.97, 2.3, 0.32], [2.07, 2.8, 0.29], [2.18, 3.2, 0.17], [2.3, 3.56, 0]], { ...all, round: 0.2 });
-  hank([[1.7, 0.2, 0.1], [1.68, 0.8, 0.14], [1.66, 1.3, 0.16], [1.7, 1.8, 0.2], [1.78, 2.3, 0.22], [1.9, 2.8, 0.19], [2, 3.2, 0.11], [2.08, 3.52, 0]], { ...all, tone: 0.86, round: 0.2 });
-  gap([[2.2, 1.42], [2.4, 1.82], [2.67, 2.1], [3, 2.22]], 0.04, "leaf"); gap([[1.86, 0.9], [1.82, 1.3], [1.82, 1.8], [1.9, 2.3]], 0.014, "leaf");
-  for (const [q, w, ink, seed] of [
-    [[[2.12, 0.4, 0.3], [2.25, 0.86, 0.8], [2.46, 1.24, 0.9], [2.76, 1.46, 0.8], [3.1, 1.46, 0.5], [3.34, 1.3, 0]], 1.7, 0.7, 633], [[[2.3, 1.5, 0.3], [2.55, 1.94, 0.9], [2.86, 2.14, 0.9], [3.3, 2.1, 0.7], [3.64, 1.92, 0.4], [3.86, 1.72, 0]], 1.9, 0.74, 634], [[[2.36, 2.3, 0.3], [2.76, 2.66, 0.8], [3.16, 2.8, 0.8], [3.56, 2.74, 0.5], [3.86, 2.56, 0]], 1.5, 0.62, 635],
-    [[[2.26, 0.4, 0.3], [2.28, 1.0, 0.9], [2.2, 1.6, 0.9], [2.24, 2.2, 0.7], [2.36, 2.8, 0]], 1.6, 0.8, 636], [[[2, 0.4, 0.3], [1.92, 1.0, 0.9], [1.84, 1.6, 0.9], [1.86, 2.2, 0.8], [1.98, 2.8, 0]], 1.6, 0.86, 637],
-  ] as const) hair(q, w, ink, seed);
+  const h = gongbiHand(f, HEAD, GONGBI, 8);
+  for (const [i, q] of PALE.entries()) {
+    paintGongbiLock(h, { outline: gongbiBand(q), places: hues([[q[0][0], q[0][1], "#7f736a"], [q[2][0], q[2][1], "#9c9087"], [q[4][0], q[4][1], "#b1a59d"], [q[6][0], q[6][1], "#bdb2a9"], [q[q.length - 2][0], q[q.length - 2][1], "#cfc5ba"]]), soft: 0.014, wash: { mottle: 0.07, cloud: 0.2, rim: 0.2, rimWidth: 0.02 } }, 801 + i);
+    paintGongbiLines(h, [[gongbiAlong(q, 0.96), 0.004, 0.5], [gongbiAlong(q, -0.96), 0.004, 0.6], [gongbiAlong(q, 0.3), 0.006, 0.3, 0.01], [gongbiAlong(q, -0.36), 0.005, 0.3, 0.008]], BROWN);
+  }
+  for (const [i, { band, of }] of TAILS.entries()) {
+    const last = band[band.length - 1];
+    paintGongbiLock(h, { outline: gongbiBand(band), places: hues(of), soft: 0.012, lost: [{ along: [[last[0], last[1]]], reach: 0.3, soft: 0.04 }], wash: { mottle: 0.07, cloud: 0.14, rim: 0.2, rimWidth: 0.02 } }, 811 + i);
+    paintGongbiLines(h, [[gongbiAlong(band, 0.97), 0.006, 0.8], [gongbiAlong(band, -0.97), 0.006, 0.8], [gongbiAlong(band, 0.5), 0.007, 0.6, 0.008], [gongbiAlong(band, 0.1), 0.005, 0.6, 0.006], [gongbiAlong(band, -0.36), 0.008, 0.6, 0.01], [gongbiAlong(band, -0.7), 0.004, 0.5]], DARK);
+    liftGongbiLines(h, [[gongbiAlong(band, 0.4).slice(1, -2), 0.004, 0.4], [gongbiAlong(band, -0.5).slice(2, -2), 0.005, 0.34]]);
+  }
+  paintGongbiLines(h, [
+    [[[2.2, 0.4], [2.34, 0.9], [2.54, 1.24], [2.84, 1.44], [3.16, 1.44], [3.42, 1.26]], 0.006, 0.8], [[[2.34, 1.5], [2.6, 1.96], [2.92, 2.16], [3.36, 2.12], [3.7, 1.92], [3.92, 1.7]], 0.006, 0.8], [[[2.44, 2.4], [2.84, 2.72], [3.24, 2.84], [3.64, 2.76], [3.96, 2.54]], 0.005, 0.7], [[[2.36, 1.0], [2.4, 1.5], [2.56, 1.84], [2.8, 2.0]], 0.005, 0.6], [[[2.6, 1.96], [2.86, 2.1], [3.2, 2.1], [3.5, 1.96]], 0.004, 0.6],
+    [[[-0.94, 0.1], [-1.06, 0.5], [-1.1, 0.9], [-1.08, 1.4], [-1.16, 1.9], [-1.3, 2.3]], 0.004, 0.6, 0.005, BROWN], [[[-0.8, 0.2], [-0.94, 0.7], [-0.96, 1.2], [-0.92, 1.7], [-1.0, 2.2], [-1.12, 2.6]], 0.004, 0.5, 0.005, BROWN],
+  ], STRAND);
 }
 /** One lock brought forward over the near shoulder. */
+const LOCK: readonly GongbiNode[] = [[2.04, 0.1, 0.01], [2.03, 0.36, 0.055], [1.96, 0.68, 0.1], [1.82, 1.04, 0.14], [1.65, 1.4, 0.16], [1.52, 1.8, 0.168], [1.41, 2.25, 0.16], [1.35, 2.7, 0.146], [1.38, 3.15, 0.132], [1.43, 3.6, 0.118], [1.41, 4.05, 0.1], [1.32, 4.48, 0.08], [1.2, 4.88, 0.056], [1.15, 5.22, 0.034], [1.2, 5.5, 0.014], [1.3, 5.7, 0]];
+const LOCK_OVER: readonly GongbiNode[] = [[1.94, 0.3, 0.01], [1.84, 0.6, 0.03], [1.71, 1.0, 0.056], [1.55, 1.4, 0.072], [1.43, 1.84, 0.074], [1.32, 2.3, 0.07], [1.26, 2.74, 0.06], [1.28, 3.2, 0.054], [1.32, 3.6, 0.05], [1.31, 4.0, 0.04], [1.22, 4.4, 0.028], [1.1, 4.8, 0.012], [1.02, 5.06, 0]];
 function drawLock({ face: f }: Pens) {
-  const { hank, hair, gap } = comb(f, 700);
-  // the robe does not show through it
-  f.knock(inkBlob(f, lock([[1.5, 1.96, 0.1], [1.395, 2.3, 0.125], [1.33, 2.7, 0.118], [1.368, 3.15, 0.106], [1.416, 3.6, 0.096], [1.394, 4.05, 0.08], [1.302, 4.48, 0.062], [1.18, 4.88, 0.042], [1.134, 5.22, 0.024], [1.19, 5.48, 0.008]])));
-  const all = { tone: inPen(FALL_TONE), root: 0.02, tip: 0.14, hairs: 5, stray: 1.6, glaze: 0.36, clear: [K, ...PLATE] };
-  hank([[2.06, 0.06, 0], [2.04, 0.36, 0.045], [1.96, 0.68, 0.095], [1.82, 1.04, 0.145], [1.65, 1.4, 0.165], [1.52, 1.8, 0.175], [1.41, 2.25, 0.165], [1.35, 2.7, 0.15], [1.38, 3.15, 0.135], [1.43, 3.6, 0.12], [1.41, 4.05, 0.1], [1.32, 4.48, 0.08], [1.2, 4.88, 0.058], [1.15, 5.22, 0.036], [1.2, 5.5, 0.016], [1.3, 5.7, 0]], { ...all, round: 0.4, light: -0.3 });
-  hank([[1.94, 0.24, 0], [1.87, 0.52, 0.022], [1.74, 0.96, 0.05], [1.56, 1.4, 0.07], [1.43, 1.84, 0.074], [1.32, 2.3, 0.07], [1.26, 2.74, 0.06], [1.28, 3.2, 0.056], [1.32, 3.6, 0.05], [1.31, 4.0, 0.04], [1.22, 4.4, 0.03], [1.1, 4.8, 0.014], [1.02, 5.06, 0]], { ...all, round: 0.3, glaze: 0.3 });
-  gap([[1.38, 2.5], [1.42, 2.95], [1.48, 3.4], [1.49, 3.8]], 0.016, "leaf"); gap([[1.66, 1.5], [1.52, 1.95], [1.42, 2.4]], 0.01, "leaf");
-  for (const [q, w, ink, seed] of [
-    [[[1.22, 2.4, 0.3], [1.14, 2.9, 0.8], [1.18, 3.4, 0.9], [1.22, 3.9, 0.7], [1.12, 4.4, 0.5], [0.98, 4.8, 0]], 1.7, 0.7, 721], [[[1.5, 2.6, 0.3], [1.6, 3.1, 0.9], [1.64, 3.6, 0.9], [1.58, 4.1, 0.7], [1.44, 4.6, 0.5], [1.38, 5, 0]], 1.9, 0.74, 722],
-    [[[1.8, 0.9, 0.3], [1.6, 1.4, 0.9], [1.44, 1.9, 0.9], [1.34, 2.4, 0.8], [1.32, 3.0, 0.5], [1.36, 3.5, 0]], 1.7, 0.86, 723],
-  ] as const) hair(q, w, ink, seed);
+  const h = gongbiHand(f, HEAD, GONGBI, 9);
+  paintGongbiLock(h, { outline: gongbiBand(LOCK), places: hues([[1.98, 0.4, "#241c1a"], [1.94, 0.8, "#3d312c"], [1.72, 1.1, "#332825"], [1.7, 1.4, "#50403b"], [1.56, 1.8, "#4c5056", 0.2], [1.5, 2.2, "#594842"], [1.46, 2.6, "#2e2421"], [1.34, 2.9, "#463833"], [1.46, 3.2, "#54443e"], [1.4, 3.7, "#2c2320"], [1.46, 3.9, "#4b3c36"], [1.3, 4.5, "#433530"], [1.2, 5, "#574641"], [1.22, 5.5, "#7a6d62"]]), soft: 0.01, wash: { mottle: 0.05, cloud: 0.12, rim: 0.2, rimWidth: 0.02, wander: 0.003 } }, 821);
+  paintGongbiLock(h, { outline: gongbiBand(LOCK_OVER), places: hues([[1.8, 0.7, "#251d1c"], [1.6, 1.3, "#362b27"], [1.42, 1.86, "#433530"], [1.3, 2.4, "#2c2320"], [1.26, 2.9, "#483a34"], [1.32, 3.6, "#332825"], [1.24, 4.3, "#4b3c36"], [1.04, 5, "#69564f"]]), soft: 0.009, wash: { mottle: 0.05, cloud: 0.12, rim: 0.2, rimWidth: 0.016, wander: 0.003 } }, 822);
+  paintGongbiSeams(h, [
+    { path: gongbiAlong(LOCK, -0.97), half: 0.006, light: 0.4, gap: 0.016 }, { path: gongbiAlong(LOCK, 0.97), half: 0.007 }, { path: gongbiAlong(LOCK_OVER, -0.96), half: 0.006, light: 0.36, gap: -0.014 }, { path: gongbiAlong(LOCK_OVER, 0.96), half: 0.006 },
+    { path: gongbiAlong(LOCK, -0.55).slice(1), half: 0.006, light: 0.3, gap: 0.016, strength: 0.8 }, { path: gongbiAlong(LOCK, -0.1).slice(3), half: 0.007, strength: 0.7 }, { path: gongbiAlong(LOCK, -0.78).slice(4, 12), half: 0.004, strength: 0.7 }, { path: gongbiAlong(LOCK_OVER, 0.1).slice(2), half: 0.004, strength: 0.7 }, { path: gongbiAlong(LOCK, -0.3).slice(2, 8), half: 0.01, strength: 0.5, soft: 0.014 },
+  ], DARK);
+  paintGongbiLines(h, [[[[1.22, 2.3], [1.14, 2.8], [1.17, 3.3], [1.22, 3.8], [1.12, 4.4], [0.98, 4.8]], 0.005, 0.8], [[[1.52, 2.5], [1.6, 3.0], [1.63, 3.5], [1.58, 4.0], [1.44, 4.6], [1.36, 5.05]], 0.005, 0.8], [[[1.5, 3.4], [1.55, 3.9], [1.47, 4.4], [1.32, 4.9], [1.3, 5.3]], 0.004, 0.7], [[[1.2, 4.3], [1.08, 4.8], [1.04, 5.2], [1.1, 5.5]], 0.004, 0.7]], STRAND);
 }
+/** What was not drawn up: it comes down over the nape and goes behind the shoulder, whose edge is the robe's. */
+const RIDGE: Run = [[2.43, 2.43], [2.22, 2.32], [2.02, 2.2], [1.84, 2.07], [1.66, 1.92], [1.55, 1.74]];
+const BACK_LOCK: GongbiLock = {
+  outline: [[1.9, -1.5], [2.2, -1.48], [2.35, -1.06], [2.43, -0.6], [2.44, -0.1], [2.41, 0.4], [2.37, 0.9], [2.35, 1.4], [2.38, 1.9], ...RIDGE, [1.53, 1.4], [1.56, 1.0], [1.6, 0.7], [1.66, 0.4], [1.74, 0.1], [1.78, -0.3], [1.74, -0.8]],
+  places: hues([[2.2, -0.8, "#251e1c"], [2.0, -0.2, "#1a1616"], [1.98, 0.2, "#1c1919", 0.16], [1.82, 0.4, "#161111", 0.14], [2.06, 0.7, "#252120", 0.16], [1.76, 0.9, "#161211", 0.14], [1.92, 1.2, "#29211e", 0.16], [1.66, 1.3, "#1b1615", 0.14], [1.9, 1.7, "#3f322d", 0.16], [1.64, 1.7, "#241c1a", 0.12], [2.2, 1.9, "#443631", 0.2], [2.2, 1.2, "#332825", 0.16]]), soft: 0.01, wash: { mottle: 0.05, cloud: 0.2, rim: 0.1, wander: 0.004 },
+};
+const BACK_OUTER: GongbiLock = {
+  outline: [[2.3, -0.8], [2.42, -0.6], [2.44, -0.1], [2.41, 0.4], [2.37, 0.9], [2.35, 1.4], [2.38, 1.9], [2.43, 2.43], [2.22, 2.32], [2.16, 2.0], [2.16, 1.6], [2.2, 1.2], [2.24, 0.8], [2.28, 0.3], [2.3, -0.2], [2.28, -0.6]],
+  places: hues([[2.38, -0.6, "#352a27", 0.16], [2.38, -0.1, "#66544e", 0.16], [2.34, 0.5, "#74685e", 0.16], [2.3, 1.0, "#584741", 0.16], [2.26, 1.5, "#6a5750", 0.16], [2.3, 2.1, "#54443e", 0.16]]), soft: 0.009, lost: [{ along: [[2.3, -0.8]], reach: 0.2, soft: 0.06 }], wash: { mottle: 0.05, cloud: 0.2, rim: 0.16, rimWidth: 0.016, wander: 0.003 },
+};
+/** The drawn-up hair, one mass from the head's far outline to the back. */
+const CAP: GongbiLock = {
+  outline: [[-0.12, -1.62], [-0.24, -1.72], [-0.36, -1.83], [-0.38, -1.92], [-0.3, -2.04], [-0.14, -2.18], [0.1, -2.31], [0.34, -2.39], [0.6, -2.44], [0.86, -2.455], [1.1, -2.42], [1.38, -2.32], [1.66, -2.15], [1.96, -1.87], [2.2, -1.5], [2.35, -1.08], [2.425, -0.76], [2.3, -0.62], [2.14, -0.5], [1.94, -0.4], [1.7, -0.3], [1.5, -0.24], [1.3, -0.26], [1, -0.4], [0.7, -0.8], [0.42, -1.2], [0.16, -1.5], [0, -1.6]],
+  places: hues([
+    [-0.18, -1.84, "#281f1d", 0.12], [0, -1.98, "#433530", 0.16], [0.24, -2.14, "#4e3d38", 0.18], [0.1, -1.86, "#352926", 0.14], [0.5, -2.24, "#453632", 0.2], [0.44, -2.02, "#3a2d28", 0.2], [0.8, -2.14, "#332724", 0.18], [0.6, -2.38, "#625049", 0.12], [0.24, -2.28, "#67534c", 0.1], [0.9, -2.38, "#332724", 0.12], [1.06, -2.26, "#1b1514", 0.14], [1.3, -2.18, "#181312", 0.14],
+    [0.8, -1.8, "#3e312d", 0.16], [1.1, -1.8, "#2e2421", 0.16], [1.1, -1.5, "#40322d", 0.16], [1.36, -1.56, "#342825", 0.16], [1.5, -1.9, "#241c1a", 0.16], [1.4, -1.2, "#3b2d28", 0.18], [1.7, -1.5, "#28211f", 0.18], [1.66, -1.06, "#252122", 0.18], [1.94, -1.2, "#2d2f34", 0.2], [1.9, -1.64, "#2e2422", 0.18], [2.16, -1.5, "#453833", 0.12], [2.2, -1.1, "#302725", 0.16], [2.36, -0.9, "#4e3f38", 0.1], [2.1, -0.76, "#1f1b19", 0.18], [1.7, -0.6, "#1f1918"], [1.2, -0.6, "#281f1d"], [2.2, -0.44, "#171313", 0.18],
+  ]), soft: 0.01, lost: [{ along: [[0.1, -2.31], [0.4, -2.41], [0.7, -2.45]], reach: 0.1, soft: 0.016 }], wash: { mottle: 0.05, cloud: 0.24, rim: 0.1, rimWidth: 0.02, wander: 0.004 },
+};
+/** Between the locks hair rises from the forehead in two arches: brown where it is deep, skin where it begins. */
+const WINDOW: GongbiLock = {
+  outline: [[0.32, -0.98], [0.2, -1.03], [0.06, -1.05], [-0.08, -1.05], [-0.2, -0.99], [-0.32, -1.04], [-0.46, -1.03], [-0.6, -1.0], [-0.74, -0.96], [-0.78, -1.1], [-0.72, -1.3], [-0.6, -1.46], [-0.42, -1.56], [-0.26, -1.68], [-0.12, -1.66], [0.04, -1.6], [0.16, -1.48], [0.26, -1.28], [0.32, -1.12]],
+  places: hues([[-0.1, -1.6, "#2a211e", 0.1], [0.06, -1.5, "#382d29", 0.1], [0.1, -1.34, "#5d4b43", 0.12], [0.2, -1.2, "#63504a", 0.1], [-0.06, -1.32, "#665249", 0.1], [0.08, -1.15, "#8d7265", 0.1], [-0.08, -1.15, "#8d7367", 0.1], [0.08, -1.06, "#b89885", 0.06], [-0.08, -1.06, "#b89987", 0.06], [-0.2, -1.12, "#735c52", 0.08], [-0.4, -1.4, "#382d29", 0.1], [-0.6, -1.36, "#3a2f2b", 0.1], [-0.42, -1.22, "#64514a", 0.1], [-0.62, -1.18, "#5a4841", 0.1], [-0.46, -1.1, "#927769", 0.08], [-0.48, -1.04, "#b99a86", 0.06], [-0.68, -1.04, "#866b5f", 0.08], [0.28, -1.08, "#765f55", 0.08]]),
+  soft: 0.012, lost: [{ along: [[0.34, -0.98], [0.06, -1.05], [-0.2, -1.0], [-0.46, -1.03], [-0.76, -0.96]], reach: 0.09, soft: 0.11 }], wash: { mottle: 0.04, cloud: 0.14, rim: 0, wander: 0.008, wave: 0.1 },
+};
+/** The crown's hair comes to the part as a wedge, down to the peak of the hairline. */
+const WEDGE: GongbiLock = {
+  outline: [[0, -1.94], [-0.1, -1.74], [-0.15, -1.58], [-0.18, -1.4], [-0.205, -1.22], [-0.225, -1.06], [-0.25, -1.0], [-0.262, -1.12], [-0.3, -1.28], [-0.37, -1.42], [-0.44, -1.56], [-0.4, -1.74], [-0.34, -1.88], [-0.22, -1.98]],
+  places: hues([[-0.12, -1.86, "#241c1a", 0.12], [-0.22, -1.66, "#1a1413", 0.12], [-0.34, -1.7, "#342925", 0.1], [-0.22, -1.44, "#251d1b", 0.1], [-0.32, -1.46, "#3f322d", 0.08], [-0.24, -1.2, "#463732", 0.08], [-0.245, -1.04, "#8a7262", 0.06]]), soft: 0.01, lost: [{ along: [[-0.25, -1.02]], reach: 0.08, soft: 0.04 }, { along: [[0, -1.94], [-0.2, -1.98]], reach: 0.12, soft: 0.09 }], wash: { mottle: 0.04, cloud: 0.2, rim: 0.1, wander: 0.003 },
+};
+/** The hair of the temple: thin over the skin, it comes down in points before the ear and goes back over its front. */
+const TEMPLE: GongbiLock = {
+  outline: [[0.56, -0.6], [0.67, -0.5], [0.79, -0.31], [0.855, -0.14], [0.92, 0], [1.0, 0.085], [1.1, 0.155], [1.21, 0.2], [1.34, 0.21], [1.46, 0.2], [1.515, 0.13], [1.555, 0.04], [1.6, -0.06], [1.655, -0.145], [1.73, -0.215], [1.82, -0.255], [1.92, -0.28], [1.99, -0.31], [2.0, -0.42], [1.6, -0.5], [1.2, -0.56], [0.9, -0.6]],
+  places: hues([[0.66, -0.48, "#5f4c41", 0.1], [0.8, -0.26, "#6d594d", 0.1], [0.94, -0.06, "#715d51", 0.1], [0.92, -0.36, "#43342d", 0.12], [1.06, -0.16, "#54433a", 0.12], [1.08, 0.1, "#6a574c", 0.1], [1.22, -0.04, "#4c3c34", 0.12], [1.24, 0.16, "#5d4b41", 0.1], [1.4, 0.06, "#42342d", 0.1], [1.4, 0.18, "#57463d", 0.08], [1.54, 0.06, "#3a2d27", 0.1], [1.46, -0.16, "#2a211d", 0.12], [1.24, -0.38, "#2f2520", 0.16], [1.66, -0.3, "#1b1614", 0.16], [1.86, -0.34, "#181312", 0.12]]),
+  soft: 0.011, lost: [{ along: [[0.6, -0.56], [0.76, -0.36]], reach: 0.07, soft: 0.04 }], wash: { mottle: 0.03, cloud: 0.12, rim: 0.2, rimWidth: 0.014, wander: 0.003 },
+};
+const NEAR_LOW: GongbiLock = {
+  outline: [[-0.12, -1.64], [-0.01, -1.6], [0.11, -1.5], [0.19, -1.34], [0.26, -1.16], [0.35, -0.96], [0.44, -0.78], [0.53, -0.62], [0.63, -0.44], [0.72, -0.32], [0.86, -0.26], [1.06, -0.26], [1.3, -0.28], [1.5, -0.3], [1.7, -0.34], [1.9, -0.42], [2.1, -0.54], [2.3, -0.7], [2.42, -0.84], [2.2, -0.78], [1.9, -0.74], [1.56, -0.78], [1.28, -0.88], [1.04, -0.98], [0.84, -1.12], [0.62, -1.3], [0.42, -1.48], [0.22, -1.6], [0.04, -1.68]],
+  places: hues([[0, -1.6, "#281f1d", 0.1], [0.16, -1.48, "#433530", 0.12], [0.28, -1.28, "#58433b", 0.12], [0.46, -1.3, "#4e3d36", 0.12], [0.5, -1.06, "#6b4739", 0.14], [0.36, -1.04, "#62493a", 0.1], [0.62, -1.06, "#614136", 0.12], [0.46, -0.8, "#5d4739", 0.1], [0.68, -0.8, "#463731", 0.14], [0.58, -0.56, "#7c6858", 0.08], [0.7, -0.4, "#665047", 0.1], [0.92, -0.84, "#382c29", 0.16], [0.9, -0.5, "#3c2f29", 0.14], [1.2, -0.7, "#2c221f", 0.16], [1.16, -0.42, "#342824", 0.14], [1.5, -0.58, "#261e1c", 0.16], [1.5, -0.38, "#201914", 0.12], [1.84, -0.54, "#24201f", 0.16], [2.16, -0.64, "#1a1515", 0.14]]),
+  soft: 0.01, lost: [{ along: [[0.8, -0.28], [1.1, -0.26], [1.4, -0.28]], reach: 0.1, soft: 0.07 }, { along: [[2.2, -0.62], [2.42, -0.84]], reach: 0.14, soft: 0.03 }], wash: { mottle: 0.04, cloud: 0.2, rim: 0.1, rimWidth: 0.016, wander: 0.003 },
+};
+const NEAR_TOP: GongbiLock = {
+  outline: [[-0.13, -1.66], [-0.04, -1.8], [0.1, -1.91], [0.28, -1.965], [0.48, -1.945], [0.7, -1.83], [0.92, -1.62], [1.12, -1.38], [1.31, -1.11], [1.54, -0.87], [1.8, -0.75], [2.06, -0.72], [2.26, -0.78], [2.4, -0.9], [2.26, -0.68], [2.04, -0.58], [1.8, -0.57], [1.54, -0.67], [1.28, -0.79], [1.06, -0.91], [0.84, -1.05], [0.64, -1.21], [0.44, -1.38], [0.24, -1.52], [0.06, -1.62]],
+  places: hues([[-0.08, -1.7, "#463732", 0.08], [0.06, -1.8, "#8b7868", 0.1], [0.16, -1.88, "#67534a", 0.1], [0.3, -1.9, "#443632", 0.14], [0.2, -1.64, "#483934", 0.12], [0.46, -1.78, "#3a2e2b", 0.16], [0.5, -1.52, "#473a37", 0.14], [0.74, -1.62, "#362c2b", 0.14], [0.72, -1.36, "#4c403f", 0.14], [0.96, -1.36, "#332928", 0.14], [0.94, -1.12, "#453733", 0.14], [1.2, -1.04, "#2e2422", 0.14], [1.36, -0.88, "#362b28", 0.12], [1.64, -0.72, "#251f1e", 0.14], [2.04, -0.6, "#1a1515", 0.16]]),
+  soft: 0.009, lost: [{ along: [[2.2, -0.74], [2.4, -0.9]], reach: 0.14, soft: 0.03 }, { along: [[-0.12, -1.66]], reach: 0.06, soft: 0.02 }], wash: { mottle: 0.03, cloud: 0.24, rim: 0.1, rimWidth: 0.016, wander: 0.003 },
+};
+/** Light on the round of the near lock: sky, and the warm of the skin under thin hair. */
+const GLOSS: readonly GongbiLock[] = [
+  { outline: [[0.56, -1.66], [0.64, -1.71], [0.74, -1.66], [0.86, -1.51], [0.96, -1.33], [1.04, -1.12], [0.95, -1.25], [0.93, -1.16], [0.84, -1.32], [0.8, -1.23], [0.7, -1.41], [0.62, -1.54]], places: hues([[0.62, -1.66, "#4a4645", 0.08], [0.74, -1.58, "#5f636e", 0.1], [0.84, -1.44, "#666b79", 0.1], [0.94, -1.28, "#515158", 0.08], [0.72, -1.46, "#4c4b50", 0.08], [0.84, -1.3, "#444042", 0.08], [1.02, -1.14, "#37302e", 0.06], [0.8, -1.26, "#39322f", 0.06]]), soft: 0.022, cover: 0.94, lost: [{ along: [[0.58, -1.6], [0.66, -1.46]], reach: 0.1, soft: 0.07 }, { along: [[0.8, -1.23], [0.93, -1.16], [1.04, -1.12]], reach: 0.07, soft: 0.04 }], wash: { mottle: 0.04, cloud: 0.14, rim: 0, wander: 0.005, wave: 0.14 } },
+  { outline: [[-0.07, -1.73], [0.03, -1.83], [0.15, -1.895], [0.26, -1.91], [0.2, -1.84], [0.12, -1.8], [0.1, -1.74], [0, -1.67]], places: hues([[0, -1.73, "#c0a999", 0.08], [0.1, -1.83, "#a89285", 0.08], [0.22, -1.88, "#75665c", 0.08]]), soft: 0.014, cover: 0.85, lost: [{ along: [[0.26, -1.9], [0.16, -1.82]], reach: 0.08, soft: 0.05 }], wash: { mottle: 0.04, cloud: 0.1, rim: 0, wander: 0.006, wave: 0.08 } },
+];
+const FAR_BACK: GongbiLock = {
+  outline: [[-0.22, -1.7], [-0.34, -1.82], [-0.5, -1.865], [-0.68, -1.81], [-0.86, -1.66], [-1.02, -1.43], [-1.16, -1.15], [-1.27, -0.86], [-1.36, -0.58], [-1.4, -0.36], [-1.34, -0.18], [-1.32, -0.34], [-1.26, -0.54], [-1.18, -0.7], [-1.14, -0.56], [-1.08, -0.72], [-1.0, -0.92], [-0.9, -1.16], [-0.74, -1.34], [-0.58, -1.43], [-0.42, -1.45], [-0.27, -1.52]],
+  places: hues([[-0.3, -1.72, "#241c1a", 0.1], [-0.46, -1.8, "#463732", 0.12], [-0.64, -1.72, "#53423b", 0.12], [-0.56, -1.6, "#312622", 0.1], [-0.8, -1.5, "#5a433b", 0.12], [-0.94, -1.4, "#433530", 0.12], [-1.0, -1.1, "#483934", 0.14], [-1.14, -0.96, "#342926", 0.12], [-1.26, -0.7, "#4e3e38", 0.12], [-1.36, -0.4, "#362b28", 0.12]]), soft: 0.009, wash: { mottle: 0.04, cloud: 0.2, rim: 0.14, rimWidth: 0.016, wander: 0.003 },
+};
+const FAR_FRONT: GongbiLock = {
+  outline: [[-0.25, -1.06], [-0.3, -1.2], [-0.37, -1.35], [-0.46, -1.47], [-0.58, -1.54], [-0.7, -1.51], [-0.82, -1.38], [-0.92, -1.16], [-0.98, -0.9], [-1.02, -0.6], [-1.02, -0.3], [-1.0, -0.04], [-0.95, 0.18], [-0.86, 0.34], [-0.72, 0.43], [-0.8, 0.3], [-0.85, 0.12], [-0.87, -0.1], [-0.82, -0.24], [-0.775, -0.36], [-0.768, -0.5], [-0.762, -0.66], [-0.755, -0.84], [-0.73, -1.04], [-0.68, -1.24], [-0.6, -1.4], [-0.5, -1.42], [-0.4, -1.32], [-0.33, -1.18]],
+  places: hues([[-0.28, -1.12, "#695147", 0.08], [-0.4, -1.38, "#443631", 0.08], [-0.58, -1.48, "#665148", 0.1], [-0.72, -1.4, "#51403a", 0.1], [-0.76, -1.16, "#5a443c", 0.12], [-0.86, -1.1, "#3c2f28", 0.1], [-0.8, -0.8, "#443530", 0.1], [-0.92, -0.8, "#57453f", 0.1], [-0.84, -0.5, "#332724", 0.1], [-0.95, -0.4, "#584740", 0.1], [-0.92, 0, "#453632", 0.1], [-0.88, 0.26, "#4f3f39", 0.1], [-0.76, 0.4, "#6b574f", 0.1]]), soft: 0.009, lost: [{ along: [[-0.25, -1.06]], reach: 0.08, soft: 0.04 }], wash: { mottle: 0.04, cloud: 0.2, rim: 0.14, rimWidth: 0.014, wander: 0.003 },
+};
+/** What hangs from the far lock in points, the farthest first. */
+const FAR_POINTS: readonly (readonly GongbiNode[])[] = [
+  [[-0.94, -1.3, 0.02], [-1.06, -1.0, 0.042], [-1.17, -0.74, 0.048], [-1.28, -0.52, 0.036], [-1.34, -0.34, 0.02], [-1.3, -0.16, 0]],
+  [[-0.98, -0.8, 0.02], [-1.06, -0.44, 0.03], [-1.15, -0.14, 0.03], [-1.2, 0.08, 0.022], [-1.18, 0.24, 0.011], [-1.06, 0.36, 0]],
+  [[-0.7, -1.5, 0.02], [-0.86, -1.26, 0.062], [-0.97, -0.96, 0.07], [-1.06, -0.66, 0.064], [-1.15, -0.36, 0.054], [-1.25, -0.06, 0.042], [-1.33, 0.2, 0.028], [-1.36, 0.42, 0.013], [-1.27, 0.6, 0]],
+];
 function drawGathered({ face: f }: Pens) {
-  const { flyaways, gap, strand, hair, wash, hank, band, rooted, tufts } = comb(f, 500), over = (q: readonly (readonly [Run, number, number])[], from: number) => { for (const [i, [r, w, ink]] of q.entries()) strand(r, w, ink, from + i); };
-  // ---- behind: what comes down over the nape
-  for (const [s0, s1, to] of [[0.72, 1, 0.8], [0, 0.26, 0.96], [0.5, 0.8, 0.9], [0.18, 0.44, 0.86], [0.36, 0.6, 1]] as const) band(BACK, s0, s1, { to, pinch: pointed(0.6), round: 0.26, tip: 0.4, hairs: 5, stray: 1.8, clear: [K, ...PLATE] });
-  flyaways(BACK, { n: 5, s: [-0.03, 0.3], from: [0.1, 0.66], length: [0.1, 0.24], lift: [1, 5], drift: 0.07, ink: [0.35, 0.7] });
-  // ---- the drawn-up hair: one wash, then lock over lock
-  f.knock(f.shape(lv(CAP)), [K, ...PLATE]);
-  wash(E, CAP, () => 0.17, { mottle: 0.2 }); wash(K, CAP, HAIR_TONE);
-  for (const [s0, s1, from] of [[0, 0.4, 0.3], [0.36, 0.72, 0.36], [0.68, 1, 0.36]] as const) band(CROWN, s0, s1, { from, round: 0.26, light: 0.2, tip: 0.1, root: 0.1, glaze: 0.4, hairs: 1, clear: [K, ...PLATE] });
-  flyaways(CROWN, { n: 6, s: [-0.02, 0.24], from: [0.06, 0.5], length: [0.22, 0.5], lift: [1, 8], drift: 0.12, ink: [0.35, 0.7] });
-  for (const [s0, s1, from] of [[0.74, 1, 0.1], [0.48, 0.77, 0.1], [0.24, 0.52, 0.12], [0, 0.28, 0.3]] as const) band(SIDE, s0, s1, { from, round: 0.32, tip: 0.08, root: 0.02, glaze: 0.42, hairs: 1, clear: [K, ...PLATE] });
-  over([
-    [[[0.06, -1.66], [0.3, -1.84], [0.52, -2.02], [0.68, -2.16]], 1.6, 0.8], [[[0.66, -1.74], [0.86, -1.86], [0.9, -2.04], [0.84, -2.18]], 1.5, 0.8], [[[0.98, -1.5], [1.16, -1.7], [1.14, -1.94], [1, -2.12]], 1.8, 0.86], [[[1.2, -1.16], [1.42, -1.36], [1.5, -1.66], [1.36, -1.94], [1.08, -2.14]], 1.4, 0.76], [[[1.4, -0.94], [1.66, -1.1], [1.84, -1.42], [1.76, -1.78], [1.36, -2.08]], 1.8, 0.86], [[[1.6, -0.76], [1.9, -1.0], [2.03, -1.4], [1.9, -1.78], [1.5, -2.06]], 1.5, 0.8],
-    [[[-0.24, -1.9], [0.02, -2.06], [0.3, -2.16], [0.58, -2.22]], 1.3, 0.7], [[[-0.62, -1.82], [-0.34, -2.06], [0, -2.22], [0.36, -2.31]], 1.3, 0.66],
-  ], 540);
-  gap([[0.98, -1.62], [1.06, -1.84], [0.98, -2.04], [0.88, -2.16]], 0.014, "leaf"); gap([[1.56, -1.1], [1.7, -1.4], [1.64, -1.74], [1.36, -2.0]], 0.014, "leaf"); gap([[0.3, -1.98], [0.46, -2.08], [0.62, -2.18]], 0.01, "leaf"); gap([[-0.5, -1.98], [-0.2, -2.16], [0.14, -2.28]], 0.01, "leaf");
-  // ---- between the locks: hair that rises from the skin
-  for (const q of [[[0.27, -1.04], [0.26, -1.24], [0.14, -1.44], [0, -1.6], [-0.14, -1.66], [-0.22, -1.44], [-0.25, -1.18], [-0.16, -1.1], [-0.04, -1.06], [0.1, -1.05]], [[-0.25, -1.14], [-0.28, -1.36], [-0.4, -1.48], [-0.58, -1.48], [-0.72, -1.3], [-0.78, -1.06], [-0.68, -1.02], [-0.5, -1.04], [-0.36, -1.06]]] as readonly Run[]) { wash(E, q, (_x, y) => 0.42 * ss(-0.98, -1.3, y), { soft: 14, rim: 0, mottle: 0.2 }); wash(K, q, (_x, y) => 0.56 * ss(-1.02, -1.42, y), { soft: 14, rim: 0 }); }
-  for (const form of ROOTS) { tufts(form, 9, 0.036); rooted(form, 14, 0.8, 0.5); rooted(form, 8, 1.4, 0.84); }
-  hank([[-0.13, -1.66, 0.014], [-0.2, -1.53, 0.026], [-0.245, -1.37, 0.027], [-0.255, -1.2, 0.015], [-0.25, -1.04, 0]], { tip: 0.4, hairs: 1 });
-  // ---- the ear stands before all that goes back behind it; the hair of the temple comes down over its front, thin at its foot, and tucks in behind its top
-  paintInkEar(f, HEAD, FACE_STYLE);
-  f.knock(f.shape(lv(TEMPLE.map(([x, y]) => y > -0.3 ? [lerp(1.46, x, 0.76), lerp(-0.2, y, 0.7)] as const : [x, y] as const))), [E, R, K]);
-  const loose = (_x: number, y: number) => lerp(1.4, 11, ss(-0.1, 0.12, y));
-  wash(E, TEMPLE, (_x, y) => lerp(0.24, 0.3, ss(-0.2, 0.2, y)), { soft: loose, rim: 0.1, mottle: 0.2 }); wash(K, TEMPLE, (x, y) => lerp(0.74, 0.5, ss(-0.3, 0.16, y)) * lerp(0.66, 1, ss(0.9, 1.3, x)) * (1 - 0.34 * Math.exp(-(((x - 1.18) / 0.22) ** 2) - ((y - 0.03) / 0.07) ** 2)), { soft: loose, rim: 0.1 });
-  hank([[0.7, -0.5, 0.02], [0.9, -0.34, 0.06], [1.12, -0.23, 0.1], [1.34, -0.21, 0.12], [1.54, -0.27, 0.11], [1.72, -0.35, 0.09], [1.9, -0.33, 0.07], [2.04, -0.17, 0.05], [2.1, 0.06, 0.03], [2.11, 0.3, 0]], { tone: inPen((x, y) => HAIR_TONE(x, y) * 0.86), root: 0.1, tip: 0.3, round: 0.36, hairs: 4, glaze: 0.42, clear: [K, ...PLATE] });
-  over([[[[0.94, -0.46], [1.2, -0.36], [1.46, -0.36], [1.72, -0.44], [1.94, -0.42], [2.1, -0.22]], 1.6, 0.86], [[[1, -0.16], [1.22, -0.1], [1.42, -0.11], [1.58, -0.2], [1.76, -0.28], [1.94, -0.24], [2.05, -0.06]], 1.5, 0.8], [[[0.82, -0.36], [0.92, -0.12], [1.05, 0.08], [1.22, 0.19], [1.42, 0.24]], 1.5, 0.7], [[[0.84, -0.28], [0.94, -0.02], [1.08, 0.17], [1.26, 0.29], [1.44, 0.34]], 1.2, 0.5], [[[0.9, -0.06], [1.02, 0.13], [1.18, 0.27], [1.36, 0.37]], 1, 0.36], [[[0.96, -0.06], [1.08, 0.12], [1.24, 0.24], [1.42, 0.28]], 1.1, 0.6], [[[0.9, -0.3], [1.02, -0.12], [1.16, 0.02], [1.32, 0.1], [1.48, 0.1]], 1.3, 0.7], [[[1.0, -0.24], [1.16, -0.08], [1.34, 0.0], [1.5, -0.04], [1.62, -0.16]], 1.2, 0.7], [[[1.5, 0.18], [1.57, 0.06], [1.62, -0.08], [1.7, -0.2], [1.82, -0.28]], 1.5, 0.8]], 570);
-  // ---- the near lock: three, the top one last
-  for (const [s0, s1, light, to] of [[0.68, 1, 0.2, 0.88], [0.34, 0.74, 0, 0.94], [0, 0.4, -0.2, 0.94]] as const) band(NEAR, s0, s1, { to, pinch: pointed(0.62), light, round: 0.36, root: 0.03, tip: 0.1, glaze: 0.42, hairs: 2, clear: [K, ...PLATE] });
-  over([
-    [[[-0.1, -1.69], [0.06, -1.86], [0.3, -1.95], [0.54, -1.92], [0.78, -1.75], [1.02, -1.48], [1.24, -1.17], [1.5, -0.86], [1.82, -0.65]], 2.2, 0.92], [[[-0.04, -1.63], [0.2, -1.53], [0.5, -1.29], [0.8, -1.05], [1.12, -0.86], [1.5, -0.68], [1.84, -0.48]], 1.8, 0.9], [[[-0.02, -1.6], [0.18, -1.4], [0.4, -1.08], [0.64, -0.76], [0.92, -0.52], [1.26, -0.4], [1.6, -0.36]], 1.7, 0.86],
-    [[[-0.1, -1.61], [0.06, -1.48], [0.2, -1.24], [0.32, -0.99], [0.46, -0.74], [0.62, -0.48], [0.8, -0.23], [1.02, -0.06]], 1.8, 0.86], [[[0.1, -1.78], [0.36, -1.78], [0.64, -1.6], [0.9, -1.32], [1.16, -1.06], [1.5, -0.84]], 1.2, 0.6], [[[0.14, -1.68], [0.42, -1.56], [0.72, -1.3], [1.02, -1.06], [1.36, -0.88]], 1.2, 0.66], [[[0.28, -1.2], [0.52, -0.84], [0.78, -0.5], [1.06, -0.28], [1.4, -0.24]], 1.2, 0.66],
-  ], 560);
-  gap([[0.02, -1.79], [0.2, -1.88], [0.42, -1.88], [0.64, -1.78], [0.84, -1.58]], 0.012, "leaf"); gap([[0.34, -1.4], [0.6, -1.17], [0.9, -0.95], [1.24, -0.76]], 0.012, "leaf"); gap([[-0.03, -1.67], [0.12, -1.68], [0.26, -1.63]], 0.016, "leaf"); gap([[0.5, -0.8], [0.74, -0.5], [1.02, -0.32]], 0.01, "leaf");
-  flyaways(NEAR, { n: 6, s: [-0.04, 0.2], from: [0, 0.3], length: [0.3, 0.6], lift: [2, 7], drift: 0.06, ink: [0.35, 0.7] });
-  // ---- the far lock: what lies on the head, then what hangs from it in points, the nearest to the face last
-  hair([[-0.1, -2.16, 0.2], [-0.46, -2.06, 0.8], [-0.86, -1.8, 1], [-1.2, -1.4, 0.9], [-1.38, -1.1, 0.5], [-1.46, -0.9, 0]], 1.4, 0.6, 521); hair([[-0.3, -1.84, 0.2], [-0.7, -1.87, 0.8], [-1.06, -1.58, 1], [-1.34, -1.1, 1], [-1.52, -0.66, 0.8], [-1.6, -0.28, 0.5], [-1.52, -0.02, 0]], 1.8, 0.76, 522);
-  band(FAR, 0, 0.55, { to: 0.94, pinch: pointed(0.36), round: 0.3, root: 0.04, tip: 0.3, glaze: 0.36, tone: inPen((x, y) => HAIR_TONE(x, y) * 0.86), clear: [K, ...PLATE] });
-  const tipped = { root: 0, tip: 0.1, round: 0.36, glaze: 0.4, hairs: 2, stray: 1.3, tone: inPen((x, y) => HAIR_TONE(x, y) * 0.9), clear: [K, ...PLATE] };
-  hank([[-0.26, -1.77, 0], [-0.5, -1.8, 0.03], [-0.78, -1.68, 0.07], [-1, -1.42, 0.08], [-1.15, -1.1, 0.075], [-1.27, -0.8, 0.062], [-1.36, -0.54, 0.045], [-1.38, -0.34, 0.025], [-1.32, -0.22, 0.01], [-1.25, -0.18, 0]], tipped);
-  hank([[-0.8, -1.2, 0], [-0.88, -0.9, 0.016], [-0.96, -0.6, 0.032], [-1.06, -0.28, 0.04], [-1.14, -0.06, 0.04], [-1.2, 0.08, 0.028], [-1.2, 0.2, 0.016], [-1.12, 0.3, 0]], tipped);
-  hank([[-0.22, -1.7, 0], [-0.5, -1.69, 0.045], [-0.76, -1.5, 0.1], [-0.92, -1.2, 0.11], [-1.03, -0.88, 0.1], [-1.12, -0.58, 0.085], [-1.21, -0.28, 0.065], [-1.3, 0, 0.045], [-1.37, 0.26, 0.026], [-1.36, 0.46, 0.012], [-1.28, 0.58, 0]], tipped);
-  hank([[-0.16, -1.66, 0], [-0.24, -1.55, 0.06], [-0.29, -1.43, 0.07], [-0.295, -1.3, 0.045], [-0.275, -1.19, 0.02], [-0.262, -1.06, 0]], { tone: inPen((x, y) => HAIR_TONE(x, y) * lerp(0.9, 0.6, ss(-1.5, -1.2, y))), round: 0.3, light: -0.3, root: 0, tip: 0.5, end: 0.2, glaze: 0.4, hairs: 2, stray: 1.2, soft: 2, clear: [] });
-  band(FAR, 0.5, 1, { to: 0.92, pinch: pointed(0.36), round: 0.34, root: 0.04, tip: 0.3, glaze: 0.4, clear: [K, ...PLATE] });
-  hank([[-0.16, -1.65, 0], [-0.4, -1.52, 0.07], [-0.57, -1.45, 0.09], [-0.68, -1.24, 0.1], [-0.76, -0.96, 0.096], [-0.81, -0.64, 0.086], [-0.85, -0.34, 0.068], [-0.885, -0.04, 0.045], [-0.88, 0.2, 0.024], [-0.82, 0.36, 0.01], [-0.76, 0.44, 0]], tipped);
-  over([
-    [[[-0.15, -1.67], [-0.3, -1.81], [-0.52, -1.86], [-0.74, -1.79], [-0.94, -1.6], [-1.1, -1.34]], 1.9, 0.86], [[[-0.17, -1.62], [-0.3, -1.47], [-0.46, -1.45], [-0.6, -1.43], [-0.7, -1.29], [-0.78, -1.04], [-0.84, -0.76]], 1.7, 0.86], [[[-0.22, -1.66], [-0.46, -1.66], [-0.68, -1.53], [-0.84, -1.3], [-0.95, -1.0], [-1.03, -0.66]], 1.5, 0.8], [[[-0.3, -1.72], [-0.56, -1.74], [-0.8, -1.58], [-0.97, -1.3], [-1.1, -0.96], [-1.2, -0.6]], 1.3, 0.7], [[[-0.82, -0.8], [-0.88, -0.44], [-0.9, -0.12], [-0.88, 0.14], [-0.8, 0.34]], 1.2, 0.8],
-  ], 600);
-  gap([[-0.26, -1.74], [-0.46, -1.78], [-0.66, -1.72], [-0.84, -1.56]], 0.012, "leaf"); gap([[-0.3, -1.54], [-0.48, -1.53], [-0.63, -1.45], [-0.74, -1.24]], 0.01, "leaf"); gap([[-0.94, -0.9], [-1, -0.6], [-1.04, -0.3]], 0.014, "leaf");
-  for (const [q, w, ink, seed] of [[[[-0.9, -0.2, 0.2], [-0.96, 0.06, 0.8], [-0.92, 0.28, 0.8], [-0.8, 0.38, 0.5], [-0.66, 0.41, 0]], 1.3, 0.7, 523], [[[-1.18, -0.5, 0.2], [-1.26, -0.2, 0.8], [-1.24, 0.06, 0.8], [-1.14, 0.24, 0.5], [-1, 0.3, 0]], 1.3, 0.66, 524], [[[-1, -0.6, 0.2], [-1.08, -0.2, 0.8], [-1.08, 0.16, 0.8], [-1.16, 0.4, 0]], 1.2, 0.6, 525]] as const) hair(q, w, ink, seed);
-  // ---- the part
-  gap([[-0.16, -1.58], [-0.13, -1.64], [-0.11, -1.7], [-0.09, -1.78], [-0.02, -1.86]], 0.012, t => [0.3, 0.8, 1, 0.7, 0.9, 0.5, 0.1][Math.round(6 * t)]);
+  const h = gongbiHand(f, HEAD, GONGBI, 6);
+  // ---- behind
+  paintGongbiLock(h, BACK_LOCK, 501); paintGongbiLock(h, BACK_OUTER, 502);
+  paintGongbiFlow(h, HEAD, BACK, { n: 12, s: [0.16, 0.98], from: [0.1, 0.5], length: [0.4, 0.6], half: [0.004, 0.014], soft: [0.008, 0.016], ink: [0.3, 0.7], tone: DARK, drift: 0.06, seed: 31 });
+  paintGongbiSeams(h, [
+    { path: [[2.31, -0.5], [2.31, -0.1], [2.28, 0.4], [2.24, 0.8], [2.2, 1.2], [2.16, 1.6], [2.17, 2.0], [2.22, 2.3]], half: 0.009, light: 0.3, gap: -0.02 }, { path: [[2.05, 0], [2.04, 0.4], [1.99, 0.8], [1.93, 1.2], [1.88, 1.6], [1.9, 2.0]], half: 0.009, light: 0.26, gap: -0.02 }, { path: [[1.86, 0.1], [1.78, 0.5], [1.7, 0.9], [1.65, 1.3], [1.66, 1.8]], half: 0.007, light: 0.2, gap: -0.016 },
+    { path: [[2.2, -1.5], [2.36, -1.06], [2.435, -0.6], [2.445, -0.1], [2.415, 0.4], [2.375, 0.9], [2.355, 1.4], [2.385, 1.9], [2.44, 2.4]], half: 0.007 },
+  ], DARK);
+  // ---- the drawn-up hair
+  paintGongbiLock(h, CAP, 504);
+  paintGongbiFlow(h, HEAD, CROWN, { n: 7, s: [0.06, 0.98], from: [0, 0.3], length: [0.4, 0.7], half: [0.004, 0.012], soft: [0.01, 0.02], ink: [0.2, 0.46], tone: SOOT, drift: 0.14, seed: 33 });
+  paintGongbiFlow(h, HEAD, CROWN, { n: 5, s: [0.08, 0.94], from: [0.1, 0.3], length: [0.4, 0.6], half: [0.012, 0.028], soft: [0.03, 0.045], ink: [0.08, 0.16], drift: 0.06, seed: 34 });
+  paintGongbiFlow(h, HEAD, SIDE, { n: 4, s: [0.1, 0.7], from: [0.2, 0.36], length: [0.4, 0.6], half: [0.014, 0.03], soft: [0.035, 0.05], ink: [0.07, 0.14], drift: 0.04, seed: 36 });
+  paintGongbiFlow(h, HEAD, SIDE, { n: 10, s: [0.1, 0.98], from: [0.2, 0.6], length: [0.4, 0.7], half: [0.005, 0.014], soft: [0.008, 0.02], ink: [0.3, 0.7], tone: DARK, drift: 0.06, seed: 35 });
+  paintGongbiLines(h, [
+    // toward the tie
+    [[[1.2, -2.2], [1.2, -1.96], [1.28, -1.68], [1.44, -1.42], [1.62, -1.24]], 0.016, 0.8, 0.012], [[[1.28, -2.18], [1.34, -1.94], [1.46, -1.68], [1.62, -1.44], [1.72, -1.34]], 0.009, 0.9], [[[1.36, -2.18], [1.5, -1.94], [1.64, -1.66], [1.78, -1.36], [1.84, -1.12]], 0.012, 0.8, 0.01], [[[1.14, -2.18], [1.04, -2.0], [0.98, -1.84], [0.86, -1.72]], 0.01, 0.7, 0.01], [[[1.1, -2.22], [0.9, -2.1], [0.66, -2.0], [0.44, -1.96]], 0.008, 0.7, 0.01], [[[1.48, -2.14], [1.72, -1.9], [1.9, -1.6], [2.0, -1.24]], 0.008, 0.7, 0.008], [[[1.6, -2.06], [1.88, -1.78], [2.08, -1.44], [2.2, -1.06], [2.24, -0.8]], 0.008, 0.7, 0.008],
+    [[[1.04, -2.24], [0.76, -2.18], [0.46, -2.08], [0.2, -1.95], [0.02, -1.82]], 0.005, 0.6, 0.008], [[[0.94, -2.3], [0.6, -2.28], [0.28, -2.18], [0.02, -2.04], [-0.14, -1.92]], 0.006, 0.6, 0.008], [[[0.8, -2.36], [0.5, -2.34], [0.2, -2.24], [-0.06, -2.09], [-0.2, -1.98]], 0.004, 0.6],
+    // the head's outline
+    [[[-0.36, -1.84], [-0.385, -1.93], [-0.3, -2.05], [-0.14, -2.185], [0.1, -2.315], [0.36, -2.4], [0.62, -2.45], [0.88, -2.46]], 0.0065, 0.9], [[[1.34, -2.34], [1.66, -2.16], [1.96, -1.88], [2.2, -1.51], [2.36, -1.08], [2.44, -0.62]], 0.009, 0.95],
+    [[[0.66, -2.44], [0.32, -2.4], [-0.04, -2.27], [-0.38, -2.07], [-0.7, -1.82], [-0.94, -1.54], [-1.1, -1.24]], 0.0035, 0.6, 0.005, BROWN], [[[0.3, -2.4], [-0.06, -2.3], [-0.42, -2.12], [-0.72, -1.9], [-1.0, -1.6], [-1.22, -1.24]], 0.004, 0.6, 0.005, BROWN], [[[-0.4, -1.98], [-0.66, -1.9], [-0.94, -1.68], [-1.2, -1.36], [-1.4, -1.02]], 0.0045, 0.7, 0.005, BROWN],
+  ], DARK);
+  liftGongbiLines(h, [[[[0.16, -2.2], [0.4, -2.32], [0.66, -2.385], [0.88, -2.4]], 0.014, 0.4, 0.014], [[[2.36, -1.0], [2.24, -1.36], [2.04, -1.7], [1.8, -1.98]], 0.01, 0.4, 0.014], [[[2.4, -0.8], [2.41, -0.5], [2.4, -0.2]], 0.008, 0.3, 0.01]]);
+  // ---- between the locks
+  paintGongbiLock(h, WINDOW, 506);
+  paintGongbiLines(h, [
+    [[[0.22, -1.3], [0.2, -1.2], [0.13, -1.1], [0.07, -1.045]], 0.013, 0.85, 0.008], [[[0.2, -1.42], [0.16, -1.28], [0.08, -1.14], [-0.02, -1.035]], 0.014, 0.85, 0.009], [[[0.14, -1.5], [0.08, -1.36], [0, -1.18], [-0.09, -1.03]], 0.012, 0.8, 0.009], [[[0.06, -1.56], [0, -1.4], [-0.08, -1.22], [-0.15, -1.045]], 0.01, 0.8, 0.009], [[[0.26, -1.18], [0.23, -1.1], [0.17, -1.035]], 0.011, 0.85, 0.007], [[[0.3, -1.1], [0.27, -1.04], [0.23, -1.0]], 0.009, 0.8, 0.006], [[[0.2, -1.36], [0.15, -1.22], [0.08, -1.11], [0.03, -1.05]], 0.006, 0.7, 0.006], [[[0.1, -1.48], [0.05, -1.32], [-0.03, -1.16], [-0.08, -1.06]], 0.006, 0.7, 0.007], [[[-0.02, -1.58], [-0.06, -1.4], [-0.12, -1.24], [-0.18, -1.08]], 0.007, 0.7, 0.007], [[[0.25, -1.24], [0.21, -1.14], [0.13, -1.05]], 0.005, 0.7, 0.006],
+    [[[-0.54, -1.42], [-0.4, -1.3], [-0.31, -1.16], [-0.26, -1.03]], 0.011, 0.85, 0.008], [[[-0.64, -1.36], [-0.48, -1.26], [-0.36, -1.14], [-0.29, -1.035]], 0.013, 0.85, 0.009], [[[-0.7, -1.26], [-0.56, -1.19], [-0.43, -1.11], [-0.35, -1.04]], 0.013, 0.85, 0.009], [[[-0.73, -1.17], [-0.62, -1.13], [-0.5, -1.08], [-0.42, -1.035]], 0.011, 0.8, 0.008], [[[-0.75, -1.1], [-0.65, -1.07], [-0.54, -1.02]], 0.01, 0.8, 0.007], [[[-0.77, -1.02], [-0.7, -1.01], [-0.62, -0.985]], 0.008, 0.8, 0.007], [[[-0.6, -1.4], [-0.44, -1.28], [-0.34, -1.14]], 0.005, 0.7, 0.006], [[[-0.68, -1.3], [-0.52, -1.21], [-0.4, -1.1]], 0.005, 0.7, 0.006], [[[-0.72, -1.21], [-0.58, -1.14], [-0.47, -1.06]], 0.005, 0.7, 0.006], [[[-0.4, -1.42], [-0.33, -1.28], [-0.27, -1.12]], 0.006, 0.7, 0.007],
+  ], SOOT);
+  paintGongbiDown(h, { line: [[0.3, -0.99], [0.2, -1.03], [0.06, -1.05], [-0.1, -1.05], [-0.18, -1.02]], inside: 1, n: 14, length: [0.05, 0.1], lean: [104, 130], root: [0.06, 0.1], half: [0.0016, 0.003], tone: SOOT, ink: [0.3, 0.6], soft: 0.006, seed: 45 });
+  paintGongbiDown(h, { line: [[-0.26, -1.02], [-0.36, -1.05], [-0.48, -1.03], [-0.62, -1.0], [-0.72, -0.97]], inside: 1, n: 14, length: [0.05, 0.1], lean: [42, 66], root: [0.06, 0.1], half: [0.0016, 0.003], tone: SOOT, ink: [0.3, 0.6], soft: 0.006, seed: 46 });
+  paintGongbiLock(h, WEDGE, 507);
+  paintGongbiSeams(h, [{ path: [[0, -1.86], [-0.1, -1.72], [-0.155, -1.56], [-0.185, -1.38], [-0.21, -1.2], [-0.235, -1.02]], half: 0.007, light: 0.6, gap: 0.016 }, { path: [[-0.2, -1.94], [-0.24, -1.76], [-0.24, -1.56], [-0.245, -1.34], [-0.25, -1.1]], half: 0.008, strength: 0.7, soft: 0.01 }, { path: [[-0.3, -1.9], [-0.35, -1.72], [-0.33, -1.54], [-0.29, -1.34]], half: 0.006, strength: 0.7, light: 0.3, gap: -0.014 }], DARK);
+  // ---- the ear stands before all that goes back behind it; the hair of the temple comes down over its front
+  paintGongbiEar(f, HEAD, EAR_OF);
+  paintGongbiLock(h, TEMPLE, 508);
+  paintGongbiLines(h, [
+    [[[0.66, -0.5], [0.78, -0.3], [0.85, -0.13], [0.92, 0.005], [1.0, 0.09], [1.1, 0.16], [1.22, 0.205], [1.36, 0.21], [1.48, 0.18], [1.6, 0.08]], 0.009, 0.9], [[[0.9, -0.4], [0.94, -0.22], [1.02, -0.06], [1.14, 0.05], [1.28, 0.11], [1.46, 0.11]], 0.007, 0.8, 0.007], [[[1.02, -0.42], [1.08, -0.26], [1.18, -0.12], [1.32, -0.03], [1.5, 0]], 0.008, 0.8, 0.008], [[[0.8, -0.4], [0.86, -0.2], [0.95, -0.04], [1.06, 0.07], [1.2, 0.15], [1.34, 0.165]], 0.005, 0.7, 0.006], [[[1.16, -0.44], [1.24, -0.28], [1.38, -0.16], [1.58, -0.12]], 0.009, 0.8, 0.01], [[[0.96, -0.3], [1.04, -0.14], [1.14, -0.04]], 0.004, 0.7], [[[1.45, 0.205], [1.507, 0.13], [1.547, 0.038], [1.592, -0.064], [1.648, -0.15], [1.725, -0.221], [1.818, -0.261], [1.92, -0.287], [1.99, -0.3]], 0.015, 1, 0.009], [[[1.44, 0.1], [1.49, -0.02], [1.56, -0.14], [1.66, -0.24]], 0.006, 0.8],
+    // what comes down before it
+    [[[0.84, -0.16], [0.96, 0.06], [0.98, 0.26], [0.94, 0.42], [0.84, 0.54]], 0.005, 0.8], [[[0.94, 0.04], [1.0, 0.2], [0.98, 0.34], [0.92, 0.44]], 0.005, 0.8], [[[1.1, 0.14], [1.12, 0.3], [1.08, 0.46], [1.0, 0.58]], 0.005, 0.8],
+  ], DARK);
+  liftGongbiLines(h, [[[[0.86, -0.3], [0.92, -0.14], [1.0, -0.01], [1.1, 0.08]], 0.005, 0.3, 0.008], [[[1.0, -0.34], [1.06, -0.18], [1.16, -0.06], [1.3, 0.03]], 0.005, 0.24, 0.008]]);
+  // ---- the far lock
+  paintGongbiLock(h, FAR_BACK, 511);
+  for (const [i, q] of FAR_POINTS.entries()) {
+    paintGongbiLock(h, { outline: gongbiBand(q), places: hues(q.map(([x, y], k) => [x, y, ["#2e2421", "#3c2f28", "#51403a", "#443631", "#382c29", "#433530"][Math.min(5, k)], 0.14] as const)), soft: 0.009, lost: [{ along: [[q[0][0], q[0][1]]], reach: 0.16, soft: 0.06 }], wash: { mottle: 0.04, cloud: 0.2, rim: 0.2, rimWidth: 0.012, wander: 0.002 } }, 512 + i);
+    paintGongbiLines(h, [[gongbiAlong(q, 0.95), 0.005, 0.8], [gongbiAlong(q, -0.95), 0.006, 0.9], [gongbiAlong(q, 0.1).slice(1), 0.004, 0.6]], DARK);
+    liftGongbiLines(h, [[gongbiAlong(q, 0.5).slice(1, -1), 0.005, 0.3, 0.008]]);
+  }
+  paintGongbiLock(h, FAR_FRONT, 516);
+  paintGongbiSeams(h, [
+    { path: [[-0.22, -1.68], [-0.34, -1.815], [-0.5, -1.865], [-0.68, -1.815], [-0.86, -1.665], [-1.02, -1.435], [-1.16, -1.155], [-1.28, -0.85]], half: 0.008, light: 0.6, gap: -0.018 }, { path: [[-0.26, -1.64], [-0.4, -1.7], [-0.56, -1.68], [-0.72, -1.56], [-0.86, -1.34]], half: 0.007, light: 0.34, gap: -0.016, strength: 0.8 }, { path: [[-0.34, -1.78], [-0.54, -1.79], [-0.74, -1.68], [-0.92, -1.44], [-1.06, -1.12], [-1.18, -0.82]], half: 0.005, strength: 0.7 },
+    { path: [[-0.26, -1.1], [-0.31, -1.24], [-0.39, -1.39], [-0.48, -1.49], [-0.59, -1.55], [-0.71, -1.52], [-0.83, -1.39], [-0.93, -1.17], [-0.99, -0.9], [-1.03, -0.6]], half: 0.007, light: 0.6, gap: -0.016 }, { path: [[-0.33, -1.2], [-0.4, -1.33], [-0.5, -1.43], [-0.6, -1.41], [-0.68, -1.25], [-0.73, -1.05], [-0.755, -0.85], [-0.764, -0.66], [-0.77, -0.5], [-0.778, -0.36]], half: 0.008, light: 0.3, gap: -0.016 }, { path: [[-0.62, -1.48], [-0.76, -1.32], [-0.84, -1.06], [-0.88, -0.76], [-0.9, -0.4], [-0.9, -0.1], [-0.87, 0.14], [-0.78, 0.36]], half: 0.005, strength: 0.8, light: 0.24, gap: 0.016 }, { path: [[-0.775, -0.4], [-0.82, -0.24], [-0.87, -0.1], [-0.855, 0.12], [-0.81, 0.3], [-0.72, 0.43]], half: 0.006 }, { path: [[-1.03, -0.5], [-1.02, -0.2], [-0.99, 0.04], [-0.94, 0.22], [-0.85, 0.36], [-0.72, 0.44]], half: 0.006, light: 0.3, gap: 0.014 },
+  ], DARK);
+  // ---- the near lock: the low one, then the one that lies over it
+  paintGongbiLock(h, NEAR_LOW, 517);
+  paintGongbiFlow(h, HEAD, NEAR, { n: 7, s: [0.56, 0.98], from: [0.04, 0.5], length: [0.2, 0.5], half: [0.004, 0.011], soft: [0.008, 0.018], ink: [0.2, 0.5], tone: SOOT, drift: 0.08, seed: 37 });
+  paintGongbiFlow(h, HEAD, NEAR, { n: 5, s: [0.56, 0.96], from: [0.1, 0.5], length: [0.16, 0.36], half: [0.004, 0.01], soft: [0.01, 0.018], ink: [0.1, 0.2], drift: 0.08, seed: 38 });
+  paintGongbiLines(h, [
+    [[[0.56, -0.84], [0.8, -0.62], [1.06, -0.5], [1.36, -0.46], [1.66, -0.48], [1.92, -0.56], [2.14, -0.7]], 0.009, 0.8, 0.006], [[[0.5, -0.66], [0.72, -0.46], [0.98, -0.37], [1.3, -0.36], [1.6, -0.38], [1.86, -0.44], [2.1, -0.58]], 0.01, 0.9, 0.007], [[[0.84, -0.94], [1.1, -0.78], [1.4, -0.66], [1.7, -0.6], [1.96, -0.62], [2.2, -0.74]], 0.007, 0.8, 0.007], [[[0.62, -0.42], [0.8, -0.3], [1.06, -0.26], [1.36, -0.27], [1.66, -0.3], [1.9, -0.36]], 0.008, 0.8, 0.01], [[[1.3, -0.62], [1.56, -0.54], [1.8, -0.54], [2.04, -0.64]], 0.005, 0.7, 0.006], [[[0.3, -1.2], [0.42, -0.96], [0.56, -0.74], [0.74, -0.54]], 0.005, 0.7, 0.007], [[[0.24, -1.34], [0.4, -1.08], [0.6, -0.84], [0.86, -0.68]], 0.006, 0.6, 0.01],
+  ], DARK);
+  liftGongbiLines(h, [[[[0.96, -0.44], [1.26, -0.415], [1.54, -0.43], [1.8, -0.5]], 0.005, 0.28], [[[1.06, -0.84], [1.34, -0.72], [1.62, -0.655], [1.9, -0.66]], 0.005, 0.24], [[[0.36, -0.94], [0.46, -0.74], [0.58, -0.54], [0.66, -0.42]], 0.008, 0.5, 0.008]]);
+  paintGongbiLock(h, NEAR_TOP, 518); GLOSS.forEach((q, i) => paintGongbiLock(h, q, 519 + i));
+  paintGongbiFlow(h, HEAD, NEAR, { n: 6, s: [0.04, 0.46], from: [0.04, 0.4], length: [0.3, 0.6], half: [0.004, 0.012], soft: [0.008, 0.018], ink: [0.2, 0.5], tone: SOOT, drift: 0.06, seed: 39 });
+  paintGongbiSeams(h, [
+    { path: [[-0.13, -1.64], [-0.05, -1.8], [0.09, -1.915], [0.28, -1.97], [0.49, -1.95], [0.71, -1.835], [0.93, -1.625], [1.13, -1.385], [1.32, -1.115], [1.55, -0.875], [1.82, -0.75], [2.1, -0.72], [2.34, -0.84]], half: 0.011, light: 0.36, gap: -0.024 },
+    { path: [[-0.12, -1.64], [0.06, -1.615], [0.24, -1.515], [0.44, -1.375], [0.64, -1.205], [0.84, -1.045], [1.06, -0.905], [1.3, -0.785], [1.56, -0.665], [1.82, -0.575], [2.06, -0.58], [2.32, -0.74]], half: 0.008, light: 0.28, gap: -0.02 },
+    { path: [[-0.12, -1.63], [-0.01, -1.605], [0.11, -1.505], [0.195, -1.34], [0.265, -1.16], [0.355, -0.96], [0.445, -0.78], [0.535, -0.62], [0.635, -0.44], [0.74, -0.28]], half: 0.009, light: 0.5, gap: -0.018 },
+    { path: [[0.46, -1.66], [0.6, -1.5], [0.76, -1.28], [0.92, -1.1]], half: 0.005, strength: 0.6, soft: 0.008 }, { path: [[0.8, -1.62], [0.94, -1.42], [1.06, -1.2], [1.2, -1.02]], half: 0.004, strength: 0.6, soft: 0.007 },
+    { path: [[0.34, -1.9], [0.58, -1.74], [0.78, -1.5], [0.98, -1.22], [1.2, -0.98], [1.46, -0.8]], half: 0.006, strength: 0.6, soft: 0.01 }, { path: [[0.26, -1.78], [0.5, -1.62], [0.72, -1.4], [0.94, -1.16]], half: 0.004, strength: 0.6, soft: 0.006 }, { path: [[0.98, -1.5], [1.16, -1.22], [1.4, -0.94], [1.7, -0.76]], half: 0.006, strength: 0.7, light: 0.24, gap: 0.014 },
+  ], DARK);
+  // ---- what has come loose
+  paintGongbiLines(h, [
+    [[[0.62, -2.43], [0.36, -2.56], [0.06, -2.58], [-0.16, -2.46], [-0.26, -2.26], [-0.24, -2.04]], 0.005, 0.7], [[[-0.18, -2.2], [-0.5, -2.1], [-0.82, -1.84], [-1.06, -1.52], [-1.28, -1.2], [-1.46, -0.94], [-1.54, -0.72]], 0.0045, 0.7], [[[-0.36, -1.84], [-0.7, -1.88], [-1.0, -1.66], [-1.26, -1.28], [-1.48, -0.86], [-1.58, -0.5], [-1.56, -0.24], [-1.46, -0.06]], 0.006, 0.8], [[[-1.2, -0.5], [-1.24, -0.2], [-1.22, 0.06], [-1.12, 0.26], [-0.98, 0.3]], 0.005, 0.8], [[[-0.94, 0.1], [-0.98, 0.26], [-0.92, 0.38], [-0.82, 0.44]], 0.004, 0.7],
+    [[[2.4, -1.0], [2.52, -0.6], [2.54, -0.1], [2.48, 0.4]], 0.004, 0.6], [[[2.42, 0.2], [2.5, 0.7], [2.48, 1.2], [2.56, 1.6]], 0.004, 0.6], [[[1.9, -1.94], [2.16, -1.76], [2.36, -1.46], [2.48, -1.1]], 0.0035, 0.6],
+  ], STRAND);
 }
+/** The knot: the hank goes up through the little crown, turns over and comes down behind. */
+const KNOT: readonly GongbiLock[] = [
+  { outline: upto([[0.84, -2.5], [1.02, -2.66], [1.24, -2.76], [1.48, -2.74], [1.68, -2.62], [1.84, -2.44], [1.66, -2.54], [1.48, -2.6], [1.62, -2.5], [1.7, -2.34], [1.52, -2.46], [1.34, -2.52], [1.18, -2.46], [1.04, -2.3]]), places: upHues([[0.98, -2.5, "#241c1a"], [1.24, -2.66, "#433530"], [1.5, -2.66, "#5a4942"], [1.76, -2.5, "#7c6e62"]], 0), soft: 0.009 },
+  { outline: upto([[0.3, -1.98], [0.24, -2.2], [0.26, -2.44], [0.38, -2.64], [0.58, -2.78], [0.82, -2.8], [1.02, -2.68], [1.13, -2.46], [1.14, -2.22], [1.02, -1.98]]), places: upHues([[0.36, -2.1, "#191413"], [0.36, -2.42, "#332825"], [0.56, -2.68, "#463833"], [0.7, -2.4, "#161211"], [0.98, -2.56, "#3a2e28"], [1.06, -2.2, "#1a1413"]], 0), soft: 0.01 },
+  { outline: upto([[0.6, -2.64], [0.74, -2.78], [0.9, -2.79], [1.04, -2.67], [1.14, -2.46], [1.15, -2.22], [1.04, -1.98], [0.86, -1.98], [0.92, -2.2], [0.9, -2.38], [0.8, -2.5], [0.68, -2.54]]), places: upHues([[0.68, -2.64, "#261e1c", 0.12], [0.88, -2.7, "#4e3e38", 0.12], [1.04, -2.56, "#625149", 0.12], [1.1, -2.3, "#3e312c", 0.12], [0.96, -2.4, "#322724", 0.1], [0.98, -2.06, "#1a1413", 0.14]], 0), soft: 0.009 },
+  { outline: upto([[0.31, -1.98], [0.25, -2.2], [0.26, -2.44], [0.38, -2.65], [0.56, -2.77], [0.74, -2.76], [0.88, -2.64], [0.94, -2.46], [0.9, -2.3], [0.84, -2.44], [0.74, -2.52], [0.6, -2.48], [0.5, -2.34], [0.48, -2.16], [0.52, -1.98]]), places: upHues([[0.36, -2.06, "#1a1514", 0.14], [0.34, -2.34, "#464a52", 0.12], [0.44, -2.56, "#5e636d", 0.12], [0.6, -2.68, "#54443f", 0.12], [0.78, -2.64, "#362b28", 0.12], [0.9, -2.46, "#1e1817", 0.12], [0.46, -2.24, "#241c1b", 0.1], [0.58, -2.54, "#2c2320", 0.1]], 0), soft: 0.009 },
+];
 function drawKnot({ face: f }: Pens) {
-  const { hank, flyaways, gap, hair, strand } = comb(f, 650), all = { tone: 0.72, tip: 0.2, clear: [K, ...PLATE] };
-  const up = (q: Lock): Lock => q.map(([x, y, w]) => [...tip([x, y]), w * KNOT_AT.size] as const), upto = (q: Run): Run => q.map(tip);
-  // ends of the hank, let go behind
-  hank(up([[0.9, -2.5, 0.05], [1.08, -2.64, 0.07], [1.3, -2.72, 0.058], [1.52, -2.68, 0.036], [1.7, -2.56, 0.012], [1.8, -2.46, 0]]), { ...all, hairs: 4, stray: 1.7, tip: 0.3 });
-  hank(up([[0.96, -2.36, 0.04], [1.16, -2.46, 0.048], [1.34, -2.46, 0.032], [1.48, -2.38, 0.014], [1.56, -2.28, 0]]), { ...all, tone: 0.6, hairs: 3, stray: 1.7, tip: 0.3 });
-  for (const [q, seed] of [[[[1.06, -2.7, 0.3], [1.32, -2.82, 0.8], [1.58, -2.78, 0.6], [1.82, -2.62, 0]], 666], [[[1.1, -2.56, 0.3], [1.32, -2.6, 0.8], [1.54, -2.52, 0.6], [1.68, -2.38, 0]], 667]] as const) hair(up(q), 1.5, 0.6, seed);
-  hank(up([[0.5, -2.0, 0.1], [0.56, -2.3, 0.16], [0.68, -2.45, 0.2], [0.8, -2.3, 0.2], [0.82, -2.0, 0.14]]), { ...all, tone: 0.95, round: 0, glaze: 0 });
-  { const wound = { sheet: KNOT.lock(0, 1) }, lit = (x: number, y: number) => { const [u, v] = HEAD.fromLevel([x, y]), c = tip([0.42, -2.62]); return 0.7 - 0.3 * Math.exp(-(((u - c[0]) / 0.22) ** 2) - ((v - c[1]) / 0.16) ** 2) + 0.2 * Math.exp(-(((u - tip([0.8, -2.2])[0]) / 0.2) ** 2) - ((v - tip([0.8, -2.2])[1]) / 0.24) ** 2); }; inkHank(f, K, wound, { tone: lit, round: 0, glaze: 0.3, streak: 0.9, earth: E, earthTone: 0.3, clear: [K, ...PLATE], hairs: 3, seed: 680 }); }
-  flyaways(KNOT, { n: 7, s: [-0.04, 0.2], from: [0.05, 0.4], length: [0.3, 0.6], lift: [2, 8], drift: 0.06, ink: [0.35, 0.7] });
-  strand(upto([[0.34, -2.02], [0.3, -2.3], [0.4, -2.58], [0.62, -2.7], [0.86, -2.66], [1.0, -2.46], [1.02, -2.2], [0.94, -2.0]]), 1.6, 0.86, 671); strand(upto([[0.46, -2.02], [0.42, -2.26], [0.52, -2.5], [0.68, -2.56], [0.84, -2.48], [0.9, -2.28], [0.86, -2.04]]), 1.4, 0.86, 672); strand(upto([[0.27, -2.0], [0.2, -2.26], [0.24, -2.54], [0.4, -2.76], [0.62, -2.83], [0.88, -2.78], [1.08, -2.6]]), 1.6, 0.8, 673);
-  gap(upto([[1.04, -2.24], [1.01, -2.44], [0.88, -2.6], [0.72, -2.68]]), 0.014, "leaf"); gap(upto([[0.32, -2.36], [0.4, -2.54], [0.54, -2.65]]), 0.012, "leaf");
+  const h = gongbiHand(f, HEAD, GONGBI, 7), up = (list: readonly GongbiHairLine[]): GongbiHairLine[] => list.map(([q, ...rest]) => [upto(q), ...rest] as GongbiHairLine);
+  KNOT.forEach((q, i) => paintGongbiLock(h, q, 671 + i));
+  paintGongbiLines(h, up([
+    [[[0.94, -2.46], [1.14, -2.6], [1.36, -2.66], [1.6, -2.6], [1.8, -2.46]], 0.005, 0.8], [[[1, -2.66], [1.24, -2.77], [1.48, -2.75], [1.68, -2.63], [1.85, -2.43]], 0.005, 0.8], [[[1.06, -2.3], [1.2, -2.44], [1.36, -2.5], [1.54, -2.44], [1.7, -2.32]], 0.005, 0.8], [[[1.06, -2.72], [1.32, -2.86], [1.62, -2.82], [1.88, -2.62]], 0.004, 0.7, 0.005, STRAND], [[[1.12, -2.4], [1.36, -2.4], [1.56, -2.28], [1.68, -2.12]], 0.004, 0.7, 0.005, STRAND],
+    [[[0.3, -1.98], [0.235, -2.2], [0.25, -2.45], [0.37, -2.66], [0.57, -2.79], [0.78, -2.8]], 0.007, 0.9], [[[0.52, -1.98], [0.48, -2.16], [0.5, -2.34], [0.6, -2.48], [0.74, -2.52], [0.85, -2.44], [0.9, -2.3]], 0.009, 0.9], [[[0.66, -2.62], [0.8, -2.6], [0.9, -2.5], [0.94, -2.36], [0.92, -2.16], [0.86, -1.98]], 0.009, 0.9], [[[0.74, -2.79], [0.92, -2.8], [1.06, -2.68], [1.15, -2.46], [1.16, -2.22], [1.05, -1.98]], 0.007, 0.9],
+    [[[0.36, -2.0], [0.33, -2.24], [0.38, -2.46], [0.52, -2.64], [0.7, -2.68], [0.84, -2.6]], 0.006, 0.7, 0.008], [[[0.42, -2.0], [0.4, -2.2], [0.45, -2.4], [0.56, -2.56], [0.7, -2.6]], 0.005, 0.7, 0.006], [[[0.8, -2.72], [0.98, -2.6], [1.04, -2.42], [1.02, -2.2], [0.96, -2.0]], 0.006, 0.7, 0.008], [[[0.92, -2.76], [1.07, -2.58], [1.11, -2.36], [1.08, -2.12]], 0.004, 0.7, 0.006],
+    [[[0.3, -2.5], [0.36, -2.76], [0.6, -2.92], [0.88, -2.9], [1.06, -2.78]], 0.0035, 0.6, 0.005, STRAND], [[[1.1, -2.6], [1.22, -2.42], [1.22, -2.2]], 0.0035, 0.6, 0.005, STRAND],
+  ]), DARK);
+  liftGongbiLines(h, up([[[[0.3, -2.24], [0.31, -2.44], [0.42, -2.62], [0.56, -2.7]], 0.007, 0.4, 0.008], [[[0.72, -2.73], [0.9, -2.72], [1.02, -2.6], [1.08, -2.44]], 0.006, 0.4, 0.008], [[[0.54, -2.34], [0.62, -2.45], [0.74, -2.49]], 0.005, 0.4]]));
 }
-/** The little crown round the knot's foot and the pin through it: filigree, wiped out of the dark hair and drawn dark where it stands on the paper. */
+/** The little crown round the knot's foot and the pin through it: silver, lit from before, with a red stone. */
 function drawCrown({ face: f }: Pens) {
-  let s = 750;
-  const at = ([x, y]: readonly number[]) => HEAD.level(...tip([x, y])), px = KNOT_AT.size;
-  const ink = (q: Lock, w: number, tone = 0.95) => inkThread(f, K, q.map(r => [...at(r), r[2]] as const), w * px, { ink: tone, inkEnd: tone, seed: s++ });
-  /** A wire of silver: paper with a dark bed, so that it shows on hair and beside it. */
-  const wire = (q: Lock, w: number) => { const n = q.map(r => [...at(r), r[2]] as const); inkThread(f, K, n, (w + 3) * px, { ink: 0.97, inkEnd: 0.97, seed: s++ }); f.knock(inkBlob(f, n.map(([x, y, k]) => [x, y, (0.5 * w * px * k) / FACE.scale] as const))); if (w >= 4) inkThread(f, K, n.map(([x, y, k], i) => [x + 0.2 * w * px / FACE.scale, y + 0.2 * w * px / FACE.scale, k * leaf(0.12 + 0.76 * i / (n.length - 1))] as const), 1.3 * px, { ink: 0.6, inkEnd: 0.4, seed: s++ }); };
-  const curl = (x: number, y: number, r: number, from: number, turns: number, w: number) => wire(Array.from({ length: 12 }, (_, i) => { const t = i / 11, a = from + turns * 2 * Math.PI * t, k = r * (1 - 0.72 * t); return [x + k * Math.cos(a), y + k * Math.sin(a), 0.5 + 0.5 * Math.sin(Math.PI * Math.min(1, t + 0.25))] as const; }), w);
-  // ground
-  const ground: Run = [[0.17, -1.93], [0.14, -2.05], [0.15, -2.17], [0.22, -2.27], [0.32, -2.34], [0.43, -2.4], [0.54, -2.35], [0.66, -2.27], [0.8, -2.2], [0.96, -2.2], [1.1, -2.24], [1.1, -2.06], [1.05, -1.9], [0.6, -1.85]];
-  inkBloom(f, K, f.shape(ground.map(at)), { tone: 0.96, soft: 0.6, wander: 0.4, wave: 14, fringe: 0.2, rim: 0.1, rimWidth: 2, mottle: 0.1, cloud: 14, seed: s++ });
-  // pin, behind the knot
-  ink([[-0.32, -2.15, 0.1], [-0.18, -2.15, 0.7], [0, -2.15, 1], [0.16, -2.15, 0.9]], 7); f.lift([[-0.1, -2.156, 0.2], [0.02, -2.156, 1], [0.14, -2.156, 0.6]].map(r => [...at(r), r[2]] as const), 2 * px, [K]);
-  wire([[0.9, -2.16, 0.8], [1.1, -2.17, 0.9], [1.3, -2.175, 1], [1.44, -2.18, 0.8]], 4);
-  // wings, swept back: leaves of wire
-  wire([[0.27, -1.96, 0.4], [0.17, -2.04, 0.9], [0.1, -2.15, 1], [0.075, -2.26, 0.7], [0.08, -2.37, 0.1]], 3.6); wire([[0.3, -1.97, 0.4], [0.24, -2.1, 0.8], [0.17, -2.2, 0.9], [0.12, -2.28, 0.6], [0.08, -2.37, 0.1]], 2.8);
-  wire([[0.6, -1.93, 0.5], [0.71, -2.06, 0.9], [0.85, -2.17, 1], [1, -2.25, 0.8], [1.2, -2.31, 0.1]], 5); wire([[0.78, -1.92, 0.5], [0.94, -1.98, 0.9], [1.07, -2.08, 1], [1.14, -2.19, 0.8], [1.2, -2.31, 0.1]], 4); wire([[0.72, -1.97, 0.1], [0.85, -2.06, 0.8], [0.97, -2.14, 0.7], [1.06, -2.2, 0.1]], 2.6);
-  curl(0.75, -2.26, 0.07, 1.2, 1.15, 2.8);
+  const h = gongbiHand(f, HEAD, GONGBI, 11), EDGE = colour("#333840", 0);
+  let s = 751;
+  const plate = (outline: Run, of: readonly (readonly [number, number, string, number?])[], soft = 0.006) => paintGongbiLock(h, { outline: upto(outline), places: upHues(of.map(([x, y, c, r = 0.1]) => [x, y, c, r] as const)), soft, wash: { mottle: 0.04, cloud: 0.2, rim: 0, wander: 0.001 } }, s++);
+  const rim = (...list: readonly (readonly [Run, number?])[]) => { for (const [q, half = 0.0052] of list) paintGongbiHair(h, { path: upto(q), half, tone: EDGE, soft: 0.004, root: 0.6, tip: 0.5, along: () => 0.95 }); };
+  const shine = (...list: readonly (readonly [Run, number?])[]) => { for (const [q, half = 0.006] of list) liftGongbiHair(h, { path: upto(q), half, amount: 0.9, soft: 0.004, root: 0.3, tip: 0.1 }); };
+  // the pin, behind the knot's front
+  plate([[-0.32, -2.15], [-0.1, -2.175], [0.2, -2.18], [0.2, -2.135], [-0.1, -2.135]], [[-0.2, -2.15, "#b9bec4"], [0.1, -2.16, "#7d848c"]]); rim([[[-0.32, -2.15], [-0.1, -2.177], [0.18, -2.182]], 0.004], [[[-0.32, -2.15], [-0.1, -2.133], [0.18, -2.133]], 0.005]);
+  plate([[0.96, -2.2], [1.3, -2.2], [1.42, -2.19], [1.42, -2.15], [1.3, -2.155], [0.96, -2.15]], [[1.04, -2.18, "#7d848c"], [1.36, -2.17, "#c5cacf"]]); rim([[[1.0, -2.202], [1.3, -2.202], [1.42, -2.19]], 0.004], [[[1.0, -2.15], [1.3, -2.153], [1.42, -2.15]], 0.005]);
+  // its head, a curl of cloud
+  const cloud: Run = [[1.4, -2.17], [1.42, -2.25], [1.49, -2.3], [1.56, -2.27], [1.585, -2.2], [1.63, -2.16], [1.62, -2.1], [1.55, -2.06], [1.47, -2.08], [1.42, -2.12]];
+  plate(cloud, [[1.48, -2.25, "#e6e8ea"], [1.56, -2.2, "#b3b9c0"], [1.5, -2.1, "#858c95"]]); rim([[...cloud, cloud[0]]], [[[1.45, -2.15], [1.48, -2.2], [1.53, -2.2], [1.54, -2.16], [1.5, -2.14]], 0.005]);
+  // wings, swept back
+  const wing: Run = [[0.32, -1.94], [0.21, -2.02], [0.12, -2.14], [0.075, -2.26], [0.07, -2.4], [0.14, -2.29], [0.22, -2.2], [0.3, -2.12], [0.36, -2.02]];
+  plate(wing, [[0.1, -2.3, "#e9eaeb"], [0.16, -2.16, "#b4bac1"], [0.28, -2.04, "#7a818a"]]); rim([wing], [[[0.31, -1.99], [0.22, -2.1], [0.14, -2.22], [0.09, -2.34]], 0.004]);
+  const sweep: Run = [[0.56, -1.93], [0.66, -2.06], [0.8, -2.17], [0.98, -2.25], [1.22, -2.33], [1.15, -2.19], [1.07, -2.07], [0.96, -1.98], [0.8, -1.9]];
+  plate(sweep, [[0.66, -2.0, "#6e757e"], [0.82, -2.12, "#c9cdd1"], [1.0, -2.2, "#eceded"], [0.94, -2.04, "#9aa1a9"], [1.12, -2.24, "#b0b6bd"], [0.8, -1.94, "#5c636c"]]);
+  rim([sweep], [[[0.64, -1.96], [0.8, -2.06], [0.98, -2.15], [1.16, -2.27]], 0.005], [[[0.76, -1.93], [0.9, -2.0], [1.02, -2.08], [1.12, -2.2]], 0.004]); shine([[[0.74, -2.1], [0.9, -2.19], [1.08, -2.26]]], [[[0.82, -2.03], [0.96, -2.1], [1.06, -2.18]], 0.004]);
   // the flame before the knot
-  wire([[0.4, -1.93, 0.5], [0.3, -2.0, 0.9], [0.235, -2.11, 1], [0.25, -2.23, 0.9], [0.34, -2.33, 0.8], [0.4, -2.44, 0.6], [0.425, -2.56, 0.1]], 4.6); wire([[0.44, -1.93, 0.5], [0.55, -2.0, 0.9], [0.625, -2.11, 1], [0.6, -2.23, 1], [0.5, -2.33, 0.8], [0.45, -2.44, 0.6], [0.425, -2.56, 0.1]], 5.2);
-  wire([[0.42, -2.28, 0.3], [0.422, -2.36, 0.9], [0.424, -2.45, 0.2]], 2.4); wire([[0.36, -1.98, 0.3], [0.31, -2.08, 0.9], [0.32, -2.18, 0.7], [0.37, -2.22, 0.2]], 2.4); wire([[0.48, -1.98, 0.3], [0.545, -2.08, 0.9], [0.53, -2.18, 0.7], [0.47, -2.22, 0.2]], 2.6);
-  inkDab(f, R, [[0.425, -2.14, 0.026], [0.425, -2.1, 0.034], [0.424, -2.06, 0.022]].map(q => [...at(q), q[2] * UNIT] as const), { tone: 0.95, foot: 1, seed: s++ });
-  // the band, two wires and beads
-  wire([[0.15, -1.975, 0.5], [0.34, -1.93, 1], [0.55, -1.905, 0.9], [0.8, -1.915, 1], [1.06, -1.955, 0.6]], 3.2); wire([[0.17, -1.9, 0.5], [0.34, -1.85, 1], [0.55, -1.828, 1], [0.8, -1.838, 1], [1.05, -1.875, 0.6]], 5);
-  for (const [x, y, w] of [[0.25, -1.914, 0.8], [0.35, -1.89, 1], [0.46, -1.874, 0.8], [0.57, -1.867, 1.1], [0.68, -1.868, 0.8], [0.79, -1.876, 1], [0.91, -1.892, 0.8], [1.0, -1.908, 0.7]] as const) f.lift([[...at([x - 0.012, y]), 0.7], [...at([x, y]), 1], [...at([x + 0.012, y]), 0.7]], 5 * w * px, [K, E]);
-  // the pin's head, a curl of cloud
-  curl(1.5, -2.23, 0.078, 2.4, 1.15, 3.2); curl(1.545, -2.135, 0.05, 3.2, -1.05, 2.6);
+  const flame: Run = [[0.425, -2.6], [0.39, -2.46], [0.33, -2.35], [0.25, -2.25], [0.215, -2.12], [0.27, -2.0], [0.37, -1.92], [0.48, -1.92], [0.58, -2.0], [0.64, -2.12], [0.61, -2.24], [0.52, -2.34], [0.46, -2.46]];
+  plate(flame, [[0.28, -2.16, "#b3b9c0"], [0.36, -2.36, "#eef0f0"], [0.43, -2.5, "#d4d8dc"], [0.5, -2.3, "#8f969f"], [0.6, -2.1, "#6b727b"], [0.4, -1.96, "#7d848c"]]); rim([[...flame, flame[0]], 0.007]);
+  const leaf: Run = [[0.425, -2.38], [0.36, -2.26], [0.325, -2.13], [0.37, -2.02], [0.43, -1.98], [0.5, -2.03], [0.54, -2.13], [0.5, -2.26]];
+  plate(leaf, [[0.36, -2.2, "#4e555e"], [0.48, -2.1, "#333940"], [0.42, -2.3, "#5d646d"]]); rim([[...leaf, leaf[0]], 0.004]);
+  shine([[[0.3, -2.18], [0.33, -2.28], [0.39, -2.38], [0.415, -2.5]], 0.007], [[[0.28, -2.06], [0.36, -1.97]], 0.005], [[[0.52, -2.02], [0.565, -2.12], [0.53, -2.24]], 0.004]);
+  paintGongbiLock(h, { outline: upto([[0.43, -2.24], [0.39, -2.17], [0.385, -2.09], [0.43, -2.04], [0.475, -2.09], [0.47, -2.17]]), places: [{ at: tip([0.41, -2.18]), mix: { warm: 0.95 }, reach: 0.06 }, { at: tip([0.45, -2.08]), mix: { warm: 1, ink: 0.5 }, reach: 0.06 }], soft: 0.004, wash: { mottle: 0, rim: 0, cloud: 0.2, wander: 0 } }, s++);
+  shine([[[0.41, -2.17], [0.408, -2.12]], 0.008]);
+  // the band
+  const band: Run = [[0.14, -1.985], [0.34, -1.94], [0.56, -1.915], [0.8, -1.925], [1.07, -1.965], [1.06, -1.85], [0.8, -1.81], [0.56, -1.8], [0.34, -1.825], [0.16, -1.88]];
+  plate(band, [[0.2, -1.93, "#8c939b"], [0.36, -1.89, "#dfe2e4"], [0.5, -1.87, "#f0f1f1"], [0.64, -1.86, "#b8bec5"], [0.84, -1.87, "#878e97"], [1.0, -1.91, "#525962"]]);
+  rim([[[0.14, -1.985], [0.34, -1.94], [0.56, -1.915], [0.8, -1.925], [1.07, -1.965]]], [[[0.16, -1.878], [0.34, -1.823], [0.56, -1.798], [0.8, -1.808], [1.06, -1.848]], 0.008], [[[0.17, -1.95], [0.34, -1.91], [0.56, -1.885], [0.8, -1.895], [1.05, -1.93]], 0.0035], [[[0.17, -1.91], [0.34, -1.858], [0.56, -1.832], [0.8, -1.842], [1.04, -1.88]], 0.0035]);
+  for (const [x, y] of [[0.28, -1.9], [0.4, -1.878], [0.52, -1.862], [0.64, -1.858], [0.76, -1.862], [0.88, -1.876], [0.98, -1.894]] as const) { paintGongbiHair(h, { path: upto([[x - 0.018, y], [x, y - 0.002], [x + 0.018, y]]), half: 0.016, tone: colour("#5d646d", 0), soft: 0.005, root: 0.5, tip: 0.5 }); shine([[[x - 0.012, y - 0.004], [x + 0.002, y - 0.006]], 0.007]); }
 }
 /** Ribbons from the back of the crown, taken by the wind: they turn flat and edge-on. */
 function drawRibbons({ face: f }: Pens) {
   let s = 790;
   const tail = (q: Run, w: number, press: (t: number) => number, side: 1 | -1) => {
-    const n = lv(q).map((r, i) => [r[0], r[1], press(i / (q.length - 1))] as const);
+    const n = q.map(([x, y], i) => [...HEAD.level(x, y), press(i / (q.length - 1))] as const);
     f.knock(inkBlob(f, n.slice(1).map(([x, y, k]) => [x, y, Math.max(0.15, w * UNIT * 0.46 * k)] as const)), [K, R, E]);
     inkSide(f, T, n, w * AT.pd, { tip: 1, belly: 0.8, side, head: 0.1, rim: 0.3, dry: 0, dryEnd: 0.12, bristles: 7, grain: 0.5, seed: s++ });
     inkSide(f, K, n.map(([x, y, k]) => [x, y, k * 0.96] as const), w * AT.pd, { tip: 0.86, belly: 0.06, side, head: 0.2, rim: 0.2, dry: 0, dryEnd: 0.2, bristles: 7, grain: 0.7, seed: s++ });
   };
-  tail([[1.1, -2.13], [1.34, -2.14], [1.7, -2.1], [2.05, -1.92], [2.4, -1.72], [2.76, -1.66], [3.1, -1.76], [3.4, -1.94], [3.66, -2], [3.86, -1.92]], 0.15, t => ss(1.02, 0.86, t) * (0.24 + 0.76 * Math.abs(Math.sin(Math.PI * (1.75 * t + 0.3)))), 1);
-  tail([[1.12, -2.1], [1.32, -2.03], [1.62, -1.82], [1.9, -1.5], [2.12, -1.12], [2.38, -0.86], [2.68, -0.78], [2.96, -0.9], [3.16, -1.1]], 0.14, t => ss(1.02, 0.84, t) * (0.24 + 0.76 * Math.abs(Math.sin(Math.PI * (1.9 * t + 0.12)))), -1);
+  tail([[1.34, -2.2], [1.5, -2.22], [1.8, -2.18], [2.1, -2.0], [2.4, -1.8], [2.74, -1.72], [3.08, -1.8], [3.4, -1.98], [3.66, -2.03], [3.86, -1.94]], 0.15, t => ss(1.02, 0.86, t) * (0.24 + 0.76 * Math.abs(Math.sin(Math.PI * (1.75 * t + 0.3)))), 1);
+  tail([[1.36, -2.16], [1.52, -2.08], [1.76, -1.88], [2.0, -1.56], [2.2, -1.18], [2.44, -0.92], [2.72, -0.82], [2.98, -0.92], [3.18, -1.12]], 0.14, t => ss(1.02, 0.84, t) * (0.24 + 0.76 * Math.abs(Math.sin(Math.PI * (1.9 * t + 0.12)))), -1);
 }
-/** The forehead's skin, and the shade the hair casts on it. */
-const FOREHEAD: Run = [[0.3, -1.1], [0, -1.16], [-0.25, -1.2], [-0.5, -1.16], [-0.72, -1.06], [-0.755, -0.8], [-0.775, -0.5], [-0.78, -0.26], [-0.5, -0.12], [-0.1, -0.1], [0.4, -0.16], [0.86, -0.02], [0.72, -0.34], [0.5, -0.68]];
-const HAIRLINE: Run = [[0.9, -0.1], [0.6, -0.5], [0.33, -0.98], [0.1, -1.08], [-0.25, -1.12], [-0.6, -1.06], [-0.74, -0.96], [-0.78, -0.4]];
-function drawForehead(f: InkRisoPen) {
-  const { wash } = comb(f, 480), under = (x: number, y: number) => Math.min(...HAIRLINE.slice(1).map((b, i) => { const a = HAIRLINE[i], k = clamp(((x - a[0]) * (b[0] - a[0]) + (y - a[1]) * (b[1] - a[1])) / ((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2)); return Math.hypot(x - lerp(a[0], b[0], k), y - lerp(a[1], b[1], k)); }));
-  const tone = (x: number, y: number) => (0.5 * Math.exp(-((under(x, y) / 0.09) ** 2)) + 0.5 * Math.exp(-((under(x, y) / 0.3) ** 2))) * ss(-0.06, -0.4, y);
-  wash(E, FOREHEAD, (x, y) => 0.05 * ss(-0.1, -0.3, y) + 0.15 * tone(x, y), { soft: 10, rim: 0, fringe: 0, mottle: 0.2 }); wash(R, FOREHEAD, (x, y) => 0.06 * tone(x, y), { soft: 10, rim: 0, fringe: 0, mottle: 0.2 });
-}
-/** Before the ear two loose locks and a curl; over the near brow a pointed strand; past the far cheek single hairs. */
+/** Before the ear a long loose lock and a curl; over the near brow a pointed strand. */
+const SIDELOCK: readonly GongbiNode[] = [[1.54, -0.24, 0.004], [1.5, -0.06, 0.05], [1.45, 0.16, 0.088], [1.41, 0.45, 0.104], [1.36, 0.8, 0.106], [1.3, 1.16, 0.098], [1.24, 1.52, 0.084], [1.18, 1.86, 0.062], [1.12, 2.2, 0.036], [1.08, 2.46, 0.016], [1.06, 2.7, 0]];
+const SIDELOCK_IN: readonly GongbiNode[] = [[1.36, 0.16, 0.004], [1.34, 0.4, 0.022], [1.3, 0.74, 0.028], [1.23, 1.1, 0.026], [1.15, 1.46, 0.02], [1.08, 1.8, 0.012], [1.04, 2.1, 0]];
+const BROWLOCK: readonly GongbiNode[] = [[0.14, -1.46, 0.004], [0.23, -1.22, 0.026], [0.31, -0.98, 0.042], [0.345, -0.76, 0.038], [0.335, -0.56, 0.028], [0.3, -0.38, 0.016], [0.24, -0.2, 0]];
+const WISPS: readonly (readonly GongbiNode[])[] = [
+  [[1.24, 0.04, 0.02], [1.2, 0.18, 0.03], [1.14, 0.33, 0.022], [1.06, 0.46, 0.01], [0.99, 0.55, 0]],
+  [[1.0, -0.1, 0.012], [0.995, 0.06, 0.02], [0.97, 0.2, 0.014], [0.92, 0.31, 0.006], [0.87, 0.38, 0]],
+];
+const CURL: readonly GongbiNode[] = [[1.08, 0.02, 0.004], [1.07, 0.18, 0.016], [1.02, 0.38, 0.017], [0.93, 0.56, 0.011], [0.84, 0.68, 0.005], [0.77, 0.75, 0]];
 function drawStrands({ face: f }: Pens) {
-  const { hank, hair } = comb(f, 500), all = { tone: 0.6, root: 0.2, tip: 0.3, round: 0.2, hairs: 2, stray: 1.3, glaze: 0.34 };
-  hank([[1.6, -0.14, 0], [1.54, 0.0, 0.024], [1.49, 0.16, 0.056], [1.45, 0.36, 0.088], [1.41, 0.64, 0.1], [1.35, 0.98, 0.095], [1.28, 1.34, 0.082], [1.21, 1.7, 0.064], [1.15, 2.05, 0.044], [1.1, 2.35, 0.022], [1.08, 2.6, 0]], { ...all, root: 0, tone: 0.56, hairs: 4, clear: [K, ...PLATE] });
-  hank([[1.17, 0.02, 0], [1.12, 0.14, 0.018], [1.06, 0.36, 0.02], [0.97, 0.55, 0.014], [0.88, 0.67, 0.007], [0.8, 0.74, 0]], { ...all, root: 0, hairs: 1 });
-  hank([[0.08, -1.44, 0.008], [0.2, -1.2, 0.024], [0.29, -0.96, 0.038], [0.33, -0.76, 0.034], [0.315, -0.56, 0.024], [0.275, -0.38, 0.014], [0.22, -0.2, 0]], { ...all, root: 0.2 });
-  for (const [q, w, ink, seed] of [
-    [[[0.14, -1.34, 0.1], [0.26, -1.06, 0.8], [0.33, -0.8, 1], [0.335, -0.58, 0.9], [0.31, -0.4, 0.5], [0.28, -0.28, 0]], 1.3, 0.8, 546], [[[0.12, -1.36, 0.1], [0.2, -1.12, 0.8], [0.26, -0.88, 1], [0.28, -0.64, 0.9], [0.25, -0.42, 0.4], [0.21, -0.24, 0]], 1.2, 0.8, 545],
-    [[[1.36, 0.1, 0.2], [1.35, 0.4, 0.8], [1.31, 0.8, 0.9], [1.24, 1.2, 0.8], [1.16, 1.6, 0.6], [1.1, 1.95, 0]], 1.5, 0.84, 547], [[[1.54, 0.1, 0.2], [1.55, 0.5, 0.8], [1.49, 1.0, 0.9], [1.4, 1.5, 0.7], [1.32, 1.9, 0]], 1.4, 0.8, 550], [[[1.46, 0.2, 0.2], [1.44, 0.6, 0.7], [1.37, 1.06, 0.7], [1.29, 1.5, 0.5], [1.22, 1.9, 0]], 1.1, 0.6, 552],
-    [[[1.08, 0.06, 0.2], [1.02, 0.26, 0.8], [0.95, 0.44, 0.6], [0.87, 0.58, 0]], 1.1, 0.6, 549], [[[1.28, 0.16, 0.2], [1.26, 0.5, 0.8], [1.2, 0.9, 0.8], [1.12, 1.3, 0.6], [1.06, 1.6, 0]], 1.1, 0.56, 548],
-    [[[-0.94, 0.3, 0.2], [-0.96, 0.6, 0.8], [-0.9, 0.9, 0.8], [-0.84, 1.2, 0.6], [-0.84, 1.5, 0]], 1.4, 0.6, 551],
-  ] as const) hair(q, w, ink, seed);
+  const h = gongbiHand(f, HEAD, GONGBI, 12);
+  const strand = (q: readonly GongbiNode[], of: readonly string[], seed: number, o: Partial<GongbiLock> = {}) => paintGongbiLock(h, { outline: gongbiBand(q), places: hues(q.map(([x, y], k) => [x, y, of[Math.min(of.length - 1, k)], 0.16] as const)), soft: 0.008, wash: { mottle: 0.04, cloud: 0.2, rim: 0.2, rimWidth: 0.012, wander: 0.002 }, ...o }, seed);
+  strand(SIDELOCK_IN, ["#342825", "#50403a", "#5c4b43", "#4e3e38", "#433530"], 541);
+  strand(SIDELOCK, ["#231b18", "#2d221e", "#42322c", "#5d483f", "#6c564b", "#5b463d", "#4c3a32", "#5d483f", "#564339", "#5e4a41"], 542, { lost: [{ along: [[1.54, -0.24], [1.49, 0]], reach: 0.18, soft: 0.08 }] });
+  for (const [i, q] of WISPS.entries()) strand(q, ["#4c3b33", "#5a473e", "#4c3b33"], 546 + i, { lost: [{ along: [[q[0][0], q[0][1]], [q[1][0], q[1][1]]], reach: 0.1, soft: 0.05 }] });
+  strand(CURL, ["#433530", "#54433d", "#433530"], 543);
+  strand(BROWLOCK, ["#281f1d", "#463731", "#58443c", "#473833", "#3d302b", "#332825"], 544, { lost: [{ along: [[0.14, -1.46]], reach: 0.12, soft: 0.04 }] });
+  paintGongbiSeams(h, [
+    { path: gongbiAlong(SIDELOCK, 0.96).slice(2), half: 0.007 }, { path: gongbiAlong(SIDELOCK, -0.96).slice(2), half: 0.007, light: 0.26, gap: -0.016 }, { path: gongbiAlong(SIDELOCK, 0.2).slice(2), half: 0.005, light: 0.3, gap: 0.012, strength: 0.8 }, { path: gongbiAlong(SIDELOCK, -0.5).slice(2), half: 0.005, strength: 0.8, light: 0.24, gap: -0.014 }, { path: gongbiAlong(SIDELOCK, 0.62).slice(3), half: 0.005, strength: 0.7 }, { path: gongbiAlong(SIDELOCK, -0.16).slice(1, 8), half: 0.008, strength: 0.5, soft: 0.014 }, { path: gongbiAlong(SIDELOCK_IN, 0.95), half: 0.004 }, { path: gongbiAlong(SIDELOCK_IN, -0.95), half: 0.004 },
+    { path: gongbiAlong(BROWLOCK, 0.96), half: 0.005 }, { path: gongbiAlong(BROWLOCK, -0.96), half: 0.006, light: 0.3, gap: 0.014 }, { path: gongbiAlong(BROWLOCK, 0.1).slice(1), half: 0.004, strength: 0.7 }, ...[...WISPS, CURL].flatMap(q => [{ path: gongbiAlong(q, 0.95).slice(1), half: 0.005 }, { path: gongbiAlong(q, -0.95).slice(1), half: 0.005 }]),
+  ], DARK);
+  paintGongbiLines(h, [
+    [[[0.3, -0.8], [0.32, -0.56], [0.28, -0.34], [0.2, -0.16]], 0.004, 0.8], [[[0.34, -0.7], [0.33, -0.48], [0.29, -0.28], [0.26, -0.1]], 0.0035, 0.8],
+    [[[1.5, 0.06], [1.5, 0.44], [1.46, 0.94], [1.4, 1.44], [1.34, 1.9], [1.32, 2.2]], 0.0045, 0.8],
+    // hairs that go back over the lock to the ear
+    [[[0.94, 0.02], [1.02, 0.12], [1.13, 0.195], [1.27, 0.245], [1.39, 0.25], [1.47, 0.225], [1.52, 0.185]], 0.0065, 0.95], [[[1.0, 0.12], [1.1, 0.21], [1.22, 0.275], [1.36, 0.295], [1.46, 0.275]], 0.0045, 0.8], [[[1.28, 0.2], [1.24, 0.5], [1.16, 0.86], [1.08, 1.2], [1.03, 1.5]], 0.004, 0.7], [[[1.2, 0.2], [1.14, 0.46], [1.05, 0.66], [0.95, 0.8]], 0.0035, 0.7], [[[1.4, 1.0], [1.3, 1.5], [1.22, 2.0], [1.2, 2.4]], 0.004, 0.7],
+  ], STRAND);
 }
-
 // ---- body -------------------------------------------------------------------------------------------------------------------------
 // Laid out in hundredths of the distance between the pupils from the middle between them, upright on the page. The trunk is turned about
 // 42° to the viewer's right and the head less, so the near arm comes forward over the trunk and the far shoulder is short.
@@ -318,10 +489,16 @@ const FAR_SLEEVE: P2[] = [[150, 236], [160, 290], [162, 350], [158, 430], [150, 
 /** The inner edges of the two sides of the collar. The far one, from the wearer's left shoulder, lies on top, as the living wear it. */
 const OVER: P2[] = [[43, 184], [54, 200], [54, 232], [44, 266], [28, 300], [8, 338], [-14, 384], [-36, 440], [-56, 508], [-71, 580], [-80, 650], [-84, 730]];
 const UNDER: P2[] = [[-144, 150], [-136, 186], [-114, 224], [-84, 258], [-48, 286], [-8, 310], [34, 332]];
+/** The neck, read where the face is: the jaw's shade has an edge of its own, the rest is lit. */
+const NECK_SKIN: readonly GongbiPlace[] = [at(1.4, 0.9, "#D9BDAC", 0.2), at(1.5, 0.6, "#CFAE9C", 0.14), at(1.3, 1.4, "#E0C7B8", 0.2), at(0.9, 1.6, "#E2CABB", 0.2), at(0.5, 1.8, "#DFC6B6", 0.2), at(0.1, 1.9, "#D6BAA9", 0.14), at(0.9, 2.1, "#E6D0C2", 0.24), at(0.5, 2.4, "#E9D5C8", 0.24), at(0.1, 2.5, "#E2CABB", 0.2), at(0.3, 2.8, "#EAD8CB", 0.24)];
+const NECK_TINTS: GongbiFace["tints"] = [
+  { plane: [[1.6, 0.5], [1.5, 0.78], [1.34, 1.06], [1.12, 1.36], [0.84, 1.66], [0.56, 1.9], [0.34, 2.06], [0.16, 2.2], [-0.02, 2.2], [-0.2, 1.9], [0, 1.6], [0.5, 1.4], [1, 1.0], [1.3, 0.6]], soft: 0.014, ...shade("#BC968A", "#E0C7B8"), fade: [[[0.7, 1.62], [1.7, 0.5]]] },
+  { plane: [[1.5, 0.6], [1.3, 0.94], [1.06, 1.24], [0.8, 1.5], [0.5, 1.72], [0.2, 1.84], [0, 1.8], [0.2, 1.6], [0.6, 1.4], [1, 1.04], [1.34, 0.54]], soft: 0.05, ...shade("#A97968", "#BC968A") },
+  { plane: [[1.64, 0.6], [1.58, 1.2], [1.5, 1.7], [1.32, 2.1], [1.36, 1.6], [1.42, 1.1], [1.46, 0.8]], soft: 0.05, ...shade("#C09B8C", "#E0C7B8") },
+];
 /** A line set off to one side by a distance of its own. */
 const aside = (q: readonly P2[], d: (t: number) => number): P2[] => q.map(([x, y], i) => { const a = q[Math.max(0, i - 1)], z = q[Math.min(q.length - 1, i + 1)], l = Math.hypot(z[0] - a[0], z[1] - a[1]), k = d(i / (q.length - 1)); return [x - ((z[1] - a[1]) / l) * k, y + ((z[0] - a[0]) / l) * k] as const; });
 const press = (q: Q, ...k: number[]): N3[] => q.map((r, i) => { const t = (i / (q.length - 1)) * (k.length - 1), j = Math.min(k.length - 2, Math.floor(t)); return [r[0], r[1], lerp(k[j], k[j + 1], t - j)] as const; });
-const spot = (x: number, y: number, cx: number, cy: number, l: number, s: number, an = 0) => { const c = Math.cos(an), n = Math.sin(an), u = (x - cx) * c + (y - cy) * n, v = -(x - cx) * n + (y - cy) * c; return Math.exp(-((u / l) ** 2) - (v / s) ** 2); };
 /** How far the top lapel's outer edge lies from its inner one. */
 const lapelOut = (t: number) => lerp(3, 92, ss(0, 0.5, t) ** 0.62) - 8 * ss(0.7, 1, t);
 function drawBody({ robe: p, face }: Pens) {
@@ -336,13 +513,8 @@ function drawBody({ robe: p, face }: Pens) {
   const fade = (x: number, y: number) => ss(0, 110, 826 - y - 90 * inkFbm2(12, x / 46, y / 260, 2) - 0.34 * Math.max(0, Math.abs(x + 20) - 150));
   p.knock(p.shape(ROBE)); p.knock(p.shape(NECK));
   // ---- neck
-  const jaw = HEAD.jaw.filter((_, i) => i % 6 === 0).map(q => p.local(...face.at(q[0], q[1])));
-  // the strap of muscle from behind the ear to the pit of the neck: shade along its front edge
-  const strap = (x: number, y: number) => { const t = clamp((y - 110) / 170), d = x - lerp(-104, -10, t ** 0.9); return Math.exp(-((d / (d < 0 ? 5 : 22)) ** 2)) * ss(0, 0.2, t) * ss(1, 0.7, t); };
-  const onNeck = (plate: string, tone: (x: number, y: number) => number) => inkBloom(p, plate, p.shape(NECK), { tone: loc(tone), soft: 1.4, wander: 0, fringe: 0, rim: 0, mottle: 0.3, cloud: 30, seed: s++ });
-  const below = (x: number, y: number) => { let d = 1e9; for (const q of jaw) d = Math.min(d, Math.hypot(x - q[0], (y - q[1]) * 0.8)); return d; };
-  const shade = (x: number, y: number) => { const d = below(x, y) + 6 * (inkFbm2(6, x / 30, y / 30, 2) - 0.5); return (0.62 * Math.exp(-((d / 22) ** 2)) + 0.5 * Math.exp(-((d / 74) ** 2))) * ss(40, 100, y + 0.35 * (x + 100)) + 0.3 * ss(-60, -130, x) * ss(90, 150, y) + 0.2 * strap(x, y) + 0.3 * spot(x, y, 6, 286, 14, 8) + 0.16 * spot(x, y, -6, 226, 18, 10, -0.4) + 0.5 * spot(x, y, -138, 84, 40, 46); };
-  onNeck(E, (x, y) => 0.2 * shade(x, y) + 0.05); onNeck(R, (x, y) => 0.08 * shade(x, y) + 0.015); onNeck(K, (x, y) => 0.16 * shade(x, y) * ss(44, 16, x));
+  gongbiSkin(gongbiHand(face, HEAD, GONGBI, 14), p.shape(NECK), NECK_SKIN, { soft: 0.014, mottle: 0.08, cloud: 0.3 });
+  gongbiTints(gongbiHand(face, HEAD, GONGBI, 15), p.shape(NECK), NECK_TINTS, { soft: 0.014 });
   th(press([[2, 140], [8, 158], [11, 176], [14, 194], [26, 213], [50, 230]], 0.5, 1, 0.9, 0.8, 0.9, 0.3), 3.6, 0.92, 0.7);
   th([[-60, 208, 0.02], [-42, 240, 0.6], [-24, 266, 0.8], [-9, 284, 0.1]], 2, 0.1, 0.5, 0.32);
   th([[4, 206, 0.05], [9, 216, 0.6], [6, 228, 0.5], [-1, 234, 0.05]], 1.8, 0.3, 0.2);
@@ -520,16 +692,16 @@ export function inkQingfeng({ mountain = true, name = true, wind = 1 }: InkQingf
     { id: "mist", draw: paint(drawMist), depth: -0.25 },
     { id: "sword", draw: paint(drawSword), motion: breath },
     { id: "tassel", draw: paint(drawTassel), motion: [{ kind: "sway", from: onRobe(262, 24), to: onRobe(262, 224), amount: 9 * wind, seconds: 4.2, lag: 0.3, power: 1.5, lean: 0.3, phase: 0.6 }] },
-    { id: "under", only: "film", group: "head", draw: c => inkCover(c.page, c.page.shape([[470, 290], [640, 290], [704, 400], [692, 560], [600, 690], [424, 690], [384, 640], [354, 560], [350, 450], [390, 350]])) },
+    { id: "under", only: "film", group: "head", draw: c => inkCover(c.page, c.page.shape([[470, 290], [640, 290], [690, 400], [684, 470], [679, 520], [671, 570], [655, 618], [600, 690], [424, 690], [384, 640], [354, 560], [350, 450], [390, 350]])) },
     { id: "fall", group: "head", draw: paint(drawFall), motion: [{ kind: "sway", from: onPage(1.6, 0.2), to: onPage(3.7, 2.4), amount: 15 * wind, seconds: 5.8, lag: 0.34, power: 1.7, lean: 0.3 }] },
     { id: "body", draw: c => { paint(drawBody)(c); inkFade(c.page, [0, 1400, PAGE.width, 200], (x, y) => 1 - ss(1462, 1596, y + 90 * (inkFbm2(61, x / 130, y / 60, 3) - 0.5))); inkFade(c.page, [0, 800, PAGE.width, 800], x => ss(4, 80, x) * ss(PAGE.width - 4, PAGE.width - 80, x)); }, motion: breath },
-    { id: "face", group: "head", poses: { kind: "blink", open: "open", order: ["half", "shut"], every: 5.2, seconds: 0.3 }, draw: c => { const f = pens(c).face, head = c.pose === "open" ? HEAD : pose(LIDS[c.pose] ?? 1); paintInkFace(f, head, FACE_STYLE); drawForehead(f); } },
+    { id: "face", group: "head", poses: { kind: "blink", open: "open", order: ["half", "shut"], every: 5.2, seconds: 0.3 }, draw: c => paintGongbiFace(pens(c).face, HEAD, FACE_OF, LIDS[c.pose] ?? 1) },
     { id: "hair", group: "head", draw: paint(p => { drawGathered(p); drawKnot(p); }) },
-    { id: "ribbons", group: "head", draw: paint(drawRibbons), motion: [{ kind: "sway", from: onPage(1.1, -1.8), to: onPage(3.6, -1.2), amount: 15 * wind, seconds: 4.6, lag: 0.42, power: 1.5, lean: 0.3, phase: 0.9 }] },
+    { id: "ribbons", group: "head", draw: paint(drawRibbons), motion: [{ kind: "sway", from: onPage(1.34, -2.2), to: onPage(3.7, -1.5), amount: 15 * wind, seconds: 4.6, lag: 0.42, power: 1.5, lean: 0.3, phase: 0.9 }] },
     { id: "crown", group: "head", draw: paint(drawCrown) },
     { id: "lock", group: "head", draw: paint(drawLock), motion: [{ kind: "sway", from: onPage(1.5, 0.6), to: onPage(1.15, 5.6), amount: 9 * wind, seconds: 6.4, lag: 0.28, power: 2, lean: 0.35, phase: 1.5 }] },
     { id: "strands", group: "head", draw: paint(drawStrands), motion: [{ kind: "sway", from: onPage(0.4, -0.9), to: onPage(0.9, 2.5), amount: 6 * wind, seconds: 5, lag: 0.32, power: 1.9, lean: 0.35, phase: 2.3 }] },
     { id: "name", draw: paint(drawInscription) },
   ];
-  return { id: "qingfeng", label: "Half figure of a young swordsman turned to the right: the hair drawn up into a knot with a small silver crown, the rest blown back in the wind, a dark robe, the hilt of a sword over his shoulder, far peaks in mist", page: PAGE, plates: PLATES, paper: "#F8F1E3", seed: 11, groups: { head: [{ kind: "turn", at: onRobe(-30, 220), degrees: 0.4, seconds: 7.8 }] }, parts: inkPaintOrder(parts.filter(p => (mountain || p.id !== "mist") && (name || p.id !== "name")), ["under", "hair", "fall", "crown", "face", "lock", "strands", "ribbons", "body", "sword", "tassel", "mist", "name"], ["face"]) };
+  return { id: "qingfeng", label: "Half figure of a young swordsman turned to the right: the hair drawn up into a knot with a small silver crown, the rest blown back in the wind, a dark robe, the hilt of a sword over his shoulder, far peaks in mist", page: PAGE, plates: PLATES, paper: PAPER, seed: 11, groups: { head: [{ kind: "turn", at: onRobe(-30, 220), degrees: 0.4, seconds: 7.8 }] }, parts: inkPaintOrder(parts.filter(p => (mountain || p.id !== "mist") && (name || p.id !== "name")), ["under", "hair", "fall", "crown", "face", "lock", "strands", "ribbons", "body", "sword", "tassel", "mist", "name"], ["face"]) };
 }

@@ -53,6 +53,15 @@ function distanceField(sheet: InkRisoSheet, shape: PenShape, pad: number): Field
   for (let i = 0; i < n; i++) d[i] = (Math.min(1e4, Math.sqrt(a[i])) - Math.min(1e4, Math.sqrt(c[i]))) / k;
   return { x0: m.x0, y0: m.y0, w: m.w, h: m.h, step, d };
 }
+/** The washes of one mark, plate after plate, have one shape: its field is worked out once. */
+const FIELDS = new WeakMap<PenShape, { sheet: InkRisoSheet; pad: number; field: Field }>();
+function fieldOf(sheet: InkRisoSheet, shape: PenShape, pad: number): Field {
+  const was = FIELDS.get(shape);
+  if (was && was.sheet === sheet && was.pad === pad) return was.field;
+  const field = distanceField(sheet, shape, pad);
+  FIELDS.set(shape, { sheet, pad, field });
+  return field;
+}
 
 // ---- washes --------------------------------------------------------------------------------------------------------------------
 export interface InkBloomOptions {
@@ -70,8 +79,14 @@ export interface InkBloomOptions {
   halo?: number; haloAt?: number; haloWidth?: number;
   /** Uneven pigment 0–1, and the size of its clouds. */
   mottle?: number; cloud?: number;
-  /** "glaze" adds ink; "lift" is clean water dropped in: it pushes ink out of the shape and into the rim. */
-  mode?: "glaze" | "lift";
+  /** "glaze" adds ink; "lift" is clean water dropped in: it pushes ink out of the shape and into the rim; "melt" runs into what lies there: its soft edge goes from one tone straight to the other. */
+  mode?: "glaze" | "lift" | "melt";
+  /** With "melt": how much of what lies there goes, 0–1 (default 1). */
+  cover?: number;
+  /** With "lift" and "melt": where the ink goes, paper takes its place in a film, as under a knock. */
+  hide?: boolean;
+  /** With "melt" and `hide`: how light the colour laid there is, 0–1 (default 1). Where its edge is soft a dark one hides with its own ink, and needs no paper under it, which would show as a pale fringe. */
+  light?: (x: number, y: number) => number;
   seed: number;
 }
 /** A wash. The shape is in sheet units (`pen.shape`). */
@@ -80,10 +95,10 @@ export function inkBloom(pen: InkRisoPen, plate: string, shape: PenShape, o: Ink
   const wander = o.wander ?? 6, wave = o.wave ?? 46, fringe = o.fringe ?? 2, tooth = o.tooth ?? 3.2, rim = o.rim ?? 0.35, rimW = o.rimWidth ?? 4;
   const halo = o.halo ?? 0, haloAt = o.haloAt ?? 10, haloW = o.haloWidth ?? 3, mottle = o.mottle ?? 0.25, cloud = o.cloud ?? 60;
   const softF = typeof o.soft === "function" ? o.soft : null, soft0 = typeof o.soft === "number" ? o.soft : 0.7, toneF = typeof o.tone === "function" ? o.tone : null, tone0 = typeof o.tone === "number" ? o.tone : 1;
-  const maxSoft = softF ? 60 : soft0, F = distanceField(sheet, shape, wander + fringe + maxSoft + 4);
+  const maxSoft = softF ? 60 : soft0, F = fieldOf(sheet, shape, wander + fringe + maxSoft + 4), melt = o.mode === "melt" ? o.cover ?? 1 : -1;
   if (F.w < 2 || F.h < 2) return;
   const ox = F.x0 * F.step, oy = F.y0 * F.step, W = Math.min(sheet.w - ox, F.w * F.step), H = Math.min(sheet.h - oy, F.h * F.step);
-  const layer = o.mode === "lift" ? undefined : sheet.layer, mark = layer ? inkMarkStart(sheet, Math.sqrt(W * H) / S) : 0, wide = W >= H;
+  const layer = o.mode === "lift" ? undefined : sheet.layer, hides = (o.mode === "lift" || melt >= 0) && o.hide ? sheet.layer : undefined, mark = layer ? inkMarkStart(sheet, Math.sqrt(W * H) / S) : 0, wide = W >= H;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const gx = clamp((x + 0.5) / F.step - 0.5, 0, F.w - 1.001), gy = clamp((y + 0.5) / F.step - 0.5, 0, F.h - 1.001), ix = gx | 0, iy = gy | 0, fx = gx - ix, fy = gy - iy, j = iy * F.w + ix;
     let d = (F.d[j] * (1 - fx) + F.d[j + 1] * fx) * (1 - fy) + (F.d[j + F.w] * (1 - fx) + F.d[j + F.w + 1] * fx) * fy;
@@ -97,31 +112,13 @@ export function inkBloom(pen: InkRisoPen, plate: string, shape: PenShape, o: Ink
     let t = toneF ? toneF(X, Y) : tone0;
     if (halo) { const at = haloAt * (0.6 + 0.9 * inkNoise2(seed + 7, X / 30, Y / 30)), k = (inside - at) / haloW; t *= 1 - halo * Math.exp(-k * k) * (0.35 + 0.65 * inkNoise2(seed + 8, X / 42, Y / 42)); }
     if (mottle) t *= 1 + mottle * (inkFbm2(seed + 11, X / cloud, Y / cloud, 4) - 0.5) * 2 + mottle * 0.45 * (inkNoise2(seed + 12, X / 2.2, Y / 2.2) - 0.5);
-    if (o.mode === "lift") { const k = clamp(t * c * (1 - edge * 0.9)); buf[q] = clamp(buf[q] * (1 - k) + rim * edge * c * buf[q] * 0.6); continue; }
+    if (hides && melt >= 0) { const k = c * melt, own = o.light ? k * o.light(X, Y) : k; hides.cover[q] = 1 - (1 - hides.cover[q]) * ((1 - k) / (1 - k + own || 1)); if (k > 0.5) hides.when[q] = hides.marks.length; hides.gain[q] *= 1 - k; }
+    if (o.mode === "lift") { const k = clamp(t * c * (1 - edge * 0.9)); if (hides) { hides.cover[q] = 1 - (1 - hides.cover[q]) * (1 - k); if (k > 0.5) hides.when[q] = hides.marks.length; hides.gain[q] *= 1 - k; } buf[q] = clamp(buf[q] * (1 - k) + rim * edge * c * buf[q] * 0.6); continue; }
     t *= 1 + rim * edge * (0.55 + 0.9 * inkNoise2(seed + 9, X / 24, Y / 24)) * (s > 6 ? 0.3 : 1);
-    const was = buf[q];
-    buf[q] = 1 - (1 - was) * (1 - take(t * c));
-    if (layer) inkMarkHit(layer, q, mark + 0.999 * clamp((wide ? x / W : y / H) * 0.72 + 0.28 * (1 - Math.min(1, inside / (0.3 * Math.min(W, H) / S + 1)))), buf[q] - was);
+    const was = buf[q], full = melt < 0 ? 0 : take(t);
+    buf[q] = melt < 0 ? 1 - (1 - was) * (1 - take(t * c)) : lerp(was, 1 - (1 - was * (1 - melt)) * (1 - full), c);
+    if (layer) inkMarkHit(layer, q, mark + 0.999 * clamp((wide ? x / W : y / H) * 0.72 + 0.28 * (1 - Math.min(1, inside / (0.3 * Math.min(W, H) / S + 1)))), melt < 0 ? buf[q] - was : full * c);
   }
-}
-/** Ink (over 0) or water (under 0) let into a wet wash: where, how far it ran along and across, the way it ran in radians (0 to the right), how much. */
-export interface InkDrop { at: PenPoint; size: PenPoint; turn?: number; ink: number }
-/**
- * A wash as it is worked: one tone, and drops let into it while it is wet, as a tone at a place. Wet ink does not stop on an ellipse, so
- * every drop's edge runs: `run` is how far, as a share of its size (default 0.35), and `wave` the length of that wandering, in the same
- * units as the drops.
- */
-export function inkDrops(base: number, drops: readonly InkDrop[], o: { run?: number; wave?: number; seed: number }): (x: number, y: number) => number {
-  const run = o.run ?? 0.35, wave = o.wave ?? 40, D = drops.map(d => ({ ...d, c: Math.cos(d.turn ?? 0), n: Math.sin(d.turn ?? 0) }));
-  return (x, y) => {
-    const wx = inkFbm2(o.seed * 7 + 1, x / wave, y / wave, 3) - 0.5, wy = inkFbm2(o.seed * 7 + 2, x / wave, y / wave, 3) - 0.5;
-    let t = base;
-    for (const d of D) {
-      const X = x - d.at[0], Y = y - d.at[1], u = (X * d.c + Y * d.n) / d.size[0] + 2 * run * wx, v = (-X * d.n + Y * d.c) / d.size[1] + 2 * run * wy;
-      t += d.ink * Math.exp(-(u * u + v * v));
-    }
-    return t;
-  };
 }
 /** The outline of a swollen line: [x, y, radius] nodes in the pen's units, as a shape in sheet units. */
 export function inkBlob(pen: InkRisoPen, nodes: readonly (readonly [number, number, number])[]): number[][] {
@@ -331,7 +328,7 @@ export function paintInk(sheet: InkRisoSheet): InkRisoPrint {
       const g = inkNoise2(seed + 73, x / (1.6 * S), y / (1.6 * S)) * 0.6 + inkNoise2(seed + 76, x / (0.7 * S), y / (0.7 * S)) * 0.4;
       const v = clamp(c * (1 + 0.3 * (g - 0.5) * (1 - c)) * (ps.density ?? 1));
       cov[q] = v;
-      for (let k = 0; k < 3; k++) rgb[q * 3 + k] *= 1 - v * (1 - ink[k]);
+      for (let k = 0; k < 3; k++) rgb[q * 3 + k] = ps.opaque ? rgb[q * 3 + k] * (1 - v) + ink[k] * v : rgb[q * 3 + k] * (1 - v * (1 - ink[k]));
     }
     coverage[ps.id] = cov;
   }
