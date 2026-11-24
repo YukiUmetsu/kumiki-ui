@@ -22,6 +22,6 @@ Read the [spec](../../docs/component-specs/chinese-ink-film.md). For new brush m
 6. **It paints itself** in the order the brush went: `turn` for each part, `soft` for faces.
 7. **Calm motion.** A light wind is 4–16 units. Birds, boats and water go the way they face, never back.
 8. **Words on bare paper**, in both formats. Measure the darkest pixel under each caption.
-9. **Faces** from a measured head and brush marks, judged by eye. A robe closes the wearer's left side over the right.
+9. **Faces** from a measured head and brush marks, judged by eye. A turned head needs its `side`: jaw up to the lobe, ear from brow to nose. A robe closes the wearer's left side over the right.
    Do not change an accepted figure's drawing.
 10. **Review** at normal speed and frame by frame, wide and upright. Record what you checked.
