@@ -39,9 +39,25 @@ function edt(f: Float64Array, w: number, h: number): Float64Array {
   for (let y = 0; y < h; y++) { for (let x = 0; x < w; x++) g[x] = f[y * w + x]; line(w); for (let x = 0; x < w; x++) f[y * w + x] = d[x]; }
   return f;
 }
+/** Near the edge the grid's distances are half a cell rough; here they come from the outline itself (grid units, `k` to a sheet unit). */
+function outlineDistance(P: readonly (readonly number[])[], w: number, h: number, d: Float32Array, k: number): void {
+  const R = 3, near = new Float32Array(w * h).fill(R), turns = new Int8Array(w * h);
+  P.forEach(([ax, ay], i) => {
+    const [bx, by] = P[(i + 1) % P.length], dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy || 1;
+    for (let y = Math.max(0, Math.floor(Math.min(ay, by) - R)); y < Math.min(h, Math.max(ay, by) + R); y++) {
+      for (let x = Math.max(0, Math.floor(Math.min(ax, bx) - R)); x < Math.min(w, Math.max(ax, bx) + R); x++) { const t = clamp(((x + 0.5 - ax) * dx + (y + 0.5 - ay) * dy) / l); near[y * w + x] = Math.min(near[y * w + x], Math.hypot(x + 0.5 - ax - dx * t, y + 0.5 - ay - dy * t)); }
+      if ((ay <= y + 0.5) !== (by <= y + 0.5)) { const x = Math.max(0, Math.ceil(ax + ((y + 0.5 - ay) / dy) * dx - 0.5)); if (x < w) turns[y * w + x] += ay < by ? 1 : -1; }
+    }
+  });
+  for (let y = 0, j = 0; y < h; y++) for (let x = 0, turn = 0; x < w; x++, j++) {
+    turn += turns[j];
+    // an outline that crosses itself has edges within the shape: those are none
+    if (near[j] < R && Math.abs(d[j] * k) < R + 1) d[j] = lerp((turn ? near[j] : -near[j]) / k, d[j], sstep(R / 2, R, near[j]));
+  }
+}
 /** Signed distance to a shape's edge, sheet units (inside is positive), sampled on a coarse grid. */
 interface Field { x0: number; y0: number; w: number; h: number; step: number; d: Float32Array }
-function distanceField(sheet: InkRisoSheet, shape: PenShape, pad: number): Field {
+function distanceField(sheet: InkRisoSheet, shape: PenShape, pad: number, exact: boolean): Field {
   const S = sheet.spec.scale;
   let bx0 = Infinity, bx1 = -Infinity, by0 = Infinity, by1 = -Infinity;
   for (const p of shape) { bx0 = Math.min(bx0, p[0]); bx1 = Math.max(bx1, p[0]); by0 = Math.min(by0, p[1]); by1 = Math.max(by1, p[1]); }
@@ -51,15 +67,16 @@ function distanceField(sheet: InkRisoSheet, shape: PenShape, pad: number): Field
   for (let i = 0; i < n; i++) { const v = m.a[i]; a[i] = v >= 1 ? FAR : v <= 0 ? 0 : Math.max(0, v - 0.5) ** 2; c[i] = v >= 1 ? 0 : v <= 0 ? FAR : Math.max(0, 0.5 - v) ** 2; }
   if (n) { edt(a, m.w, m.h); edt(c, m.w, m.h); }
   for (let i = 0; i < n; i++) d[i] = (Math.min(1e4, Math.sqrt(a[i])) - Math.min(1e4, Math.sqrt(c[i]))) / k;
+  if (exact) outlineDistance(shape.map(p => [p[0] * k - m.x0, p[1] * k - m.y0]), m.w, m.h, d, k);
   return { x0: m.x0, y0: m.y0, w: m.w, h: m.h, step, d };
 }
 /** The washes of one mark, plate after plate, have one shape: its field is worked out once. */
-const FIELDS = new WeakMap<PenShape, { sheet: InkRisoSheet; pad: number; field: Field }>();
-function fieldOf(sheet: InkRisoSheet, shape: PenShape, pad: number): Field {
+const FIELDS = new WeakMap<PenShape, { sheet: InkRisoSheet; pad: number; exact: boolean; field: Field }>();
+function fieldOf(sheet: InkRisoSheet, shape: PenShape, pad: number, exact: boolean): Field {
   const was = FIELDS.get(shape);
-  if (was && was.sheet === sheet && was.pad === pad) return was.field;
-  const field = distanceField(sheet, shape, pad);
-  FIELDS.set(shape, { sheet, pad, field });
+  if (was && was.sheet === sheet && was.pad === pad && was.exact === exact) return was.field;
+  const field = distanceField(sheet, shape, pad, exact);
+  FIELDS.set(shape, { sheet, pad, exact, field });
   return field;
 }
 
@@ -71,6 +88,8 @@ export interface InkBloomOptions {
   soft?: number | ((x: number, y: number) => number);
   /** How far the edge wanders from the shape, and the length of that wander (pen units). */
   wander?: number; wave?: number;
+  /** Follow the outline to a fraction of a pixel. Without it a long, nearly straight edge shows steps on a large sheet. */
+  exact?: boolean;
   /** Feathered fringe: how far ink creeps along the fibres, and the fringe's tooth. */
   fringe?: number; tooth?: number;
   /** Pigment carried to the edge, 0–1, and the width of that rim. */
@@ -95,7 +114,7 @@ export function inkBloom(pen: InkRisoPen, plate: string, shape: PenShape, o: Ink
   const wander = o.wander ?? 6, wave = o.wave ?? 46, fringe = o.fringe ?? 2, tooth = o.tooth ?? 3.2, rim = o.rim ?? 0.35, rimW = o.rimWidth ?? 4;
   const halo = o.halo ?? 0, haloAt = o.haloAt ?? 10, haloW = o.haloWidth ?? 3, mottle = o.mottle ?? 0.25, cloud = o.cloud ?? 60;
   const softF = typeof o.soft === "function" ? o.soft : null, soft0 = typeof o.soft === "number" ? o.soft : 0.7, toneF = typeof o.tone === "function" ? o.tone : null, tone0 = typeof o.tone === "number" ? o.tone : 1;
-  const maxSoft = softF ? 60 : soft0, F = fieldOf(sheet, shape, wander + fringe + maxSoft + 4), melt = o.mode === "melt" ? o.cover ?? 1 : -1;
+  const maxSoft = softF ? 60 : soft0, F = fieldOf(sheet, shape, wander + fringe + maxSoft + 4, o.exact ?? false), melt = o.mode === "melt" ? o.cover ?? 1 : -1;
   if (F.w < 2 || F.h < 2) return;
   const ox = F.x0 * F.step, oy = F.y0 * F.step, W = Math.min(sheet.w - ox, F.w * F.step), H = Math.min(sheet.h - oy, F.h * F.step);
   const layer = o.mode === "lift" ? undefined : sheet.layer, hides = (o.mode === "lift" || melt >= 0) && o.hide ? sheet.layer : undefined, mark = layer ? inkMarkStart(sheet, Math.sqrt(W * H) / S) : 0, wide = W >= H;
