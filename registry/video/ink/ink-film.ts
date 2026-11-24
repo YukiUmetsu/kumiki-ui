@@ -142,7 +142,8 @@ export function inkFilmOrders(plan: InkFilmPlan, book: InkBook, unit: number): I
     const keys = (plan.upright ? shot.tall?.camera : undefined) ?? shot.camera, zoom = Math.max(1, ...(keys ?? []).map(k => k.zoom ?? 1));
     for (const raw of shot.layers) {
       const l = inkLayerFor(plan, raw), s = inkSubjectOf(raw, book), grown = 1 + (zoom - 1) * Math.min(1.6, l.depth ?? 1), size = (l.scale ?? 1) * (l.swarm ? (l.swarm.size?.[1] ?? 1) : 1);
-      const scale = Math.min(3, Math.max(0.05, size * grown * unit));
+      // a small figure is painted up to twice as large and shrunk: dry brush under two pixels would break into dots
+      const seen = size * grown * unit, scale = Math.min(3, Math.max(0.05, seen < 0.6 ? Math.min(0.6, seen * 2) : seen));
       for (const part of partsOf(l, s)) for (const pose of inkPosesOf(part)) out.push({ id: inkCelId(raw, shot, s, part, pose), layer: raw, subject: s, part, pose, scale, shot: index });
     }
   }
@@ -150,12 +151,12 @@ export function inkFilmOrders(plan: InkFilmPlan, book: InkBook, unit: number): I
 }
 const hash = (a: number, b: number) => { const s = Math.sin(a * 127.1 + b * 311.7 + 74.7) * 43758.5453; return s - Math.floor(s); };
 
-/** When each part of a layer comes in, and for how long. A picture that paints itself goes part by part, in the order a hand would, and gives each the time its size asks for. */
+/** When each part of a layer comes in, and for how long. A picture that paints itself goes part by part, in the order a hand would, and gives each the time its size asks for; a film-only part is a cover and shows nothing, so it takes next to none. */
 function entrances(l: InkFilmLayer, s: InkSubject, parts: readonly InkPart[], celOf: (p: InkPart) => InkCel | null | undefined): [number, number][] {
   const e = l.enter;
   if (!e) return parts.map(() => [0, 0]);
   if (e.kind !== "paint" || e.stagger !== undefined || parts.length < 2) return parts.map((_, i) => [e.at + (e.stagger ?? 0) * i, e.seconds]);
-  const page = Math.sqrt(s.page.width * s.page.height), size = parts.map(p => { const c = celOf(p); return Math.max(0.12, c ? Math.sqrt(c.width * c.height) / page : 0); }), order = parts.map((p, i) => [p.turn ?? i, i] as const).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(p => p[1]);
+  const page = Math.sqrt(s.page.width * s.page.height), size = parts.map(p => { if (p.only === "film") return 0.03; const c = celOf(p); return Math.max(0.12, c ? Math.sqrt(c.width * c.height) / page : 0); }), order = parts.map((p, i) => [p.turn ?? i, i] as const).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(p => p[1]);
   const over = 0.35, k = e.seconds / (size.reduce((a, b) => a + b, 0) + over * size[order[order.length - 1]]), out: [number, number][] = [];
   let at = e.at; for (const i of order) { out[i] = [at, size[i] * k * (1 + over)]; at += size[i] * k; }
   return out;

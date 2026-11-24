@@ -60,17 +60,18 @@ export function inkTownScene(o: InkSceneOptions = {}): InkFilmLayer[] {
 }
 /** A figure on a height, facing the far mountains. */
 export function inkHeightScene(o: InkSceneOptions = {}): InkFilmLayer[] {
-  const s = o.seed ?? 5, rock: InkMassifOptions = { seed: s + 35, kind: "crag", width: 1000, height: 680, trees: 0, moss: 0.8, rough: 0.85, summits: [{ x: 0.36, z: 0.3, height: 0.5, width: 0.72 }, { x: 0.08, z: 0.5, height: 0.42, width: 0.5 }, { x: 0.68, z: 0.14, height: 0.26, width: 0.42 }], mist: 0.04, mistEdge: 0.16 }, stand = 380, top = inkSkyline(rock)(stand);
-  const on = (at: readonly [number, number], scale: number): [number, number] => [at[0] + (stand - 500) * scale, at[1] + (top - 340 + 10) * scale], wide: [number, number] = [640, 800], tall: [number, number] = [470, 1520];
+  const s = o.seed ?? 5, rock: InkMassifOptions = { seed: s + 35, kind: "crag", width: 1000, height: 680, trees: 0, moss: 0.8, rough: 0.85, summits: [{ x: 0.335, z: 0.3, height: 0.5, width: 0.66 }, { x: 0.375, z: 0.3, height: 0.5, width: 0.66 }, { x: 0.415, z: 0.3, height: 0.49, width: 0.66 }, { x: 0.08, z: 0.5, height: 0.42, width: 0.5 }, { x: 0.68, z: 0.14, height: 0.26, width: 0.42 }], mist: 0.04, mistEdge: 0.16 }, stand = 388, sky = inkSkyline(rock);
+  // both boots on the rock: the lower of the two places decides how high he stands
+  const on = (at: readonly [number, number], scale: number, figure: number): [number, number] => { const k = figure / scale, top = Math.max(sky(stand - 45 * k) - 48 * k, sky(stand + 100 * k) - 3 * k) + 2; return [at[0] + (stand - 500) * scale, at[1] + (top - 340) * scale]; }, wide: [number, number] = [640, 800], tall: [number, number] = [470, 1520];
   return [
     { id: "sun", ...put("moon", { seed: s, kind: "sun", radius: 104, tone: 0.9 }), at: [1330, 310], depth: 0.08, enter: coming(o, 0, "bloom"), tall: { at: [740, 480] } },
     { id: "far", ...put("range", { seed: s, layers: 3, tone: [0.12, 0.3], sharp: 0.7, pigment: o.tint ?? "ink" }), at: [1000, 640], scale: 1.2, depth: 0.25, enter: coming(o, 0), tall: { at: [540, 980], scale: 1.1 } },
     { id: "cloud", ...put("mist", { seed: s + 3 }), at: [1060, 880], scale: 1.2, depth: 0.5, enter: coming(o, 1, "mist"), tall: { at: [540, 1240], scale: 1.1 } },
     { id: "height", ...put("massif", rock), at: wide, scale: 1.5, depth: 1, enter: coming(o, 2, "paint", 2.4), tall: { at: tall, scale: 1.4 } },
-    { id: "figure", ...put("swordsman", { seed: s }), anchor: [450, 1128], at: on(wide, 1.5), scale: 0.34, depth: 1, enter: coming(o, 4, "paint", 2), tall: { at: on(tall, 1.4), scale: 0.4 } },
+    { id: "figure", ...put("swordsman", { seed: s, ground: false }), anchor: [500, 1092], at: on(wide, 1.5, 0.34), scale: 0.34, depth: 1, enter: coming(o, 4, "paint", 2), tall: { at: on(tall, 1.4, 0.4), scale: 0.4 } },
   ];
 }
-/** A lady under an umbrella, walking away in the rain. */
+/** A lady under an umbrella, walking in the rain. */
 export function inkRainScene(o: InkSceneOptions = {}): InkFilmLayer[] {
   const s = o.seed ?? 4;
   return [

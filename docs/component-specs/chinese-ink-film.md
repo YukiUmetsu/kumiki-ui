@@ -39,7 +39,7 @@ const film = {
 - **Scenes** give whole places as layers: `inkPeaksScene`, `inkRiverScene`, `inkTownScene`, `inkHeightScene`, `inkRainScene`, `inkLotusScene`, `inkAutumnScene`, `inkSnowScene`; `inkFlock` lays a skein of birds over any of them. Another seed is another place.
 - **Check** with `inspectInkFilm(film, INK_BOOK)`: unknown subjects, transitions over 60% of a shot, ways in that outlast it, text under 2.6% of the height or too short to read.
 - **Export** through `VideoExportStage`: it waits for the layers to be painted, then seeks frame by frame (stories `ExportWide` and `ExportTall`). Inside a film document use the `ink-film` slot.
-- **Less motion:** `still` holds every frame whole; the player does so for a viewer who asks for it.
+- **Less motion:** `still` holds every frame whole. For a viewer who asks for less motion the player waits like that until they press Play.
 
 ## Add a subject
 
@@ -66,7 +66,8 @@ export const inkReed = (): InkSubject => ({
 - **Words.** On bare paper, never under or over a drawing; swarms fade near them. Measure it at both sizes: the darkest pixel under a caption should stay near the paper. Upright, keep captions near the top, clear of app buttons.
 - **Calm motion.** A light wind is 4–16 units; nothing loops in step; birds and fish face the way they travel. Do not swing a travelling subject with `back`: it would go backwards.
 - **Faces** come from a posed, measured head ([INK-RISO1](ink-riso-press.md)) and brush marks. Judge them by eye against real pictures, not with a face detector. A robe closes the wearer's left side over the right.
-- **Full-size frames cost time**, not correctness: draft at `pixels={960}`.
+- **Full-size frames cost time**, not correctness: draft at `pixels={960}`. A small figure is painted up to twice its size and shrunk, and a small box gets a smaller canvas, so fine lines stay whole.
+- **Feet on the ground:** `inkSkyline(massif)` gives the rock's height at a place; see `inkHeightScene`.
 
 ## Limits
 
@@ -74,4 +75,4 @@ Layers are ink on paper, not a fluid simulation: wet ink does not mix between la
 
 ## Checked
 
-Storybook in Chromium at both sizes, frame by frame for the cast, scenes, reveals, transitions and the demo film; export seek in both formats; text clearance measured under every caption of the demo film. The drawings of 清風 and 墨梅 have not had an outside art review.
+Storybook in Chromium at both sizes, frame by frame for the cast, small figures, scenes, reveals, transitions and the demo film; export seek in both formats; text clearance measured under every caption of the demo film; reduced motion, keyboard and 320–360 px wide pages; the four packs installed and compiled in a clean app. The drawings of 清風 and 墨梅 have not had an outside art review.

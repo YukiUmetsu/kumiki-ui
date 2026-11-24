@@ -61,7 +61,7 @@ export const INK_DEMO: InkFilm = {
       layers: [
         { id: "branch", subject: "plum", props: { seed: 5, from: "right", habit: "across", flowers: 22 }, at: [1400, 420], scale: 0.86, depth: 0.7, enter: { kind: "paint", at: 0.5, seconds: 2.4 }, tall: { at: [690, 500], scale: 0.6 } },
         fall("petals", "petal", { kind: "plum", seed: 4 }, 26, [-58, 92], { size: [0.28, 0.62], spin: 0.08 }),
-        { id: "figure", subject: "momei", props: { name: false, branch: false }, at: [520, 820], scale: 0.94, enter: { kind: "develop", at: 0.2, seconds: 1.8 }, tall: { at: [500, 1270], scale: 1 } },
+        { id: "figure", subject: "momei", props: { name: false, branch: false }, at: [520, 820], scale: 0.94, tall: { at: [500, 1270], scale: 1 } },
       ],
       text: [words("Plum, before any leaf.", [1100, 880], 1.3, 5.4)],
     },

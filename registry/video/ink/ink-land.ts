@@ -16,7 +16,6 @@ import type { InkLandKind, InkTerrain } from "./ink-terrain";
 import type { InkPigment } from "./ink-pigments";
 import { inkVeil, inkVeilShape } from "./ink-veil";
 
-export { inkRandom };
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const ss = (a: number, b: number, v: number) => { const t = clamp((v - a) / (b - a || 1e-9)); return t * t * (3 - 2 * t); };
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;

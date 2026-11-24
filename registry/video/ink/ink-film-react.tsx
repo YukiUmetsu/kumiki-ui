@@ -70,7 +70,14 @@ export interface InkFilmStageProps extends Omit<HTMLAttributes<HTMLDivElement>, 
 export const InkFilmStage = forwardRef<HTMLDivElement, InkFilmStageProps>(function InkFilmStage({ film, book, frame, upright = false, pixels, still = false, painter, words = true, onReady, children, style, ...props }, ref) {
   const root = useRef<HTMLDivElement>(null), canvas = useRef<HTMLCanvasElement>(null), stage = useRef<InkStage | null>(null), told = useRef(false);
   useImperativeHandle(ref, () => root.current as HTMLDivElement, []);
-  const size = upright && film.tall ? film.tall : film.size, outW = Math.round(pixels ?? size.width), outH = Math.round((outW * size.height) / size.width), unit = outW / size.width;
+  const size = upright && film.tall ? film.tall : film.size, full = Math.round(pixels ?? size.width), unit = full / size.width, [half, setHalf] = useState(1);
+  // a small box gets a smaller picture, by halves: a browser shrinks a canvas badly past that
+  const outW = Math.max(2, Math.round(full / half)), outH = Math.round((outW * size.height) / size.width);
+  useEffect(() => {
+    const el = root.current; if (!el || typeof ResizeObserver === "undefined") return;
+    const seen = new ResizeObserver(() => { const shown = el.clientWidth * (window.devicePixelRatio || 1); if (shown > 0) setHalf(Math.max(1, 2 ** Math.floor(Math.log2(full / shown) + 1e-6))); });
+    seen.observe(el); return () => seen.disconnect();
+  }, [full]);
   const { cels, open, ready, done, total, error, plan } = useInkCels(film, book, unit, { upright, painter }), [gl, setGl] = useState<string | null>(null), [lost, setLost] = useState(0);
   useEffect(() => {
     const c = canvas.current; if (!c) return;
@@ -90,7 +97,7 @@ export const InkFilmStage = forwardRef<HTMLDivElement, InkFilmStageProps>(functi
     if (!ready) return;
     if (root.current) root.current.dataset.kmInkFilmDrawn = String(frame);
     if (!told.current) { told.current = true; onReady?.(); }
-  }, [plan, time, frame, book, cels, open, ready, done, still, onReady, lost]);
+  }, [plan, time, frame, book, cels, open, ready, done, still, onReady, lost, outW]);
   const shot = inkShotAt(plan, time).shot, up = words ? inkTextAt(plan, time) : [], pct = (v: number, of: number) => `${(v / of) * 100}%`;
   return <div {...props} ref={root} data-ink-film={film.id} data-ink-ready={ready && !gl ? "" : undefined} data-km-ink-film-frame={frame} data-km-ink-film-done={done} data-km-ink-film-status={error || gl ? "error" : ready ? "ready" : "painting"} style={{ position: "relative", width: "100%", aspectRatio: `${size.width} / ${size.height}`, background: film.paper, overflow: "hidden", containerType: "size", ...style }}>
     <canvas ref={canvas} key={`${outW}x${outH}`} width={outW} height={outH} role="img" aria-label={shot.label ?? film.title} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />
@@ -105,9 +112,9 @@ export const InkFilmStage = forwardRef<HTMLDivElement, InkFilmStageProps>(functi
 });
 
 export interface InkFilmPlayerProps extends Omit<InkFilmStageProps, "frame"> { autoPlay?: boolean; loop?: boolean; /** First frame, for a page that opens on a moment. */ start?: number }
-/** The film with a play button and a scrubber. It starts when every layer is painted, unless the viewer asks for less motion. */
-export function InkFilmPlayer({ film, upright = false, autoPlay = true, loop = true, start = 0, onReady, style, ...props }: InkFilmPlayerProps) {
-  const plan = useMemo(() => planInkFilm(film, { upright }), [film, upright]), [frame, setFrame] = useState(start), [playing, setPlaying] = useState(false), [ready, setReady] = useState(false), [calm] = useState(() => typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches));
+/** The film with a play button and a scrubber. It starts when every layer is painted. For a viewer who asks for less motion it waits, showing each frame whole and still, until they press Play. */
+export function InkFilmPlayer({ film, upright = false, autoPlay = true, loop = true, start = 0, still, onReady, style, ...props }: InkFilmPlayerProps) {
+  const plan = useMemo(() => planInkFilm(film, { upright }), [film, upright]), [frame, setFrame] = useState(start), [playing, setPlaying] = useState(false), [ready, setReady] = useState(false), [asked, setAsked] = useState(false), [calm] = useState(() => typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches));
   const told = useMemo(() => () => { setReady(true); if (autoPlay && !calm) setPlaying(true); onReady?.(); }, [autoPlay, calm, onReady]);
   useEffect(() => {
     if (!playing) return;
@@ -120,9 +127,9 @@ export function InkFilmPlayer({ film, upright = false, autoPlay = true, loop = t
   }, [playing, film.fps, plan.frames, loop]);
   const clock = (f: number) => { const s = Math.floor(f / film.fps); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
   return <div style={style}>
-    <InkFilmStage {...props} film={film} upright={upright} frame={frame} onReady={told} />
+    <InkFilmStage {...props} film={film} upright={upright} frame={frame} still={still ?? (calm && !asked)} onReady={told} />
     <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 2px", color: "#2A2624", font: "500 15px/1 system-ui, sans-serif" }}>
-      <button type="button" disabled={!ready} onClick={() => setPlaying(p => !p)} aria-label={playing ? "Pause" : "Play"} style={{ minWidth: 84, minHeight: 40, borderRadius: 4, border: "1px solid #6B625B", background: "transparent", color: "inherit", font: "inherit", cursor: ready ? "pointer" : "default", opacity: ready ? 1 : 0.5 }}>{playing ? "Pause" : "Play"}</button>
+      <button type="button" disabled={!ready} onClick={() => { setAsked(true); setPlaying(p => !p); }} aria-label={playing ? "Pause" : "Play"} style={{ minWidth: 84, minHeight: 40, borderRadius: 4, border: "1px solid #6B625B", background: "transparent", color: "inherit", font: "inherit", cursor: ready ? "pointer" : "default", opacity: ready ? 1 : 0.5 }}>{playing ? "Pause" : "Play"}</button>
       <input type="range" min={0} max={plan.frames - 1} value={frame} disabled={!ready} aria-label="Film position" aria-valuetext={`${clock(frame)} of ${clock(plan.frames)}`} onChange={e => { setPlaying(false); setFrame(Number(e.target.value)); }} style={{ flex: 1, minWidth: 0, accentColor: "#7A2E22", height: 28 }} />
       <span style={{ fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{clock(frame)} / {clock(plan.frames)}</span>
     </div>
