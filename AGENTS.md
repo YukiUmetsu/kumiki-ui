@@ -41,7 +41,7 @@ When a technical choice conflicts with these rules, document the tradeoff and as
 ## Before you draw, build or film a subject
 
 Read `skills/kumiki-NAME/SKILL.md` first (under 2k tokens each; `content` is 4k). It names the spec and the measured data:
-`content` films and videos (one JSON, then `film:check`, `film:review`, `film:render`) · `human-anatomy` people · `facial-expressions` · `makeup` · `costume` clothing · `motion` walking, running · `animal-anatomy` animals, birds, fish · `small-creatures` insects, spiders, snails · `plant-anatomy` trees, flowers, grass · `terrain` ground, mountains · `water` sea, rivers · `sky-weather` sky, clouds, rain · `fx` fire, smoke, light · `food` · `interiors` rooms, furniture · `architecture` buildings · `materials` surfaces · `ui` components.
+`content` films and videos (one JSON, then `film:check`, `film:review`, `film:render`) · `human-anatomy` people · `facial-expressions` · `makeup` · `costume` clothing · `motion` walking, running · `animal-anatomy` animals, birds, fish · `small-creatures` insects, spiders, snails · `plant-anatomy` trees, flowers, grass · `terrain` ground, mountains · `water` sea, rivers · `sky-weather` sky, clouds, rain · `fx` fire, smoke, light · `food` · `interiors` rooms, furniture · `architecture` buildings · `materials` surfaces · `chinese-ink` ink painting · `ui` components.
 
 To match a reference picture, or when ours looks worse than one: [reference-match](docs/reference-match.md).
 

@@ -14,7 +14,10 @@ test("every Chinese ink story is grouped under one Film Looks folder",async({pag
     entry.id.startsWith("video-chinese-ink-")||
     entry.id.startsWith("video-ink-")));
   const root="Video production/Film Looks/Chinese Ink/";
-  expect(stories.length).toBeGreaterThanOrEqual(2);
+  // The seven leaves of the ink folder, plus the brush itself.
+  const leaves=new Set(stories.map(story=>story.title.slice(root.length)));
+  for(const leaf of ["Any Picture In Ink","Characters","Film","Ink Brush","Motifs",
+    "Reveals And Transitions","Scenes","Titles And Seals"])expect([...leaves],leaf).toContain(leaf);
   for(const story of stories){
     expect(story.title.startsWith(root),story.id).toBe(true);
     // One flat Chinese Ink folder: titles end at their leaf, never extra folders.

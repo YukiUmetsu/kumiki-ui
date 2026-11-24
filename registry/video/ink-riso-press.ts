@@ -41,7 +41,13 @@ export interface InkRisoSheetSpec {
   margin?: number;
 }
 export interface InkRisoPlate { spec: InkRisoPlateSpec; solid: Float32Array; tone: Float32Array }
-export interface InkRisoSheet { spec: InkRisoSheetSpec; w: number; h: number; plates: Record<string, InkRisoPlate> }
+/**
+ * What a sheet also remembers when it is one layer of a larger painting: how much of what lies under it each pixel hides (`knock`
+ * hides it all when it clears the last plate, the darkest), and when ink reached each pixel, as the number of the mark plus the share of that mark already drawn. `marks`
+ * holds how long each mark takes the hand, in design units of travel.
+ */
+export interface InkRisoLayer { cover: Float32Array; when: Float32Array; gain: Float32Array; marks: number[] }
+export interface InkRisoSheet { spec: InkRisoSheetSpec; w: number; h: number; plates: Record<string, InkRisoPlate>; layer?: InkRisoLayer }
 
 export interface BrushStroke {
   points: readonly BrushNode[];
@@ -101,12 +107,16 @@ export function inkFbm2(seed: number, x: number, y: number, octaves = 4): number
 }
 
 // ---- sheet ---------------------------------------------------------------------------------------------------------------------
-export function createInkRisoSheet(spec: InkRisoSheetSpec): InkRisoSheet {
+export function createInkRisoSheet(spec: InkRisoSheetSpec, o: { /** Keep cover and stroke order, for a layer of a larger painting. */ layer?: boolean } = {}): InkRisoSheet {
   const w = Math.round(spec.width * spec.scale), h = Math.round(spec.height * spec.scale);
   const plates: Record<string, InkRisoPlate> = {};
   for (const p of spec.plates) plates[p.id] = { spec: p, solid: new Float32Array(w * h), tone: new Float32Array(w * h) };
-  return { spec, w, h, plates };
+  return o.layer ? { spec, w, h, plates, layer: { cover: new Float32Array(w * h), when: new Float32Array(w * h), gain: new Float32Array(w * h), marks: [] } } : { spec, w, h, plates };
 }
+/** A new mark on a layer; `travel` is how far the hand goes for it, design units. Returns its number (0 when the sheet keeps no order). */
+export function inkMarkStart(sheet: InkRisoSheet, travel: number): number { return sheet.layer ? sheet.layer.marks.push(Math.max(1, travel)) - 1 : 0; }
+/** Ink reached a pixel: `at` is the mark's number plus the share of it drawn, `gain` how much darker the pixel got. The mark that darkened it most keeps the time. */
+export function inkMarkHit(layer: InkRisoLayer, q: number, at: number, gain: number): void { if (gain > layer.gain[q]) { layer.gain[q] = gain; layer.when[q] = at; } }
 
 // ---- curves --------------------------------------------------------------------------------------------------------------------
 /** Centripetal Catmull–Rom through nodes of any dimension, sampled about every `step` units. */
@@ -192,7 +202,7 @@ export function brush(sheet: InkRisoSheet, plateId: string, o: BrushStroke): voi
     }
   }
   const ink = o.ink ?? 1, dry0 = o.dry ?? 0, dry1 = o.dryEnd ?? dry0, K = o.bristles ?? 9, streak = o.streak ?? Math.max(30, o.width * 5);
-  const solid = ink >= 0.9, buf = solid ? plate.solid : plate.tone;
+  const solid = ink >= 0.9, buf = solid ? plate.solid : plate.tone, layer = o.mode === "lift" ? undefined : sheet.layer, mark = layer ? inkMarkStart(sheet, total) : 0;
   for (const q of touched) {
     const x = q % w, y = (q / w) | 0, s = k.s[q], u = k.u[q], r = k.r[q], f = s / total;
     const dry = dry0 + (dry1 - dry0) * sstep(0.25, 1, f);
@@ -212,7 +222,9 @@ export function brush(sheet: InkRisoSheet, plateId: string, o: BrushStroke): voi
     if (c <= 0) continue;
     const a = solid ? c : c * ink;
     if (o.mode === "lift") { plate.solid[q] *= 1 - a; plate.tone[q] *= 1 - a; continue; }
-    buf[q] = solid ? 1 - (1 - buf[q]) * (1 - a) : Math.max(buf[q], a);
+    const was = buf[q];
+    buf[q] = solid ? 1 - (1 - was) * (1 - a) : Math.max(was, a);
+    if (layer) inkMarkHit(layer, q, mark + f * 0.999, buf[q] - was);
   }
 }
 
@@ -257,7 +269,8 @@ function boxBlur(a: Float32Array, w: number, h: number, sigma: number): Float32A
 }
 /** Clear every plate (or the named ones) inside a closed shape: the figure is opaque paper before it is drawn. */
 export function knock(sheet: InkRisoSheet, poly: readonly (readonly number[])[], plates?: readonly string[]): void {
-  const m = inkFillMask(sheet, poly);
+  const m = inkFillMask(sheet, poly), L = sheet.layer, black = sheet.spec.plates[sheet.spec.plates.length - 1]?.id, hides = !plates || plates.includes(black);
+  if (L) { const at = L.marks.length; for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) { const a = m.a[y * m.w + x], q = (y + m.y0) * sheet.w + x + m.x0; if (!a) continue; if (hides) { L.cover[q] = 1 - (1 - L.cover[q]) * (1 - a); if (a > 0.5) L.when[q] = at; } L.gain[q] *= 1 - a; } }
   for (const id of plates ?? Object.keys(sheet.plates)) {
     const p = sheet.plates[id];
     for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) { const a = m.a[y * m.w + x]; if (a) { const q = (y + m.y0) * sheet.w + x + m.x0; p.solid[q] *= 1 - a; p.tone[q] *= 1 - a; } }
@@ -271,7 +284,7 @@ export function wash(sheet: InkRisoSheet, plateId: string, poly: readonly (reado
   const soft = (o.soft ?? 0) * S, rim = (o.poolWidth ?? 6) * S;
   const m = inkFillMask(sheet, pl, soft * 3 + 2);
   const a = boxBlur(m.a, m.w, m.h, soft), inner = o.pool ? boxBlur(m.a, m.w, m.h, rim) : null;
-  const tone = o.tone, mode = o.mode ?? "max", grain = o.grain ?? 0;
+  const tone = o.tone, mode = o.mode ?? "max", grain = o.grain ?? 0, layer = mode === "erase" ? undefined : sheet.layer, mark = layer ? inkMarkStart(sheet, Math.sqrt(m.w * m.h) / S) : 0;
   for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) {
     const i = y * m.w + x;
     let c = a[i];
@@ -281,7 +294,9 @@ export function wash(sheet: InkRisoSheet, plateId: string, poly: readonly (reado
     if (inner) t *= 1 + o.pool! * (clamp((1 - inner[i]) * 1.7) - 0.25);
     if (grain) t *= 1 + grain * (inkFbm2(seed + 3, X / (3.2 * S), Y / (3.2 * S), 4) - 0.5) * 2;
     c = clamp(c * t);
-    buf[q] = mode === "erase" ? buf[q] * (1 - c) : mode === "glaze" ? 1 - (1 - buf[q]) * (1 - c) : Math.max(buf[q], c);
+    const was = buf[q];
+    buf[q] = mode === "erase" ? was * (1 - c) : mode === "glaze" ? 1 - (1 - was) * (1 - c) : Math.max(was, c);
+    if (layer) inkMarkHit(layer, q, mark + 0.999 * (0.7 * (x / m.w) + 0.3 * (y / m.h)), buf[q] - was);
   }
 }
 

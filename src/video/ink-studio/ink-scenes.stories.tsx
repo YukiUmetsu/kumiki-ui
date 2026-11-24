@@ -1,0 +1,25 @@
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import type { InkFilm, InkFilmLayer } from "../../../registry/video/ink/ink-film";
+import { InkStudioFilm } from "./ink-page";
+import { inkAutumnScene, inkHeightScene, inkLotusScene, inkPeaksScene, inkRainScene, inkRiverScene, inkSnowScene, inkTownScene } from "../../../registry/video/ink/ink-scenes";
+
+const scene = (id: string, label: string, layers: InkFilmLayer[]): InkFilm => ({ schemaVersion: 1, id: `ink-scene-${id}`, title: label, fps: 30, paper: "#F8F1E3", size: { width: 1920, height: 1080 }, tall: { width: 1080, height: 1920 }, shots: [{ id, seconds: 12, label, layers, camera: [{ at: 0, x: -40, zoom: 1 }, { at: 12, x: 40, zoom: 1.05 }] }] });
+const PEAKS = scene("peaks", "Peaks over a sea of cloud", inkPeaksScene({ enter: 0.2 }));
+const RIVER = scene("river", "A river under the moon", inkRiverScene({ enter: 0.2 }));
+const TOWN = scene("town", "A water town", inkTownScene({ enter: 0.2 }));
+const HEIGHT = scene("height", "On the height", inkHeightScene({ enter: 0.2 }));
+const RAIN = scene("rain", "Rain", inkRainScene({ enter: 0.2 }));
+const LOTUS = scene("lotus", "A lotus pond", inkLotusScene({ enter: 0.2 }));
+const AUTUMN = scene("autumn", "Autumn on the lake", inkAutumnScene({ enter: 0.2 }));
+const SNOW = scene("snow", "Snow", inkSnowScene({ enter: 0.2 }));
+const meta: Meta = { title: "Video production/Film Looks/Chinese Ink/Scenes", id: "video-ink-scenes", parameters: { layout: "fullscreen" } };
+export default meta;
+const show = (film: InkFilm): StoryObj => ({ render: () => <InkStudioFilm film={film} pixels={1440} /> });
+export const Peaks: StoryObj = show(PEAKS);
+export const River: StoryObj = show(RIVER);
+export const WaterTown: StoryObj = show(TOWN);
+export const OnTheHeight: StoryObj = show(HEIGHT);
+export const Rain: StoryObj = show(RAIN);
+export const LotusPond: StoryObj = show(LOTUS);
+export const Autumn: StoryObj = show(AUTUMN);
+export const Snow: StoryObj = show(SNOW);

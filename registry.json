@@ -3842,6 +3842,192 @@
       ]
     },
     {
+      "name": "ink-film",
+      "type": "registry:ui",
+      "title": "Chinese Ink Film Engine (INK-FILM1)",
+      "description": "Moving pictures in Chinese brush ink, as data. A subject (a figure, a mountain, a plum branch) is a list of painted parts; each part is painted once, deterministically, as a transparent layer with how much light its ink lets through, what it hides and the order its strokes were made in. A WebGL2 stage multiplies the layers onto xuan paper with sway, breath, drift, ripple, blinking and wing poses, parallax, a camera, a mount (full, round fan, album leaf) and swarms of petals, rain, snow or birds. Layers paint themselves stroke by stroke, bloom, develop, wipe or rise out of mist; shots change by brush, blot, flood, mist or dissolve. A film is plain JSON with a wide and an upright layout, checked by inspectInkFilm; a frame is a pure function of time, so it exports frame by frame, and it can hold still for a viewer who asks for less motion. Includes a player, worker painting, brush lettering and carved seals from any font, pigments and papers, and a tool that turns a photograph into ink layers.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-riso-press"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink/ink-pigments.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-pigments.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-motion.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-motion.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-reveal.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-reveal.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-cel.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-cel.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-brush-kit.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-brush-kit.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-veil.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-veil.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-stage.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-stage.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-film.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-film.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-film-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-film-react.tsx"
+        },
+        {
+          "path": "registry/video/ink/ink-paint.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-paint.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-lettering.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-lettering.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-picture.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-picture.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-motifs",
+      "type": "registry:ui",
+      "title": "Chinese Ink Motifs",
+      "description": "Seeded ink subjects for INK-FILM1 films, each with options and its own motion. Land and sky: folded massifs with axe-cut, hemp-fibre or rain-drop texture strokes, pillar, crag and karst forms, far ranges, a waterfall, mist, water, moon and sun. Buildings and boats: houses, humped bridge, pagoda, pavilion, lantern boat. Plants: bamboo, plum, pine, lotus, orchid, willow, maple, reeds, grass, loose petals, leaves, snowflakes and raindrops. Animals: crane, goose, swallow, koi, butterfly. Small full-length figures seen from behind: a swordsman and a lady under an umbrella. Brush marks for explainers: ink circle, sweep, underline, arrow, splash, tick.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-film"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink/ink-terrain.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-terrain.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-land.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-land.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-place.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-place.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-marks.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-marks.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-flora.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-flora.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-fauna.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-fauna.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-folk.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-folk.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-cast",
+      "type": "registry:ui",
+      "title": "Chinese Ink Cast",
+      "description": "Three half figures in brush ink, in layers that breathe, blink and move their hair, ribbons and jewels in a light wind, and can paint themselves stroke by stroke: 水月, a woman looking back over her shoulder before the moon; 清風, a swordsman in indigo with a silver crown; 墨梅, a court lady under plum blossom. Faces are posed from a measured head and painted with brush marks only. Backdrop, name and wind are options.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-film",
+        "human-anatomy"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink/cast/shuiyue.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/cast/shuiyue.ts"
+        },
+        {
+          "path": "registry/video/ink/cast/qingfeng.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/cast/qingfeng.ts"
+        },
+        {
+          "path": "registry/video/ink/cast/momei.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/cast/momei.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-studio",
+      "type": "registry:ui",
+      "title": "Chinese Ink Film Studio",
+      "description": "Everything an ink film can name, in one book: INK_BOOK maps subject names to makers (figures, land, buildings, plants, animals, marks, lettering, seals) and takes your own. Composed scenes in a wide and an upright layout (peaks over cloud, moonlit river, water town, figure on a height, rain), a pool of workers that paints the layers, and an ink-film slot for a film stage.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-film",
+        "ink-motifs",
+        "ink-cast"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink/ink-subjects.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-subjects.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-scenes.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-scenes.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-paint-pool.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-paint-pool.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-paint-worker.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-paint-worker.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-film-slot.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-film-slot.tsx"
+        }
+      ]
+    },
+    {
       "name": "ink-brush",
       "type": "registry:ui",
       "title": "Material-Native Ink Brush (INK1)",

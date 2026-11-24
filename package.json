@@ -122,6 +122,7 @@
     "@fontsource-variable/unbounded": "5.3.0",
     "@fontsource/bebas-neue": "5.3.0",
     "@fontsource/pacifico": "5.3.0",
+    "@fontsource/yuji-boku": "5.3.1",
     "@paper-design/shaders": "0.0.82",
     "@playwright/test": "^1.64.1",
     "@react-three/fiber": "^9.8.2",
