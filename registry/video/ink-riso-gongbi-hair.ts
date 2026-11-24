@@ -146,3 +146,19 @@ export function paintGongbiDown(h: GongbiHand, o: GongbiDown): void {
     paintGongbiHair(h, { path: [root, [root[0] + dx * length * 0.5 - nx * bend, root[1] + dy * length * 0.5 - ny * bend], [root[0] + dx * length, root[1] + dy * length]], half: pick(o.half), tone: o.tone, soft: o.soft ?? 0.006, root: 0.5, along: (v => t => v * (1 - 0.5 * t))(pick(o.ink)) });
   }
 }
+
+export interface GongbiPart {
+  /** The part from the hairline back: its middle, with half widths. Run it along the middle of the skull (`InkHead.skull(0, latitude)`), and to nothing at its end. */
+  line: readonly GongbiNode[];
+  /** The skin in it, place by place: light at the hairline, as dark as the roots at its end. */
+  skin: readonly GongbiPlace[];
+  /** The roots that cross its edges, and how many on a side (default 8). */
+  tone: GongbiMix; roots?: number;
+  seed: number;
+}
+/** Where hair is parted: paint the locks on both sides up to its middle first; this lays the skin over their roots and lets a few grow across its edges. */
+export function paintGongbiPart(h: GongbiHand, o: GongbiPart): void {
+  const line = o.line.map(([x, y]): PenPoint => [x, y]), n = o.roots ?? 8, over = line.slice(1, Math.max(3, line.length - 2));
+  paintGongbiLock(h, { outline: gongbiBand(o.line), places: o.skin, soft: 0.014, lost: [{ along: [line[0]], reach: 0.06, soft: 0.05 }], wash: { wander: 0.004, wave: 0.16, mottle: 0.06, cloud: 0.05, rim: 0 } }, o.seed);
+  for (const [inside, lean, k] of [[1, [-82, -40], 40], [-1, [-98, -58], 41]] as const) paintGongbiDown(h, { line: over, inside, n, length: [0.08, 0.2], lean, root: [-0.016, 0.014], half: [0.0025, 0.006], tone: o.tone, ink: [0.4, 0.85], soft: 0.008, seed: o.seed + k });
+}
