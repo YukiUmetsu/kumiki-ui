@@ -24,10 +24,14 @@ export type GongbiNode = readonly [x: number, y: number, half: number];
 export interface GongbiTint extends GongbiMix {
   /** A patch: its middle, its reach along and across, and the way it lies in degrees. */
   at?: PenPoint; size?: PenPoint; turn?: number;
+  /** A patch along a path instead, as where a cheek rounds away at its outline: its tone falls off on both sides over `soft`, and `fade` ends it. Cut off at the shape's edge. */
+  path?: readonly PenPoint[];
   /** A plane: its outline, how soft it is (default 0.04), and where its tone goes to nothing (directions: from, to). */
   plane?: readonly PenPoint[]; soft?: number; fade?: readonly (readonly [from: PenPoint, to: PenPoint])[];
   /** A light instead: how much of the skin is let out there, 0–1. */
   light?: number;
+  /** Of a plane on a lid: how much of the lid's way it goes as the eye shuts, 0–1 (default 0). */
+  follow?: number;
 }
 export interface GongbiEye {
   /** The two edges of the opening, from the inner corner to the outer. */
@@ -36,14 +40,20 @@ export interface GongbiEye {
   line: readonly GongbiNode[]; fold: readonly GongbiNode[];
   /** The iris: its middle and its reach; the pupil's share of it; lights on it, the first the brightest. */
   iris: readonly [x: number, y: number, rx: number, ry: number]; pupil?: number; lights: readonly (readonly [x: number, y: number, rx: number, ry: number, strength: number])[];
-  /** Lashes: root and tip on the page, half a width at the root. */
-  lashes?: readonly (readonly [from: PenPoint, to: PenPoint, half: number])[];
-  /** The line under the eye: its ink from the inner corner to the outer, and half its width (default 0.0045). Softness of the lid's line (default 0.011). */
-  under?: readonly [number, number]; foot?: number; softness?: number;
+  /** Lashes: root and tip on the page, half a width at the root, and a place a curved one bends through (left out, it is straight, and pales toward its tip). */
+  lashes?: readonly (readonly [from: PenPoint, to: PenPoint, half: number, through?: PenPoint])[];
+  /** The line under the eye: its ink from the inner corner to the outer, or along the way between them (0–1), and half its width (default 0.0045). */
+  under?: readonly [number, number] | ((t: number) => number); foot?: number;
+  /** Softness of the lid's line (default 0.011), of the fold (default 0.013) and of the line under the eye (default 0.015). */
+  softness?: number; foldSoftness?: number; footSoftness?: number;
+  /** Skin let out between the fold and the lid's line, 0–1: the light on the rim of the lid (default 0). */
+  gleam?: number;
   /** How much of its tone the lid's line keeps at the end of the wing (default 0.38). */
   wing?: number;
+  /** Where the lid's line lies when the eye is shut, from the tear corner to the end of the wing. Left out, it comes down on the lower edge and the wing stays. */
+  shut?: readonly PenPoint[];
 }
-export interface GongbiBrow { top: readonly PenPoint[]; bottom: readonly PenPoint[]; /** Tone, and how it lies along the brow (0 the head, 1 the tail; default 1). */ tone: number; along?: (t: number) => number; /** Softness of its edges (default 0.016; its head is softer above), and how clearly its hairs are seen, 0–1 (default 0.3). */ soft?: number; hairs?: number; /** Tone along its upper edge (default 0.8). */ upper?: number; /** Hairs that stand off its head. */ loose?: readonly (readonly [PenPoint, PenPoint, number])[] }
+export interface GongbiBrow { top: readonly PenPoint[]; bottom: readonly PenPoint[]; /** Tone, and how it lies along the brow (0 the head, 1 the tail; default 1). */ tone: number; along?: (t: number) => number; /** Softness of its edges (default 0.016; its head is softer above), and how clearly its hairs are seen, 0–1 (default 0.3). */ soft?: number; hairs?: number; /** Tone along its upper edge (default 0.8) and its lower one (default 1). */ upper?: number; lower?: number; /** Hairs that stand off its head. */ loose?: readonly (readonly [PenPoint, PenPoint, number])[] }
 export interface GongbiMouth {
   /** Edges from the near corner to the far one: the upper lip's, the line between the lips, the lower lip's. */
   upper: readonly PenPoint[]; parting: readonly GongbiNode[]; lower: readonly PenPoint[];
@@ -51,8 +61,10 @@ export interface GongbiMouth {
   tone?: number; soft?: number; near?: number; far?: number;
   /** How dark the line between the lips stays in its middle (default 0.62; its ends are full), and how much the lower lip pales toward its edge (default 0.12). */
   line?: number; fall?: number;
-  /** Colour laid under the red, and how much of the skin is let out there first (default 0.8). */
-  earth?: number; ink?: number; bare?: number;
+  /** How full the upper lip is (default 0.82). */
+  above?: number;
+  /** Colour laid under the red, how much of the skin is let out there first (default 0.8), and how far in from the lower lip's edge that begins (default 0). */
+  earth?: number; ink?: number; bare?: number; inset?: number;
   /** Lights on the lower lip: where, reach, turn, strength. */
   lights?: readonly (readonly [x: number, y: number, rx: number, ry: number, turn: number, strength: number])[];
 }
@@ -67,9 +79,9 @@ export interface GongbiFace {
   brows: { near: GongbiBrow; far: GongbiBrow };
   eyes: { near: GongbiEye; far: GongbiEye };
   /** Ink of the irises, how brown they are, how blue where the light comes through, how much of the ink is left there, and how far down the lashes' shadow reaches. */
-  iris: { ink: number; earth: number; cool: number; foot: number; lash: number; /** How clearly its rays show (default 0.3). */ rays?: number };
-  /** What the whites of the eyes take besides the shade of the lid, how far the warmth of the tear corner runs into them (share of the eye, default 0.16), and how deep the shade in the outer corner is (default 1). */
-  whites?: { tone: GongbiMix; corner?: number; outer?: number };
+  iris: { ink: number; earth: number; cool: number; foot: number; lash: number; /** How clearly its rays show (default 0.3), how dark its rim is (default 0) and how soft its edge, share of its reach (default 0.11). */ rays?: number; rim?: number; edge?: number };
+  /** What the whites of the eyes take besides the shade of the lid, how far the warmth of the tear corner runs into them (share of the eye, default 0.16), and how deep the shade in the outer corner is (default 1) and round the iris (default 0.14). */
+  whites?: { tone: GongbiMix; corner?: number; outer?: number; halo?: number };
   /** The colour of the brows, of the lids' lines, of the folds and of the warmth round them, and of the line under the eye. */
   browLine: GongbiMix; lidLine: GongbiMix; foldLine: GongbiMix; foldGlow: GongbiMix; underLine: GongbiMix;
   mouth: GongbiMouth; mouthLine: GongbiMix;
@@ -206,8 +218,17 @@ export function gongbiEdge(points: readonly PenPoint[]): (x: number) => number {
 const tintTone = (t: GongbiTint) => {
   if (t.at && t.size) { const r = ((t.turn ?? 0) * Math.PI) / 180, c = Math.cos(r), n = Math.sin(r), [ax, ay] = t.at, [sx, sy] = t.size; return (x: number, y: number) => { const u = ((x - ax) * c + (y - ay) * n) / sx, v = (-(x - ax) * n + (y - ay) * c) / sy; return Math.exp(-(u * u + v * v)); }; }
   const ways = (t.fade ?? []).map(([a, b]) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy; return (x: number, y: number) => 1 - ss(0, 1, ((x - a[0]) * dx + (y - a[1]) * dy) / l); });
-  if (ways.length) return (x: number, y: number) => ways.reduce((v, way) => v * way(x, y), 1);
-  return () => 1;
+  const faded = (x: number, y: number) => ways.reduce((v, way) => v * way(x, y), 1);
+  if (t.path) {
+    const P = t.path, s = t.soft ?? 0.04, R = s * 2.6, xs = P.map(p => p[0]), ys = P.map(p => p[1]), [x0, x1, y0, y1] = [Math.min(...xs) - R, Math.max(...xs) + R, Math.min(...ys) - R, Math.max(...ys) + R];
+    return (x: number, y: number) => {
+      if (x < x0 || x > x1 || y < y0 || y > y1) return 0;
+      let d = Infinity;
+      for (let i = 1; i < P.length; i++) { const [ax, ay] = P[i - 1], dx = P[i][0] - ax, dy = P[i][1] - ay, k = clamp(((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy)); d = Math.min(d, (x - ax - dx * k) ** 2 + (y - ay - dy * k) ** 2); }
+      return Math.exp(-d / (s * s)) * faded(x, y);
+    };
+  }
+  return ways.length ? faded : () => 1;
 };
 /** The mix at a place, between the places given. */
 export function gongbiField(places: readonly GongbiPlace[]): (key: keyof GongbiMix) => ((x: number, y: number) => number) | undefined {
@@ -245,7 +266,8 @@ const lay = (h: GongbiHand, key: keyof GongbiMix, within: readonly (readonly num
 function lidded(e: GongbiEye, open: number) {
   const lo = gongbiEdge(e.lower), shutAt = (x: number) => lo(x) - 0.012, xs = e.lower.map(p => p[0]), x0 = Math.min(...xs), x1 = Math.max(...xs), mid = (x0 + x1) / 2;
   const inside = (x: number) => clamp(1 - Math.max(0, Math.abs(x - mid) - (x1 - x0) / 2) / 0.1), k = 1 - open;
-  const drop = (p: PenPoint, share = 1): number => p[1] + k * share * inside(p[0]) * (shutAt(p[0]) - gongbiUpperAt(e, p[0]));
+  const from = e.shut && gongbiEdge(e.line.map(n => [n[0], n[1]] as const)), to = e.shut && gongbiEdge(e.shut), way = (x: number) => (from && to ? to(x) - from(x) : inside(x) * (shutAt(x) - gongbiUpperAt(e, x)));
+  const drop = (p: PenPoint, share = 1): number => p[1] + k * share * way(p[0]);
   return { open, upper: e.upper.map(p => [p[0], drop(p)] as const), line: e.line.map(n => [n[0], drop([n[0], n[1]]), n[2] * (1 - 0.2 * k)] as const), fold: e.fold.map(n => [n[0], drop([n[0], n[1]], 0.5), n[2] * (1 - 0.4 * k)] as const), move: (p: PenPoint, share: number): PenPoint => [p[0], drop(p, share)] };
 }
 const uppers = new WeakMap<GongbiEye, (x: number) => number>();
@@ -259,8 +281,8 @@ function paintEye(f: InkRisoPen, h: GongbiHand, face: GongbiFace, e: GongbiEye, 
     const ring: PenPoint[] = [...lid.upper, ...[...e.lower].reverse()], hole = h.shape(ring), top = (x: number) => up(x) - 0.006 * open, mask = (x: number, y: number) => (x < x0 || x > x1 ? 0 : ss(-soft, soft, y - top(x)) * ss(-soft, soft, lo(x) - y));
     f.knock(hole);
     const y0 = Math.min(...lid.upper.map(p => p[1])) - 0.02, y1 = Math.max(...e.lower.map(p => p[1])) + 0.02, box = h.box(x0 - 0.02, y0, x1 + 0.02, y1);
-    const r = (x: number, y: number) => Math.hypot((x - cx) / rx, (y - cy) / ry), iris = (x: number, y: number) => ss(1.1, 0.88, r(x, y)), P = e.pupil ?? 0.3;
-    const lit = (x: number, y: number) => { let s = 0; for (const [a, b, u, v, k] of e.lights) if (b > up(a) - 0.01) { const q = Math.hypot((x - a) / u, (y - b) / v); s = Math.max(s, k * (k > 0.7 ? ss(1.5, 0.35, q) : Math.exp(-q * q))); } return s; };
+    const r = (x: number, y: number) => Math.hypot((x - cx) / rx, (y - cy) / ry), rimSoft = face.iris.edge ?? 0.11, lightSoft = rimSoft * 5.2272727, iris = (x: number, y: number) => ss(0.99 + rimSoft, 0.99 - rimSoft, r(x, y)), P = e.pupil ?? 0.3;
+    const lit = (x: number, y: number) => { let s = 0; for (const [a, b, u, v, k] of e.lights) if (b > up(a) - 0.01) { const q = Math.hypot((x - a) / u, (y - b) / v); s = Math.max(s, k * (k > 0.7 ? ss(0.925 + lightSoft, 0.925 - lightSoft, q) : Math.exp(-q * q))); } return s; };
     const shadow = (x: number, y: number) => Math.exp(-Math.max(0, y - up(x)) / 0.026), deep = face.whites?.corner ?? 0.16, far = face.whites?.outer ?? 1, corner = (x: number) => Math.exp(-((at(x) / deep) ** 2)), tone = (key: keyof GongbiMix) => face.whites?.tone[key] ?? 0, out = (x: number) => far * Math.exp(-(((1 - at(x)) / 0.16) ** 2));
     const ray = (x: number, y: number) => inkNoise2(71, (Math.atan2((y - cy) / ry, (x - cx) / rx) * 9) / Math.PI * 2.4, r(x, y) * 1.4) - 0.5, [lx, ly] = e.lights[0], lw = Math.hypot(lx - cx, ly - cy) || 1, ux = (lx - cx) / lw, uy = (ly - cy) / lw;
     // away from its first light the iris is lit through; the lashes' shadow takes its upper third
@@ -268,8 +290,8 @@ function paintEye(f: InkRisoPen, h: GongbiHand, face: GongbiFace, e: GongbiEye, 
     const pupil = (x: number, y: number) => ss(P + 0.22, P - 0.16, Math.hypot((x - cx - 0.04 * rx * ux) / rx, (y - cy + 0.1 * ry) / ry));
     const inkAt = (x: number, y: number) => {
       const q = r(x, y), I = iris(x, y), thr = through(x, y), body = lerp(face.iris.ink, face.iris.ink * face.iris.foot, thr) * (1 + (face.iris.rays ?? 0.3) * ray(x, y) * ss(0.35, 0.7, q)) + 0.2 * ss(0.62, 0.96, q) * (1 - 0.5 * thr);
-      const full = 1 - (1 - clamp(body)) * (1 - 0.84 * pupil(x, y)) * (1 - 0.95 * lash(x, y));
-      return (I * clamp(full, 0, 0.97) + (1 - I) * (0.055 + tone("ink") + 0.44 * shadow(x, y) + 0.06 * out(x) + 0.05 * corner(x) + 0.14 * Math.exp(-((Math.max(0, r(x, y) - 1) / 0.14) ** 2)))) * (1 - lit(x, y)) * mask(x, y);
+      const full = 1 - (1 - clamp(body)) * (1 - 0.84 * pupil(x, y)) * (1 - 0.95 * lash(x, y)) * (1 - (face.iris.rim ?? 0) * ss(0.76, 0.9, q));
+      return (I * clamp(full, 0, 0.97) + (1 - I) * (0.055 + tone("ink") + 0.44 * shadow(x, y) + 0.06 * out(x) + 0.05 * corner(x) + (face.whites?.halo ?? 0.14) * Math.exp(-((Math.max(0, r(x, y) - 1) / 0.14) ** 2)))) * (1 - lit(x, y)) * mask(x, y);
     };
     h.lay("white", box, (x, y) => 0.96 * mask(x, y), { soft: 0.001 });
     h.lay("earth", box, (x, y) => (iris(x, y) * face.iris.earth * (1 - 0.5 * through(x, y)) + (1 - iris(x, y)) * (0.03 + tone("earth") + 0.16 * shadow(x, y) + 0.2 * out(x) + 0.42 * corner(x))) * (1 - lit(x, y)) * mask(x, y), { soft: 0.001 });
@@ -278,13 +300,14 @@ function paintEye(f: InkRisoPen, h: GongbiHand, face: GongbiFace, e: GongbiEye, 
     h.lay("ink", box, inkAt, { soft: 0.001 });
   }
   // under it: the lower lid's edge, found toward the outer corner
-  const [u0, u1] = e.under ?? [0.35, 0.8], foot = e.lower.map((p, i) => [p[0], p[1] + 0.007, (e.foot ?? 0.0045) * (0.5 + 0.5 * Math.sin((Math.PI * i) / (e.lower.length - 1)))] as const);
-  h.stroke({ nodes: foot, tone: face.underLine, soft: 0.015, along: t => lerp(u0, u1, ss(0.3, 0.8, t)) * ss(0, 0.06, t) });
+  const under = e.under ?? [0.35, 0.8], ink = typeof under === "function" ? under : (t: number) => lerp(under[0], under[1], ss(0.3, 0.8, t)), cut = e.shut && open < 1 ? gongbiEdge(lid.line.map(n => [n[0], n[1]] as const)) : null, foot = e.lower.filter(p => !cut || p[1] > cut(p[0])).map((p, i) => [p[0], p[1] + 0.007, (e.foot ?? 0.0045) * (0.5 + 0.5 * Math.sin((Math.PI * i) / (e.lower.length - 1)))] as const);
+  if (foot.length > 2) h.stroke({ nodes: foot, tone: face.underLine, soft: e.footSoftness ?? 0.015, along: t => ink(t) * ss(0, 0.06, t) });
   // the fold, and the warmth that spreads from it
   h.stroke({ nodes: lid.fold.map(n => [n[0], n[1] - 0.002, n[2] * 2.6] as const), tone: face.foldGlow, soft: 0.034, along: t => ss(0, 0.2, t) * ss(1, 0.8, t) });
-  h.stroke({ nodes: lid.fold, tone: face.foldLine, soft: 0.013, along: t => ss(0, 0.14, t) * (1 - 0.45 * ss(0.6, 1, t)) * (0.4 + 0.6 * open) });
+  if (e.gleam) h.lift({ nodes: lid.fold.map(n => [n[0], n[1] + n[2] + 0.011, 0.007] as const), soft: 0.012, along: t => ss(0, 0.2, t) * ss(1, 0.6, t) }, e.gleam * open, ["earth", "warm", "cool", "ink"]);
+  h.stroke({ nodes: lid.fold, tone: face.foldLine, soft: e.foldSoftness ?? 0.013, along: t => ss(0, 0.14, t) * (1 - 0.45 * ss(0.6, 1, t)) * (0.4 + 0.6 * open) });
   h.stroke({ nodes: lid.line, tone: face.lidLine, soft: e.softness ?? 0.011, along: t => 1 - (1 - (e.wing ?? 0.38)) * ss(0.6, 0.95, t) });
-  for (const [a, b, w] of e.lashes ?? []) { const p = lid.move(a, 1), dy = p[1] - a[1]; h.stroke({ nodes: [[p[0], p[1], w], [lerp(a[0], b[0], 0.55), lerp(a[1], b[1], 0.5) + dy * 0.9, w * 0.7], [b[0], b[1] + dy * 0.8, w * 0.1]], tone: face.lidLine, soft: 0.005, along: t => 0.9 - 0.3 * t }); }
+  for (const [a, b, w, m] of e.lashes ?? []) { const p = lid.move(a, 1), dy = p[1] - a[1]; h.stroke({ nodes: [[p[0], p[1], w], [m ? m[0] : lerp(a[0], b[0], 0.55), (m ? m[1] : lerp(a[1], b[1], 0.5)) + dy * 0.9, w * 0.7], [b[0], b[1] + dy * 0.8, w * 0.1]], tone: face.lidLine, soft: 0.005, along: t => (m ? 1 : 0.9 - 0.3 * t) }); }
 }
 function paintBrow(h: GongbiHand, face: GongbiFace, b: GongbiBrow, seed: number): void {
   const top = gongbiEdge(b.top), bottom = gongbiEdge(b.bottom), h0 = b.top[0][0], h1 = b.top[b.top.length - 1][0], soft = b.soft ?? 0.016, along = b.along ?? (() => 1), hairs = b.hairs ?? 0.3, dir = Math.sign(h1 - h0);
@@ -294,7 +317,7 @@ function paintBrow(h: GongbiHand, face: GongbiFace, b: GongbiBrow, seed: number)
     const k = s * (1 + 0.9 * ss(0.5, 0, t)), edge = ss(-k * 0.6, k, y - a) * ss(-s * 0.6, s, c - y) * ss(-0.02, 0.1, t), v = (y - a) / th;
     // hairs: they leave the lower edge and lie over toward the tail
     const lean = x * dir - (0.05 + 0.2 * t) * (1 - v), n = inkNoise2(seed + 5, lean * 64, v * 1.2 + t * 2) * 0.6 + inkNoise2(seed + 6, lean * 130, v * 1.6 + 7) * 0.4;
-    return b.tone * along(t) * edge * lerp(b.upper ?? 0.8, 1, ss(0, 0.8, v)) * (1 + hairs * (n - 0.5) * 2);
+    return b.tone * along(t) * edge * lerp(b.upper ?? 0.8, 1, ss(0, b.lower === undefined ? 0.8 : 0.3, v)) * lerp(1, b.lower ?? 1, ss(0.4, 1, v)) * (1 + hairs * (n - 0.5) * 2);
   };
   h.lay("ink", ring, (x, y) => tone(x, y) * (face.browLine.ink ?? 0), { soft: 0.004 });
   h.lay("earth", ring, (x, y) => tone(x, y) * (face.browLine.earth ?? 0), { soft: 0.004 });
@@ -309,10 +332,10 @@ function paintMouth(h: GongbiHand, face: GongbiFace, m: GongbiMouth, seed: numbe
     const a = top(x), c = mid(x), d = low(x), u = y < c, th = u ? c - a : d - c, v = th > 0.003 ? (u ? (c - y) / th : (y - c) / th) : 2;
     const edge = u ? ss(-soft * 0.5, soft * 1.1, y - a) * ss(0, near * 2.4, way(x)) : ss(-soft * 0.6, soft * 1.5, d - y);
     const line = Math.exp(-((y - c) ** 2) / (2 * (u ? 0.016 : 0.022) ** 2)), streak = inkNoise2(seed + 3, (x - 0.3 * (y - c)) * 50, y * 16) - 0.5;
-    return tone * ends(x) * edge * clamp((u ? 0.82 - 0.16 * clamp(v) : 0.88 - (m.fall ?? 0.12) * clamp(v)) + 0.2 * line + 0.05 * streak) * (1 - lights(x, y));
+    return tone * ends(x) * edge * clamp((u ? (m.above ?? 0.82) - 0.16 * clamp(v) : 0.88 - (m.fall ?? 0.12) * clamp(v)) + 0.2 * line + 0.05 * streak) * (1 - lights(x, y));
   };
   // the skin is let out from under the colour: a red over a beige is dull
-  const bare = (x: number, y: number) => { const a = top(x), d = low(x); return ends(x) * ss(0, soft * 1.6, y - a) * ss(0, soft * 1.8, d - y) * (y < mid(x) ? ss(0, near * 2.4, way(x)) : 1); };
+  const bare = (x: number, y: number) => { const a = top(x), d = low(x); return ends(x) * ss(0, soft * 1.6, y - a) * ss(m.inset ?? 0, (m.inset ?? 0) + soft * 1.8, d - y) * (y < mid(x) ? ss(0, near * 2.4, way(x)) : 1); };
   for (const key of ["earth", "warm", "cool", "ink"] as const) h.wipe(key, ring, (x, y) => (m.bare ?? 0.8) * bare(x, y));
   h.lay("earth", ring, (x, y) => (m.earth ?? 0.1) * red(x, y), { soft: 0.004 });
   h.lay("warm", ring, red, { soft: 0.004 });
@@ -327,7 +350,7 @@ export function paintGongbiFace(f: InkRisoPen, head: InkHead, face: GongbiFace, 
   f.knock(within);
   gongbiSkin(h, within, face.skin);
   gongbiTints(h, within, face.tints);
-  const lidTint = (e: GongbiEye, t: GongbiTint): GongbiTint => (open < 1 && t.at ? { ...t, at: [t.at[0], lidded(e, open).move(t.at, 0.4)[1]] } : t);
+  const lidTint = (e: GongbiEye, t: GongbiTint): GongbiTint => (open < 1 && t.at ? { ...t, at: [t.at[0], lidded(e, open).move(t.at, 0.4)[1]] } : open < 1 && t.plane && t.follow ? { ...t, plane: t.plane.map(p => lidded(e, open).move(p, t.follow!)) } : t);
   if (face.lids) for (const side of ["near", "far"] as const) gongbiTints(h, within, face.lids[side].map(t => lidTint(face.eyes[side], t)));
   paintBrow(h, face, face.brows.near, seed); paintBrow(h, face, face.brows.far, seed + 3);
   for (const line of face.lines) h.stroke(line);
