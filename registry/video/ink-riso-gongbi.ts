@@ -24,6 +24,8 @@ export type GongbiNode = readonly [x: number, y: number, half: number];
 export interface GongbiTint extends GongbiMix {
   /** A patch: its middle, its reach along and across, and the way it lies in degrees. */
   at?: PenPoint; size?: PenPoint; turn?: number;
+  /** A patch along a path instead, as where a cheek rounds away at its outline: its tone falls off on both sides over `soft`, and `fade` ends it. Cut off at the shape's edge. */
+  path?: readonly PenPoint[];
   /** A plane: its outline, how soft it is (default 0.04), and where its tone goes to nothing (directions: from, to). */
   plane?: readonly PenPoint[]; soft?: number; fade?: readonly (readonly [from: PenPoint, to: PenPoint])[];
   /** A light instead: how much of the skin is let out there, 0–1. */
@@ -216,8 +218,17 @@ export function gongbiEdge(points: readonly PenPoint[]): (x: number) => number {
 const tintTone = (t: GongbiTint) => {
   if (t.at && t.size) { const r = ((t.turn ?? 0) * Math.PI) / 180, c = Math.cos(r), n = Math.sin(r), [ax, ay] = t.at, [sx, sy] = t.size; return (x: number, y: number) => { const u = ((x - ax) * c + (y - ay) * n) / sx, v = (-(x - ax) * n + (y - ay) * c) / sy; return Math.exp(-(u * u + v * v)); }; }
   const ways = (t.fade ?? []).map(([a, b]) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy; return (x: number, y: number) => 1 - ss(0, 1, ((x - a[0]) * dx + (y - a[1]) * dy) / l); });
-  if (ways.length) return (x: number, y: number) => ways.reduce((v, way) => v * way(x, y), 1);
-  return () => 1;
+  const faded = (x: number, y: number) => ways.reduce((v, way) => v * way(x, y), 1);
+  if (t.path) {
+    const P = t.path, s = t.soft ?? 0.04, R = s * 2.6, xs = P.map(p => p[0]), ys = P.map(p => p[1]), [x0, x1, y0, y1] = [Math.min(...xs) - R, Math.max(...xs) + R, Math.min(...ys) - R, Math.max(...ys) + R];
+    return (x: number, y: number) => {
+      if (x < x0 || x > x1 || y < y0 || y > y1) return 0;
+      let d = Infinity;
+      for (let i = 1; i < P.length; i++) { const [ax, ay] = P[i - 1], dx = P[i][0] - ax, dy = P[i][1] - ay, k = clamp(((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy)); d = Math.min(d, (x - ax - dx * k) ** 2 + (y - ay - dy * k) ** 2); }
+      return Math.exp(-d / (s * s)) * faded(x, y);
+    };
+  }
+  return ways.length ? faded : () => 1;
 };
 /** The mix at a place, between the places given. */
 export function gongbiField(places: readonly GongbiPlace[]): (key: keyof GongbiMix) => ((x: number, y: number) => number) | undefined {

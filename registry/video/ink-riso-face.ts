@@ -69,6 +69,8 @@ export interface InkHeadShape {
 export interface InkHeadSide {
   /** The jaw: 0 one long soft turn, 1 straight along its foot with a corner under the ear (default 0.5). */
   square?: number;
+  /** How far the cheek rounds out between the jaw's corner and the lobe, as a share of the way back from the chin (default 0; 0.09 is full). */
+  cheek?: number;
   /** Where the ear's lobe joins the face: how far from the middle and how far below the eyes (defaults from the turn and the bow of the head: [1.36, 0.55] at 25° and 5°). */
   lobe?: readonly [number, number];
   /** Height of the ear (default 0.87: its top lies level with the brow, its lobe a little above the foot of the nose), and its width as a share of what the turn shows (default 1). */
@@ -275,7 +277,7 @@ export function poseInkHead(src: InkHeadSource, pose: InkHeadPose, shape: InkHea
   const more = Math.abs(pose.yaw) - 20, edge = (side: 1 | 2) => outline.map(q => { const low = smooth(0.55, 1, q[0]), c = -0.03, w = (q[side] - c) * (1 + (cheek - 1) * (1 - low) + (chinWidth - 1) * low); return face(c + w + (side === 1 ? 0.005 : 0.009) * more * (1 - low), q[0] * length); });
   // With `side`, the near half is read in the level frame, from the chin to where the lobe joins the face.
   const turned = Math.abs(pose.yaw), join: PenPoint = side?.lobe ?? [EAR.join[0] + 1.06 * (Math.tan(turned * rad) - Math.tan(25 * rad)), EAR.join[1] + 0.014 * (5 - pose.pitch)], far = edge(1);
-  const near = (k: number): PenPoint[] => { const c = fromLevel(far[far.length - 1]); return JAW.soft.map((q, i) => { const a = q[0] + (JAW.square[i][0] - q[0]) * k, b = q[1] + (JAW.square[i][1] - q[1]) * k; return level(c[0] + a * (join[0] - 0.012 - c[0]), c[1] + b * (join[1] + 0.02 - c[1])); }); };
+  const near = (k: number): PenPoint[] => { const c = fromLevel(far[far.length - 1]); return JAW.soft.map((q, i) => { const b = q[1] + (JAW.square[i][1] - q[1]) * k, a = q[0] + (JAW.square[i][0] - q[0]) * k + (side?.cheek ?? 0) * Math.sin(Math.PI * b ** 0.7); return level(c[0] + a * (join[0] - 0.012 - c[0]), c[1] + b * (join[1] + 0.02 - c[1])); }); };
   const round = inkSpline([...far, ...(side ? near(side.square ?? 0.5) : edge(2).reverse().slice(1))], 0.5).map(q => [q[0], q[1]] as const), chin = round.reduce((b, q, i) => (local(q)[1] > local(round[b])[1] ? i : b), 0);
   const contour = round.slice(0, chin + 1), jaw = side ? round.slice(chin) : round.slice(chin).filter(q => local(q)[1] > 0.16);
   // ---- ear: a plate standing off the skull behind the jaw's hinge
