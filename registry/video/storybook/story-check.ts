@@ -35,6 +35,8 @@ const within = (b: { a: number; b: number; e: number; f: number }, x: number, y:
 const STEADY = 3;
 /** How far an angle has to be over what a person can before it is a fault: a drawing says only which of four sides of a hand is seen. */
 const SURE: Partial<Record<JointId, number>> = { turn: 20 };
+/** Seconds that a joint has to be there. The drawing of a hand changes at once, while a forearm would turn. */
+const LASTS = { can: 0.1, drawing: 0.25, easy: 0.4 };
 /** The joints of one figure at one moment. */
 function jointsOf(p: StoryPlayed): { joint: JointId; hand?: ActHand; angle: number }[] {
   const found: { joint: JointId; hand?: ActHand; angle: number }[] = [];
@@ -92,7 +94,7 @@ export function checkStory(plan: StoryPlan, o: StoryCheckOptions = {}): StoryChe
       }
     }
     for (const [h, j] of jump) out.jumps.push(`${shot.id} ${j.t.toFixed(2)} s, ${role.actor} (${j.acts.join(", ")}): elbow ${h} jumps ${j.by.toFixed(1)} cm.`);
-    for (const w of worst.values()) if (w.seconds >= (w.level === "can" ? 0.1 : 0.4) && !(w.level === "easy" && [...worst.values()].some(c => c.level === "can" && c.joint === w.joint && c.hand === w.hand && c.acts.join() === w.acts.join()))) out.joints.push(w);
+    for (const w of worst.values()) if (w.seconds >= LASTS[w.level === "can" && w.joint === "turn" ? "drawing" : w.level] && !(w.level === "easy" && [...worst.values()].some(c => c.level === "can" && c.joint === w.joint && c.hand === w.hand && c.acts.join() === w.acts.join()))) out.joints.push(w);
     for (const a of timed) if (a.hands.length) {
       const unstudied = !ACT_STUDIES[a.act]; if (unstudied) missing.add(a.act);
       const t = Math.min(shot.seconds, Math.max(0, a.at + a.d * (ACT_STUDIES[a.act]?.best ?? 0.5))), p = playRole(film, shot, role, t), view = storyView(film, shot, t), { width: W, height: H } = film.size, r = view.rect, b = boxOf(p.meshes.filter(m => ARM.test(m.id) || /^(head|face|hair)/.test(m.id)), (x, y) => view.put(x, y)); if (!b) continue;

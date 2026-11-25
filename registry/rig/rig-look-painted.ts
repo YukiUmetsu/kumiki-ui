@@ -2,7 +2,7 @@
  * RIG1 painted look: hand-painted cut-outs bent by a rig, as textured meshes for a film stage (`paint-stage.ts`).
  *
  * The painting is never redrawn. Each layer is one painting with a place in the rig's rest pose; a bind says how bones move
- * it: rigid (a head, a hand), limb (one sleeve bent round a joint without creasing) or skin (a torso, loose hair, a hem).
+ * it: rigid (a head, a hand), limb (one sleeve bent round a joint: straight parts, a corner outside, a crease inside) or skin (a torso, loose hair, a hem).
  * Faces are painted too: patches cut from paintings of the same head replace the eyes or the mouth, and two mouths are
  * joined by moving marks on their lips. Nothing here knows who the character is. Pure: no DOM, no state.
  */

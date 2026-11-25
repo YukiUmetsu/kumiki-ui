@@ -193,7 +193,7 @@ export function performActs(acts: readonly TimedAct[], t: number, o: PerformOpti
     }
     if (p.pitch) out.pitch += p.pitch * w * s;
     if (p.shift) { out.shift[0] += p.shift[0] * w * s; out.shift[1] += p.shift[1] * w * s; }
-    for (const h of ["f", "b"] as const) { const r = p.reach?.[h]; if (r && r.weight * w > 0.001) out.reach[h].push({ ...r, weight: r.weight * w, of: a, grip: p.grip?.[h] }); const g = p.grip?.[h], gk = r?.weight ?? 1; if (g && w > 0.3) { if (gk > 0.5) out.grip[h] = g; else if (gk > 0.02) faint[h].push({ grip: g, k: gk }); } if (r?.over && r.weight * w > 0.3) out.over.push(h); }
+    for (const h of ["f", "b"] as const) { const r = p.reach?.[h]; if (r && r.weight * w > 0.001) out.reach[h].push({ ...r, weight: r.weight * w, of: a, grip: p.grip?.[h] }); const g = p.grip?.[h], gk = r?.weight ?? 1; if (g && w > 0.3) { if (gk > 0.42) out.grip[h] = g; else if (gk > 0.02) faint[h].push({ grip: g, k: gk }); } if (r?.over && r.weight * w > 0.3) out.over.push(h); }
     if (p.lean) out.lean = Math.max(out.lean, p.lean * w * s);
     if (p.gaze) { out.gaze = [lerp(out.gaze[0], p.gaze[0], w), lerp(out.gaze[1], p.gaze[1], w)]; gw = Math.max(gw, w); }
     if (p.headTurn) { out.headTurn[0] += p.headTurn[0] * w * s; out.headTurn[1] += p.headTurn[1] * w * s; }

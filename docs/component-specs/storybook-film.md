@@ -4,8 +4,8 @@ Short language lessons with painted people, as data. The engine moves paintings.
 
 | Pack | What it holds |
 |---|---|
-| `painted-rig` | `registry/rig/`: `rig-look-painted` (paintings on a RIG1 skeleton), `rig-arm` (an arm solved in depth), `rig-joints` (a skeleton from the joints of a painting), `rig-walk` (gaits), `rig-face` (looks from facial action units, a head turned in depth), `rig-acting` (the acts) |
-| `storybook-film` | `registry/video/storybook/`: `storybook-film` (the film as data), `story-play` (a screenplay compiled to a film), `paint-stage` (WebGL2), `storybook-film-react` (stage and player), `furigana`, `japanese-text`, `speech-mouth`, `story-sound`, `story-figure`, `story-burst` (fireworks). `registry/video/gl/film-gl` |
+| `painted-rig` | `registry/rig/`: `rig-look-painted` (paintings on a RIG1 skeleton), `rig-arm` (an arm solved in depth), `rig-comfort` (what a person's joints can do), `rig-act-studies` (the photographs of each act), `rig-joints` (a skeleton from the joints of a painting), `rig-walk` (gaits), `rig-face` (looks from facial action units, a head turned in depth), `rig-acting` (the acts) |
+| `storybook-film` | `registry/video/storybook/`: `storybook-film` (the film as data), `story-play` (a screenplay compiled to a film), `paint-stage` (WebGL2), `storybook-film-react` (stage and player), `furigana`, `japanese-text`, `speech-mouth`, `story-sound`, `story-figure`, `story-burst` (fireworks), `story-check` (joints, hands and elbows of a whole film). `registry/video/gl/film-gl` |
 
 Storybook: **Video production / Japanese Retro Watercolor** — Film, Characters, Faces and Lip Sync, Animations, Props, Scene Transitions, Furigana Subtitles. Film holds the six scenes, the pages and the episode.
 
@@ -41,7 +41,7 @@ const film = {
 - **Props** have `holds`: a time and a place, or a time, an actor and a socket. Between two holds the prop goes over in `over` seconds. `hangs` makes a bag hang straight down and swing; with 0 it only stays upright. `views` are other paintings of the same prop (an empty bag, a full one), and a hold names one with `view`. `shadow` is how dark its shadow is where it stands. A beam or a line of light is a prop too: a painted piece on a socket for a short time.
 - **Order**: a layer has its own z. `raise` brings an arm over a counter for a time. What of the own body is in front of that arm stays in front of it, from the shoulder to the elbow.
 - **Lines** use `{袋|ふくろ}` for a reading, `[は|わ]` for a sound that is not its letter, and a space for a word boundary.
-- **Translations** are optional and hidden at first. `en` of a line and `gloss` of a word hold them. The player has a switch for them, which is off. `glosses` shows them from the start. In the export story, add `&args=english:!true` to the address.
+- **Translations** of what people say are optional and hidden at first. A word that a page teaches (`means`) shows its English always. `en` of a line and `gloss` of a word hold them. The player has a switch for them, which is off. `glosses` shows them from the start. In the export story, add `&args=english:!true` to the address.
 - **Attention** follows the talk: who listens looks first, who answers looks next, eyes go before the head. `look`, `to` and `toward` overrule it.
 - **Depth**: a set with `ground` gives each figure its size from where it stands. A walk in depth goes along the floor of the painting, with a first and a last step.
 - **Where a hand goes** when it is raised: it comes up round a low elbow. A hand that acts before the body stays inside the arm, a hand at its side goes up outside it. `aside` is the angle from straight ahead, `ahead` is how far before the chest, `shortest` is how much an arm may look shortened.
@@ -64,6 +64,20 @@ An act is a function of time. It can be drawn at any frame, cut off by the next 
 
 Walking comes from the role's `path`. Breath, sway, eye movement and seeded blinks are there without an act.
 
+## Joints
+
+A pose passes three questions, in this order.
+
+1. **What do people do?** `ACT_STUDIES` holds the photographs of each act that moves an arm, with the angles read off them. A new act gets its entry first. `story:check` names an act that has none.
+2. **What can a joint do?** `JOINT_RANGES` holds 14 joints: shoulder, elbow, forearm, wrist, neck and back. `can` is the range of the anatomy pack (ANAT1). `easy` is what reads as easy in a picture (RULA, widened by the photographs). The arm solver keeps to them: it solves the arm in depth, reads its joints as a viewer does, and takes the pose that costs least. A hand that is too hard to bring there turns, or the body leans.
+3. **Does the arm move as an arm does?** A hold is a pose of the joints, not a place, so that a breath does not shake an elbow. An act that stands free before the viewer (`wave`, `raise`, `explain`, `invite`, `shrug`, `beckon`) gives its arm as angles of the picture: `front` has the upper arm, the forearm, the hand, and how much of each length shows (`long`).
+
+A range is no pose. A hand on a wheel can be inside all ranges and still hold it as nobody does.
+
+- **A hand has a side.** The kit has palms, backs, thumbs and little fingers. A drawing says what it shows (`shows`) and which grip it stands for (`as`). The solver takes the one that the forearm can show.
+- **An arm has bones.** A sleeve is drawn (`outlined`) with straight parts, a corner outside the elbow, a crease inside, and a root as wide as its armhole. The lines come from photographs of sleeves. A sleeve that was bent smoothly looked like a hose.
+- **A hand goes over a counter at its far edge.** `raise.edge` of a spot is where that edge is.
+
 ## Add a figure
 
 A front or rear figure: write a card (see [storybook-episode](storybook-episode.md#a-figure)). A side or three-quarter figure, by hand:
@@ -81,13 +95,15 @@ Rules that decide the quality:
 - **Extend what a joint uncovers.** A sleeve goes on under the body, a neck goes on under the head and the scarf, a hip goes on under the shirt.
 - **Change a drawing instead of bending it** for hands and for faces. A mesh bends sleeves, trouser legs, torsos, hems and hair.
 - **Cloth that hangs does not stand up.** A wide sleeve has `slack`: cloth on the inside of a bent elbow is drawn in to the arm, and its corner hangs (`hang` of an extra bone). Without it the folded hands of a kimono made two points of cloth over the elbows.
+- **An arm has bones and a hand has a side.** See [Joints](#joints).
 - **An elbow has a side.** It hangs below the line from shoulder to hand when the hand is in front of the waist. On a body that faces the viewer it also goes out with a hand that goes out, and a wrist bends at most 46°. The inside of the elbow folds and shows a crease. The shoulder goes along with a high or a far reach.
 - **A shirt is sewn at the armhole.** An arm is cut along the seam from the shoulder to the armpit. The cap of the shoulder stays with the chest, and the side of the body goes on behind the arm. Without it a raised arm took a piece of the side with it (`fix.hole`).
 - **What stands out of a face fades toward the ears.** The depth of a face moves the nose most and the edge of the cheek not at all. Without the fade a turned cheek folded over itself and showed specks.
 - **A face that laughs in its painting listens with closed lips.** `idle` of the card names the look between lines.
 - **Hair past the head box is in the figure** as a layer of its own (`head-past`).
 - **A loose part** (a bun, a bag, a scarf end) is an `extra` bone. At rest it has the angle of the painting. `sway` says how much it trails.
-- **Photographs come before joints.** A hand on a wheel, a pick or a purse has a grip that nobody invents well. Look at real people doing it.
+- **Photographs come before joints.** A hand on a wheel, a pick or a purse has a grip that nobody invents well. Look at real people doing it, and write what you measured into `ACT_STUDIES`.
+- **A head is cut with its ears.** The cut follows the ink of the ear and the jaw. A head box that stops at the cheek leaves the ear on the body, and a turn tears it off.
 - **A walk along the picture has no first step and no last step.** Start it outside the picture or under a join. A walk in depth has both.
 - **A gesture covers no word.** Give `invite` or `point` a `to` beside the price, the label or the sign.
 - **Two shots that follow each other agree.** A thing on the counter is still there after the cut, or the framing leaves it out.
@@ -95,6 +111,8 @@ Rules that decide the quality:
 ## Speech
 
 `storybook-speech.mjs <play>` (or `lines.json --out dir`) speaks each line or uses a recording that is there, slows it to a pace in morae a second, and aligns each phone with the recording (Julius and its segmentation kit). Without the aligner the track is estimated from the text and says `"precision": "estimated"`.
+
+With `--hear <python> --ear <model>` each recording is heard by a model that does not know the text. The script names each line that was read another way, and the accent of each word (`speak` gives the voice another spelling). `--takes 4` records a line again and keeps the take that is nearest to the reading and its accent. A voice read ごじゅうのとう and せんはっぴゃくえん wrongly, and only this step found it. A line with no recording plays as silence with a slow mouth, so a film can be planned before it is spoken.
 
 The mouth has painted shapes for rest, a, i, u, e, o and closed lips, plus `teeth` and `n`. A figure that has no painting for one of them says which one stands in (`mouthFor`). `steps` and `squeeze` of a face patch change one painted mouth into another: lips painted out, a wide mouth made a round one. Two paintings are joined by moving marks on the lips. ん is closed only before m, b and p; before t, d, n, r and s the tongue shows; before k, g, a vowel or a pause the mouth keeps what the vowel left and half closes. A vowel before a pause is held as long as the voice sounds.
 
@@ -106,6 +124,8 @@ A look (glad, worried, angry, surprised, shy, sad and so on) is a set of facial 
 npm run -s story:qa -- <film> --out dir [--shots a,b] [--frames --known file --python <python with OpenCV>]
 ```
 
+`story:check` is the first part of it, without pictures: `npm run -s story:check -- <film> [--out sheet.jpg --port 6016]`. With `--out` it draws each act of an arm at its clearest moment, on one sheet.
+
 `<film>` is a play, an episode, `konbini` or `kit-<figure>`. `--known` remembers the pictures that passed, so a second run draws only what changed.
 
 | Measure | From | Limit |
@@ -113,6 +133,10 @@ npm run -s story:qa -- <film> --out dir [--shots a,b] [--frames --known file --p
 | Faults of `inspectStorybook` | data | 0 |
 | Mesh area that folds, bodies and heads | data | 0.2% |
 | A foot that is down moves along the ground | data, and Lucas-Kanade on the frames | 0.6 cm for a step, 1.2 cm in a frame |
+| A joint past what a person can do | data | 5° for 0.1 s; the turn of a forearm 20° for 0.25 s |
+| An elbow that jumps, in the frame of the body | data | 3 cm for a frame² |
+| A hand that goes through a counter | data | 3 cm past its far edge |
+| A hand that does something behind a person; a pose that is not easy | data | named, to look at |
 | A joint turns in one frame, in the picture | data | 40° |
 | A hand moves against the hips, in the picture | data | 2.6 m/s |
 | Mouth against its recording, best lag | phones against loudness; darkness inside the painted lips in the frames | 70 ms; 2 frames |
@@ -147,10 +171,11 @@ The store follows sources: the muted signs, lattice and noren that Kyoto's lands
 - Riku's three-quarter view came from the painting model and its face is off-model. It is used only in `Shoulders and elbows`.
 - A pose far from the painted view needs another painting. The mesh does not turn a body in depth. A head turns about 10°, or about 25° when its face has the mesh of `rig-face`. A `turn` changes to another painted view in the middle.
 - `lookFor` names the stand-ins of the first two figures, whose looks are paintings.
-- The reach of an arm is not checked by `inspectStorybook`. A place that is too far is reached by leaning, and then by a straight arm. Look at the rig view.
+- `inspectStorybook` does not check the reach of an arm. `story:check` checks its joints. A place that is too far is reached by leaning, and then by a straight arm: look at the pose sheet.
+- A picture does not say if a short forearm points to the viewer or away. The check takes the easier way, as a viewer does. A wide kimono sleeve keeps its curve.
 - The acts are for upright two-legged figures.
 - A recording with several speakers at once needs one line each.
 
 ## Checked
 
-2026-11-24, the convenience store: [report](../verification/storybook-film-2026-11-24.md). 2026-11-25, five scenes, the cast and the episode: [report](../verification/storybook-production-2026-11-25.md). Not checked: screen reader, Safari, Firefox, an artist's review, a full-size render of a whole film.
+2026-11-24, the convenience store: [report](../verification/storybook-film-2026-11-24.md). 2026-11-25, five scenes, the cast and the episode: [report](../verification/storybook-production-2026-11-25.md). 2026-11-25, joints, hands, sleeves and voices: [report](../verification/storybook-joints-2026-11-25.md). Not checked: screen reader, Safari, Firefox, an artist's review, a full-size render of a whole film.

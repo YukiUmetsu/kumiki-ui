@@ -6,7 +6,7 @@
   {"id": "booked", "speaker": "daniel", "ja": "{予約|よやく}した ダニエルです。", "en": "I’m Daniel. I have a reservation."},
   {"id": "waiting", "speaker": "haruka", "ja": "お{待|ま}ちして おりました。", "en": "We have been expecting you."},
   {"id": "shoes", "speaker": "haruka", "ja": "{靴|くつ}[は|わ] ここで {脱|ぬ}いでください。", "en": "Please take off your shoes here.", "speak": "靴は、ここで脱いでください。"},
-  {"id": "slippers", "speaker": "leo", "ja": "スリッパ！", "en": "Slippers!"},
+  {"id": "slippers", "speaker": "leo", "ja": "スリッパです！", "en": "Slippers!"},
   {"id": "passport", "speaker": "haruka", "ja": "パスポートを お{願|ねが}いします。", "en": "Your passport, please."},
   {"id": "here", "speaker": "ema", "ja": "はい、 どうぞ。", "en": "Here you are."},
   {"id": "room", "speaker": "haruka", "ja": "お{部屋|へや}[は|わ] {三|さん}{〇|まる}{二|に}です。 {鍵|かぎ}を どうぞ。", "en": "Your room is 302. Here is the key.", "speak": "お部屋は、さんまるにです。鍵を、どうぞ。"},

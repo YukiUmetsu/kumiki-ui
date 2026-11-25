@@ -483,6 +483,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 - [Verification: LocationPin2D (2026-10-21)](verification/location-pin-2d.md)
 - [Verification: RedactionReveal (2026-10-21)](verification/redaction-reveal.md)
 - [Verification: painted storybook films (2026-11-24)](verification/storybook-film-2026-11-24.md)
+- [Verification: joints, hands, sleeves and voices of the storybook films (2026-11-25)](verification/storybook-joints-2026-11-25.md)
 - [Verification: storybook production system (2026-11-25)](verification/storybook-production-2026-11-25.md)
 - [Travel Study 3D — Visual Craft & Verification](verification/travel-study-3d-2026-11-01.md)
 - [Verification: ZoneBoundary and Local vs Upload Flow (2026-10-21)](verification/zone-boundary.md)
