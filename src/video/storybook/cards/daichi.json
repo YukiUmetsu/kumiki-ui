@@ -1,0 +1,81 @@
+{
+ "id": "daichi-front",
+ "height": 178,
+ "painting": "cast/daichi_full_body.png",
+ "sharp": "flat/daichi@2.png",
+ "head": {
+  "box": [
+   360,
+   -6,
+   304
+  ],
+  "sharp": "faces/daichi_rest@2.png"
+ },
+ "shows": "rest",
+ "faces": {
+  "a": "heads/daichi.png",
+  "blink": "faces/daichi_blink.png",
+  "joy": "heads/daichi.png"
+ },
+ "provenance": "The owner's full-body painting, cut; the face paintings were made from it with FLUX.2 Klein 4B (Apache-2.0), run locally.",
+ "kit": "kit-hands.json",
+ "body": {
+  "sits": false
+ },
+ "fix": {
+  "hole": {
+   "f": {
+    "seam": [
+     [
+      374,
+      300
+     ],
+     [
+      368,
+      350
+     ],
+     [
+      366,
+      400
+     ],
+     [
+      364,
+      430
+     ]
+    ],
+    "side": [
+     [
+      362,
+      480
+     ]
+    ]
+   },
+   "b": {
+    "seam": [
+     [
+      660,
+      304
+     ],
+     [
+      662,
+      350
+     ],
+     [
+      664,
+      400
+     ],
+     [
+      664,
+      430
+     ]
+    ],
+    "side": [
+     [
+      662,
+      480
+     ]
+    ]
+   }
+  }
+ }
+}

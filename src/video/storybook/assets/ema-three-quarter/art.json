@@ -1,0 +1,1475 @@
+{
+ "art": {
+  "id": "ema-three-quarter",
+  "images": {
+   "bag": {
+    "src": "bag.webp",
+    "width": 332,
+    "height": 606
+   },
+   "leg-b": {
+    "src": "leg-b.webp",
+    "width": 326,
+    "height": 1308
+   },
+   "foot-b": {
+    "src": "foot-b.webp",
+    "width": 334,
+    "height": 265
+   },
+   "leg-f": {
+    "src": "leg-f.webp",
+    "width": 424,
+    "height": 1339
+   },
+   "foot-f": {
+    "src": "foot-f.webp",
+    "width": 313,
+    "height": 290
+   },
+   "arm-b": {
+    "src": "arm-b.webp",
+    "width": 437,
+    "height": 704
+   },
+   "hips": {
+    "src": "hips.webp",
+    "width": 529,
+    "height": 516
+   },
+   "torso": {
+    "src": "torso.webp",
+    "width": 458,
+    "height": 654
+   },
+   "neck": {
+    "src": "neck.webp",
+    "width": 247,
+    "height": 251
+   },
+   "tails": {
+    "src": "tails.webp",
+    "width": 217,
+    "height": 272
+   },
+   "scarf": {
+    "src": "scarf.webp",
+    "width": 380,
+    "height": 228
+   },
+   "arm-f": {
+    "src": "arm-f.webp",
+    "width": 458,
+    "height": 742
+   },
+   "hand-f-easy": {
+    "src": "hand-f-easy.webp",
+    "width": 728,
+    "height": 728
+   },
+   "hand-f-open": {
+    "src": "hand-f-open.webp",
+    "width": 364,
+    "height": 598
+   },
+   "hand-f-onigiri": {
+    "src": "hand-f-onigiri.webp",
+    "width": 390,
+    "height": 624
+   },
+   "hand-f-onigiri-front": {
+    "src": "hand-f-onigiri-front.webp",
+    "width": 286,
+    "height": 442
+   },
+   "hand-f-coin": {
+    "src": "hand-f-coin.webp",
+    "width": 416,
+    "height": 624
+   },
+   "hand-f-coin-front": {
+    "src": "hand-f-coin-front.webp",
+    "width": 208,
+    "height": 312
+   },
+   "hand-f-grip": {
+    "src": "hand-f-grip.webp",
+    "width": 338,
+    "height": 494
+   },
+   "hand-f-grip-front": {
+    "src": "hand-f-grip-front.webp",
+    "width": 312,
+    "height": 234
+   },
+   "hand-b-easy": {
+    "src": "hand-b-easy.webp",
+    "width": 676,
+    "height": 676
+   },
+   "strap-top": {
+    "src": "strap-top.webp",
+    "width": 111,
+    "height": 73
+   },
+   "strap": {
+    "src": "strap.webp",
+    "width": 153,
+    "height": 157
+   },
+   "head": {
+    "src": "head.webp",
+    "width": 849,
+    "height": 708
+   },
+   "face-rest": {
+    "src": "face-rest.webp",
+    "width": 293,
+    "height": 250
+   },
+   "face-a": {
+    "src": "face-a.webp",
+    "width": 293,
+    "height": 250
+   },
+   "face-i": {
+    "src": "face-i.webp",
+    "width": 293,
+    "height": 250
+   },
+   "face-u": {
+    "src": "face-u.webp",
+    "width": 293,
+    "height": 250
+   },
+   "face-e": {
+    "src": "face-e.webp",
+    "width": 293,
+    "height": 250
+   },
+   "face-o": {
+    "src": "face-o.webp",
+    "width": 293,
+    "height": 250
+   },
+   "face-half": {
+    "src": "face-half.webp",
+    "width": 400,
+    "height": 259
+   },
+   "face-closed": {
+    "src": "face-closed.webp",
+    "width": 400,
+    "height": 259
+   },
+   "face-happy": {
+    "src": "face-happy.webp",
+    "width": 400,
+    "height": 334
+   },
+   "face-smile": {
+    "src": "face-smile.webp",
+    "width": 305,
+    "height": 256
+   },
+   "face-thoughtful": {
+    "src": "face-thoughtful.webp",
+    "width": 400,
+    "height": 383
+   },
+   "face-thoughtful-lips": {
+    "src": "face-thoughtful-lips.webp",
+    "width": 293,
+    "height": 250
+   },
+   "face-worried": {
+    "src": "face-worried.webp",
+    "width": 400,
+    "height": 383
+   },
+   "face-worried-lips": {
+    "src": "face-worried-lips.webp",
+    "width": 293,
+    "height": 250
+   },
+   "face-surprised": {
+    "src": "face-surprised.webp",
+    "width": 400,
+    "height": 383
+   },
+   "face-surprised-lips": {
+    "src": "face-surprised-lips.webp",
+    "width": 293,
+    "height": 250
+   },
+   "face-sad": {
+    "src": "face-sad.webp",
+    "width": 400,
+    "height": 541
+   },
+   "face-sad-lips": {
+    "src": "face-sad-lips.webp",
+    "width": 293,
+    "height": 250
+   },
+   "face-lips": {
+    "src": "face-lips.webp",
+    "width": 293,
+    "height": 250
+   }
+  },
+  "layers": [
+   {
+    "id": "bag",
+    "z": 4,
+    "bind": {
+     "kind": "rigid",
+     "bone": "bag"
+    },
+    "image": "bag",
+    "x": -26.248,
+    "y": -125.246,
+    "width": 20.75,
+    "height": 37.875
+   },
+   {
+    "id": "leg-b",
+    "z": 6,
+    "bind": {
+     "kind": "limb",
+     "upper": "thigh-b",
+     "lower": "shin-b",
+     "soft": 8.39
+    },
+    "image": "leg-b",
+    "x": -0.12,
+    "y": -95.043,
+    "width": 20.375,
+    "height": 81.75,
+    "grid": [
+     8,
+     28
+    ]
+   },
+   {
+    "id": "foot-b",
+    "z": 5,
+    "bind": {
+     "kind": "rigid",
+     "bone": "foot-b"
+    },
+    "image": "foot-b",
+    "x": 0.12,
+    "y": -19.057,
+    "width": 20.875,
+    "height": 16.562
+   },
+   {
+    "id": "leg-f",
+    "z": 8,
+    "bind": {
+     "kind": "limb",
+     "upper": "thigh-f",
+     "lower": "shin-f",
+     "soft": 8.39
+    },
+    "image": "leg-f",
+    "x": -18.937,
+    "y": -95.043,
+    "width": 26.5,
+    "height": 83.688,
+    "grid": [
+     8,
+     28
+    ]
+   },
+   {
+    "id": "foot-f",
+    "z": 7,
+    "bind": {
+     "kind": "rigid",
+     "bone": "foot-f"
+    },
+    "image": "foot-f",
+    "x": -14.982,
+    "y": -17.139,
+    "width": 19.562,
+    "height": 18.125
+   },
+   {
+    "id": "arm-b",
+    "z": 9,
+    "bind": {
+     "kind": "limb",
+     "upper": "arm-b",
+     "lower": "fore-b",
+     "soft": 5.034,
+     "root": {
+      "bone": "torso",
+      "soft": 5.993
+     }
+    },
+    "image": "arm-b",
+    "x": 10.307,
+    "y": -130.04,
+    "width": 27.312,
+    "height": 44.0,
+    "grid": [
+     8,
+     26
+    ]
+   },
+   {
+    "id": "hips",
+    "z": 10,
+    "bind": {
+     "kind": "rigid",
+     "bone": "pelvis"
+    },
+    "image": "hips",
+    "x": -15.94,
+    "y": -103.913,
+    "width": 33.062,
+    "height": 32.25
+   },
+   {
+    "id": "torso",
+    "z": 12,
+    "bind": {
+     "kind": "skin",
+     "bone": "torso",
+     "pulls": [
+      {
+       "bone": "pelvis",
+       "from": [
+        2.397,
+        -115.059
+       ],
+       "to": [
+        2.397,
+        -98.999
+       ]
+      }
+     ]
+    },
+    "image": "torso",
+    "x": -12.824,
+    "y": -138.31,
+    "width": 28.625,
+    "height": 40.875,
+    "grid": [
+     10,
+     16
+    ]
+   },
+   {
+    "id": "neck",
+    "z": 13,
+    "bind": {
+     "kind": "skin",
+     "bone": "torso",
+     "pulls": [
+      {
+       "bone": "head",
+       "from": [
+        1.798,
+        -133.996
+       ],
+       "to": [
+        1.199,
+        -139.988
+       ]
+      }
+     ]
+    },
+    "image": "neck",
+    "x": -8.39,
+    "y": -142.865,
+    "width": 15.437,
+    "height": 15.688,
+    "grid": [
+     4,
+     8
+    ]
+   },
+   {
+    "id": "tails",
+    "z": 14,
+    "bind": {
+     "kind": "skin",
+     "bone": "torso",
+     "pulls": [
+      {
+       "bone": "scarf",
+       "from": [
+        6.232,
+        -125.366
+       ],
+       "to": [
+        6.951,
+        -118.654
+       ]
+      }
+     ]
+    },
+    "image": "tails",
+    "x": 1.199,
+    "y": -127.883,
+    "width": 13.562,
+    "height": 17.0,
+    "grid": [
+     4,
+     8
+    ]
+   },
+   {
+    "id": "scarf",
+    "z": 15,
+    "bind": {
+     "kind": "skin",
+     "bone": "torso",
+     "pulls": [
+      {
+       "bone": "head",
+       "from": [
+        1.678,
+        -130.04
+       ],
+       "to": [
+        1.678,
+        -137.232
+       ],
+       "within": {
+        "at": [
+         0.0,
+         -136.632
+        ],
+        "radius": 10.787
+       }
+      }
+     ]
+    },
+    "image": "scarf",
+    "x": -11.626,
+    "y": -138.071,
+    "width": 23.75,
+    "height": 14.25,
+    "grid": [
+     6,
+     5
+    ]
+   },
+   {
+    "id": "arm-f",
+    "z": 17,
+    "bind": {
+     "kind": "limb",
+     "upper": "arm-f",
+     "lower": "fore-f",
+     "soft": 5.034,
+     "root": {
+      "bone": "torso",
+      "soft": 5.993
+     }
+    },
+    "image": "arm-f",
+    "x": -35.596,
+    "y": -130.4,
+    "width": 28.625,
+    "height": 46.375,
+    "grid": [
+     8,
+     26
+    ]
+   },
+   {
+    "id": "hand-f",
+    "z": 16.5,
+    "bind": {
+     "kind": "rigid",
+     "bone": "hand-f"
+    },
+    "grid": [
+     6,
+     6
+    ],
+    "variants": {
+     "easy": {
+      "image": "hand-f-easy",
+      "x": -15.0,
+      "y": -6.0,
+      "width": 28.0,
+      "height": 28.0,
+      "wrist": -19.67
+     },
+     "open": {
+      "image": "hand-f-open",
+      "x": -6.0,
+      "y": -4.0,
+      "width": 14.0,
+      "height": 23.0,
+      "wrist": 0
+     },
+     "onigiri": {
+      "image": "hand-f-onigiri",
+      "x": -7.0,
+      "y": -5.0,
+      "width": 15.0,
+      "height": 24.0,
+      "wrist": 0,
+      "front": {
+       "image": "hand-f-onigiri-front",
+       "x": -7.0,
+       "y": 0.0,
+       "width": 11.0,
+       "height": 17.0
+      }
+     },
+     "coin": {
+      "image": "hand-f-coin",
+      "x": -8.0,
+      "y": -4.0,
+      "width": 16.0,
+      "height": 24.0,
+      "wrist": 0,
+      "front": {
+       "image": "hand-f-coin-front",
+       "x": -3.0,
+       "y": 5.0,
+       "width": 8.0,
+       "height": 12.0
+      }
+     },
+     "grip": {
+      "image": "hand-f-grip",
+      "x": -7.0,
+      "y": -7.0,
+      "width": 13.0,
+      "height": 19.0,
+      "wrist": 0,
+      "front": {
+       "image": "hand-f-grip-front",
+       "x": -6.0,
+       "y": 3.0,
+       "width": 12.0,
+       "height": 9.0
+      }
+     }
+    },
+    "image": "hand-f-easy",
+    "x": -15.0,
+    "y": -6.0,
+    "width": 28.0,
+    "height": 28.0,
+    "wrist": -19.67,
+    "space": "bone"
+   },
+   {
+    "id": "hand-b",
+    "z": 8.5,
+    "bind": {
+     "kind": "rigid",
+     "bone": "hand-b"
+    },
+    "grid": [
+     6,
+     6
+    ],
+    "variants": {
+     "easy": {
+      "image": "hand-b-easy",
+      "x": -13.0,
+      "y": -6.0,
+      "width": 26.0,
+      "height": 26.0,
+      "wrist": 29.11
+     }
+    },
+    "image": "hand-b-easy",
+    "x": -13.0,
+    "y": -6.0,
+    "width": 26.0,
+    "height": 26.0,
+    "wrist": 29.11,
+    "space": "bone"
+   },
+   {
+    "id": "strap-top",
+    "z": 18,
+    "bind": {
+     "kind": "rigid",
+     "bone": "torso"
+    },
+    "image": "strap-top",
+    "x": -13.424,
+    "y": -132.078,
+    "width": 6.938,
+    "height": 4.562,
+    "grid": [
+     3,
+     4
+    ]
+   },
+   {
+    "id": "strap",
+    "z": 16.4,
+    "bind": {
+     "kind": "rigid",
+     "bone": "torso"
+    },
+    "image": "strap",
+    "x": -13.304,
+    "y": -131.958,
+    "width": 9.562,
+    "height": 9.812,
+    "grid": [
+     3,
+     6
+    ]
+   },
+   {
+    "id": "head",
+    "z": 20,
+    "bind": {
+     "kind": "skin",
+     "bone": "head",
+     "pulls": [
+      {
+       "bone": "lock",
+       "from": [
+        12.345,
+        -148.618
+       ],
+       "to": [
+        12.704,
+        -141.426
+       ],
+       "within": {
+        "at": [
+         13.783,
+         -143.224
+        ],
+        "radius": 7.431
+       }
+      },
+      {
+       "bone": "bun",
+       "from": [
+        -11.026,
+        -149.217
+       ],
+       "to": [
+        -14.982,
+        -147.419
+       ],
+       "within": {
+        "at": [
+         -14.982,
+         -147.419
+        ],
+        "radius": 7.191
+       }
+      }
+     ]
+    },
+    "image": "head",
+    "x": -17.978,
+    "y": -165.157,
+    "width": 35.375,
+    "height": 29.5,
+    "grid": [
+     22,
+     22
+    ],
+    "turns": true
+   }
+  ],
+  "face": {
+   "layer": "head",
+   "round": {
+    "at": [
+     5.312,
+     -148.264
+    ],
+    "radius": [
+     11.991,
+     13.645
+    ]
+   },
+   "eyes": [
+    {
+     "at": [
+      5.147,
+      -150.58
+     ],
+     "radius": [
+      2.729,
+      2.233
+     ]
+    },
+    {
+     "at": [
+      11.846,
+      -150.456
+     ],
+     "radius": [
+      1.819,
+      1.985
+     ]
+    }
+   ],
+   "brows": [
+    {
+     "at": [
+      4.899,
+      -154.384
+     ],
+     "radius": [
+      3.804,
+      1.902
+     ]
+    },
+    {
+     "at": [
+      12.135,
+      -154.136
+     ],
+     "radius": [
+      1.985,
+      1.737
+     ]
+    }
+   ],
+   "patches": {
+    "rest": {
+     "image": "face-rest",
+     "x": 2.757,
+     "y": -147.299,
+     "width": 12.208,
+     "height": 10.417,
+     "marks": [
+      [
+       5.354,
+       -143.674
+      ],
+      [
+       12.135,
+       -143.84
+      ],
+      [
+       10.15,
+       -142.889
+      ],
+      [
+       10.15,
+       -142.847
+      ],
+      [
+       9.944,
+       -143.716
+      ],
+      [
+       10.068,
+       -141.814
+      ]
+     ]
+    },
+    "a": {
+     "image": "face-a",
+     "x": 2.757,
+     "y": -147.299,
+     "width": 12.208,
+     "height": 10.417,
+     "marks": [
+      [
+       7.256,
+       -142.599
+      ],
+      [
+       11.474,
+       -143.054
+      ],
+      [
+       10.357,
+       -144.336
+      ],
+      [
+       10.15,
+       -141.607
+      ],
+      [
+       10.522,
+       -144.915
+      ],
+      [
+       10.15,
+       -140.739
+      ]
+     ]
+    },
+    "i": {
+     "image": "face-i",
+     "x": 2.757,
+     "y": -147.299,
+     "width": 12.208,
+     "height": 10.417,
+     "marks": [
+      [
+       7.132,
+       -142.847
+      ],
+      [
+       11.474,
+       -143.468
+      ],
+      [
+       10.15,
+       -143.798
+      ],
+      [
+       10.15,
+       -142.434
+      ],
+      [
+       10.15,
+       -144.501
+      ],
+      [
+       10.15,
+       -141.359
+      ]
+     ]
+    },
+    "u": {
+     "image": "face-u",
+     "x": 2.757,
+     "y": -147.299,
+     "width": 12.208,
+     "height": 10.417,
+     "marks": [
+      [
+       7.711,
+       -142.889
+      ],
+      [
+       11.432,
+       -142.971
+      ],
+      [
+       10.564,
+       -143.178
+      ],
+      [
+       10.564,
+       -142.889
+      ],
+      [
+       10.481,
+       -144.129
+      ],
+      [
+       10.481,
+       -141.566
+      ]
+     ]
+    },
+    "e": {
+     "image": "face-e",
+     "x": 2.757,
+     "y": -147.299,
+     "width": 12.208,
+     "height": 10.417,
+     "marks": [
+      [
+       7.38,
+       -142.93
+      ],
+      [
+       11.474,
+       -143.219
+      ],
+      [
+       10.15,
+       -144.046
+      ],
+      [
+       10.15,
+       -142.31
+      ],
+      [
+       10.15,
+       -144.667
+      ],
+      [
+       10.15,
+       -141.152
+      ]
+     ]
+    },
+    "o": {
+     "image": "face-o",
+     "x": 2.757,
+     "y": -147.299,
+     "width": 12.208,
+     "height": 10.417,
+     "marks": [
+      [
+       7.38,
+       -142.93
+      ],
+      [
+       11.267,
+       -142.971
+      ],
+      [
+       10.026,
+       -143.302
+      ],
+      [
+       10.109,
+       -142.517
+      ],
+      [
+       10.274,
+       -144.088
+      ],
+      [
+       10.026,
+       -141.524
+      ]
+     ]
+    },
+    "half": {
+     "image": "face-half",
+     "x": -0.599,
+     "y": -157.127,
+     "width": 16.667,
+     "height": 10.792
+    },
+    "closed": {
+     "image": "face-closed",
+     "x": -0.599,
+     "y": -157.127,
+     "width": 16.667,
+     "height": 10.792
+    },
+    "happy": {
+     "image": "face-happy",
+     "x": -0.599,
+     "y": -157.127,
+     "width": 16.667,
+     "height": 13.917
+    },
+    "smile": {
+     "image": "face-smile",
+     "x": 2.517,
+     "y": -147.539,
+     "width": 12.708,
+     "height": 10.667,
+     "marks": [
+      [
+       5.147,
+       -144.005
+      ],
+      [
+       12.011,
+       -144.501
+      ],
+      [
+       9.571,
+       -144.419
+      ],
+      [
+       9.53,
+       -142.475
+      ],
+      [
+       9.53,
+       -144.915
+      ],
+      [
+       9.53,
+       -141.607
+      ]
+     ]
+    },
+    "thoughtful": {
+     "image": "face-thoughtful",
+     "x": -0.599,
+     "y": -159.165,
+     "width": 16.667,
+     "height": 15.958
+    },
+    "thoughtful-lips": {
+     "image": "face-thoughtful-lips",
+     "x": 2.757,
+     "y": -147.299,
+     "width": 12.208,
+     "height": 10.417,
+     "marks": [
+      [
+       7.215,
+       -142.558
+      ],
+      [
+       11.556,
+       -142.847
+      ],
+      [
+       10.192,
+       -143.137
+      ],
+      [
+       10.192,
+       -143.095
+      ],
+      [
+       10.068,
+       -143.881
+      ],
+      [
+       10.068,
+       -141.855
+      ]
+     ]
+    },
+    "worried": {
+     "image": "face-worried",
+     "x": -0.599,
+     "y": -159.165,
+     "width": 16.667,
+     "height": 15.958
+    },
+    "worried-lips": {
+     "image": "face-worried-lips",
+     "x": 2.757,
+     "y": -147.299,
+     "width": 12.208,
+     "height": 10.417,
+     "marks": [
+      [
+       6.553,
+       -142.144
+      ],
+      [
+       11.391,
+       -142.765
+      ],
+      [
+       9.944,
+       -143.302
+      ],
+      [
+       9.944,
+       -142.765
+      ],
+      [
+       9.944,
+       -143.84
+      ],
+      [
+       9.944,
+       -141.731
+      ]
+     ]
+    },
+    "surprised": {
+     "image": "face-surprised",
+     "x": -0.599,
+     "y": -159.165,
+     "width": 16.667,
+     "height": 15.958
+    },
+    "surprised-lips": {
+     "image": "face-surprised-lips",
+     "x": 2.757,
+     "y": -147.299,
+     "width": 12.208,
+     "height": 10.417,
+     "marks": [
+      [
+       7.669,
+       -142.31
+      ],
+      [
+       11.391,
+       -142.641
+      ],
+      [
+       10.192,
+       -143.716
+      ],
+      [
+       10.192,
+       -142.392
+      ],
+      [
+       10.192,
+       -144.295
+      ],
+      [
+       10.192,
+       -141.566
+      ]
+     ]
+    },
+    "sad": {
+     "image": "face-sad",
+     "x": -0.599,
+     "y": -159.165,
+     "width": 16.667,
+     "height": 22.542
+    },
+    "sad-lips": {
+     "image": "face-sad-lips",
+     "x": 2.757,
+     "y": -147.299,
+     "width": 12.208,
+     "height": 10.417,
+     "marks": [
+      [
+       6.553,
+       -142.062
+      ],
+      [
+       11.515,
+       -142.392
+      ],
+      [
+       9.944,
+       -143.013
+      ],
+      [
+       9.944,
+       -142.971
+      ],
+      [
+       9.944,
+       -143.881
+      ],
+      [
+       9.944,
+       -141.814
+      ]
+     ]
+    },
+    "lips": {
+     "image": "face-lips",
+     "x": 2.757,
+     "y": -147.299,
+     "width": 12.208,
+     "height": 10.417,
+     "marks": [
+      [
+       7.215,
+       -142.599
+      ],
+      [
+       11.556,
+       -142.847
+      ],
+      [
+       10.15,
+       -143.013
+      ],
+      [
+       10.15,
+       -142.971
+      ],
+      [
+       10.026,
+       -143.881
+      ],
+      [
+       10.15,
+       -141.772
+      ]
+     ]
+    }
+   },
+   "looks": {
+    "neutral": {
+     "patches": [
+      "rest"
+     ],
+     "mouth": "rest"
+    },
+    "happy": {
+     "patches": [
+      "happy"
+     ],
+     "mouth": "smile",
+     "shut": true
+    },
+    "thoughtful": {
+     "patches": [
+      "thoughtful"
+     ],
+     "mouth": "thoughtful-lips"
+    },
+    "worried": {
+     "patches": [
+      "worried"
+     ],
+     "mouth": "worried-lips"
+    },
+    "surprised": {
+     "patches": [
+      "surprised"
+     ],
+     "mouth": "surprised-lips"
+    },
+    "confused": {
+     "patches": [
+      "surprised"
+     ],
+     "mouth": "thoughtful-lips"
+    },
+    "embarrassed": {
+     "patches": [
+      "worried"
+     ],
+     "mouth": "rest"
+    },
+    "relieved": {
+     "patches": [
+      "happy"
+     ],
+     "mouth": "rest",
+     "shut": true
+    },
+    "sad": {
+     "patches": [
+      "sad"
+     ],
+     "mouth": "sad-lips"
+    },
+    "tired": {
+     "patches": [
+      "half"
+     ],
+     "mouth": "thoughtful-lips"
+    }
+   },
+   "lookFor": {
+    "laughing": "happy"
+   },
+   "lids": [
+    "half",
+    "closed"
+   ],
+   "mouths": {
+    "rest": "rest",
+    "a": "a",
+    "i": "i",
+    "u": "u",
+    "e": "e",
+    "o": "o",
+    "closed": "lips"
+   },
+   "mouthFor": {
+    "teeth": "i",
+    "n": "e"
+   },
+   "jaw": {
+    "at": [
+     9.53,
+     -137.927
+    ],
+    "radius": [
+     7.856,
+     5.582
+    ],
+    "drop": 0.496
+   }
+  },
+  "sockets": {
+   "palm-f": {
+    "bone": "hand-f",
+    "at": [
+     1.164,
+     8.612
+    ],
+    "layer": "hand-f"
+   },
+   "onigiri-f": {
+    "bone": "hand-f",
+    "at": [
+     0.891,
+     11.066
+    ],
+    "layer": "hand-f"
+   },
+   "coin-f": {
+    "bone": "hand-f",
+    "at": [
+     -0.028,
+     15.436
+    ],
+    "layer": "hand-f"
+   },
+   "fist-f": {
+    "bone": "hand-f",
+    "at": [
+     -1.815,
+     7.223
+    ],
+    "layer": "hand-f"
+   }
+  }
+ },
+ "joints": {
+  "pelvis": [
+   2.637,
+   -88.691
+  ],
+  "neck": [
+   1.678,
+   -131.838
+  ],
+  "head": [
+   -1.199,
+   -139.988
+  ],
+  "crown": [
+   -1.318,
+   -163.0
+  ],
+  "armF": {
+   "top": [
+    -11.026,
+    -124.048
+   ],
+   "mid": [
+    -20.255,
+    -105.71
+   ],
+   "end": [
+    -29.604,
+    -88.212
+   ],
+   "tip": [
+    -41.229,
+    -77.665
+   ]
+  },
+  "armB": {
+   "top": [
+    14.143,
+    -124.048
+   ],
+   "mid": [
+    22.892,
+    -106.669
+   ],
+   "end": [
+    31.761,
+    -90.01
+   ],
+   "tip": [
+    42.788,
+    -79.942
+   ]
+  },
+  "legF": {
+   "top": [
+    -2.637,
+    -87.493
+   ],
+   "mid": [
+    -4.794,
+    -50.099
+   ],
+   "end": [
+    -7.671,
+    -11.506
+   ],
+   "tip": [
+    3.596,
+    -4.075
+   ]
+  },
+  "legB": {
+   "top": [
+    8.629,
+    -87.493
+   ],
+   "mid": [
+    10.188,
+    -50.578
+   ],
+   "end": [
+    6.951,
+    -13.663
+   ],
+   "tip": [
+    19.656,
+    -6.951
+   ]
+  },
+  "ground": 0,
+  "over": 0
+ },
+ "extra": [
+  {
+   "id": "scarf",
+   "parent": "torso",
+   "at": [
+    6.232,
+    -125.366
+   ],
+   "to": [
+    7.671,
+    -112.422
+   ]
+  },
+  {
+   "id": "bag",
+   "parent": "torso",
+   "at": [
+    -9.588,
+    -130.04
+   ],
+   "to": [
+    -14.982,
+    -89.89
+   ]
+  },
+  {
+   "id": "lock",
+   "parent": "head",
+   "at": [
+    10.787,
+    -148.618
+   ],
+   "to": [
+    12.225,
+    -137.831
+   ]
+  },
+  {
+   "id": "bun",
+   "parent": "head",
+   "at": [
+    -11.746,
+    -149.816
+   ],
+   "to": [
+    -15.341,
+    -146.82
+   ],
+   "sway": {
+    "gain": 0.25,
+    "lag": 0.14,
+    "limit": 3
+   }
+  }
+ ],
+ "body": {
+  "palm": [
+   0,
+   8
+  ]
+ },
+ "provenance": "Reconstructed from the owner's character sheet with FLUX.2 Klein 4B (Apache-2.0), run locally; cut by scripts/storybook-art.py."
+}

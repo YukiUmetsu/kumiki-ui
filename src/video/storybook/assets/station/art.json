@@ -1,0 +1,115 @@
+{
+ "pieces": {
+  "plat": {
+   "image": {
+    "src": "plat.webp",
+    "width": 2895,
+    "height": 1627
+   },
+   "x": -466.242,
+   "y": -442.675,
+   "width": 933.871,
+   "height": 524.839
+  },
+  "train": {
+   "image": {
+    "src": "train.webp",
+    "width": 2595,
+    "height": 377
+   },
+   "x": -375.159,
+   "y": -215.287,
+   "width": 837.097,
+   "height": 121.613
+  },
+  "kiosk": {
+   "image": {
+    "src": "kiosk.webp",
+    "width": 369,
+    "height": 894
+   },
+   "x": -464.331,
+   "y": -271.975,
+   "width": 119.032,
+   "height": 288.387
+  },
+  "out": {
+   "image": {
+    "src": "out.webp",
+    "width": 2947,
+    "height": 1656
+   },
+   "x": -357.789,
+   "y": -349.246,
+   "width": 736.75,
+   "height": 414.0
+  },
+  "exit-sign": {
+   "image": {
+    "src": "exit-sign.webp",
+    "width": 265,
+    "height": 229
+   },
+   "x": 74.895,
+   "y": -220.921,
+   "width": 55.208,
+   "height": 47.708
+  },
+  "hall": {
+   "image": {
+    "src": "hall.webp",
+    "width": 2944,
+    "height": 1655
+   },
+   "x": -306.276,
+   "y": -290.795,
+   "width": 613.333,
+   "height": 344.792
+  },
+  "counter": {
+   "image": {
+    "src": "counter.webp",
+    "width": 807,
+    "height": 472
+   },
+   "x": -301.674,
+   "y": -121.757,
+   "width": 168.125,
+   "height": 98.333
+  },
+  "gate-1": {
+   "image": {
+    "src": "gate-1.webp",
+    "width": 175,
+    "height": 376
+   },
+   "x": -138.912,
+   "y": -104.184,
+   "width": 36.458,
+   "height": 78.333
+  },
+  "gate-2": {
+   "image": {
+    "src": "gate-2.webp",
+    "width": 205,
+    "height": 374
+   },
+   "x": -84.1,
+   "y": -104.184,
+   "width": 42.708,
+   "height": 77.917
+  },
+  "gate-3": {
+   "image": {
+    "src": "gate-3.webp",
+    "width": 211,
+    "height": 374
+   },
+   "x": -16.736,
+   "y": -103.766,
+   "width": 43.958,
+   "height": 77.917
+  }
+ },
+ "provenance": "Painted with FLUX.2 Klein 4B (Apache-2.0), run locally, in the look of the owner's sheets; signs lettered by this recipe. Places studied from photographs on Wikimedia Commons and the sources in the docs."
+}

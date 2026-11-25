@@ -1,0 +1,283 @@
+{
+ "how-about": {
+  "speaker": "daichi",
+  "ja": "いらっしゃい！ たこ{焼|や}き、 いかがですか！",
+  "en": "Welcome! How about some takoyaki?",
+  "track": {
+   "seconds": 3.997,
+   "precision": "aligned",
+   "phones": [
+    { "p": "i", "start": 0.122, "end": 0.243, "token": 0, "level": 0.42 },
+    { "p": "r", "start": 0.243, "end": 0.273, "token": 0, "level": 0.37 },
+    { "p": "a", "start": 0.273, "end": 0.372, "token": 0, "level": 0.54 },
+    { "p": "q", "start": 0.372, "end": 0.403, "token": 0, "level": 0.24 },
+    { "p": "sh", "start": 0.403, "end": 0.612, "token": 0, "level": 0.31 },
+    { "p": "a", "start": 0.612, "end": 0.782, "token": 0, "level": 0.67 },
+    { "p": "i", "start": 0.782, "end": 0.902, "token": 0, "level": 0.34 },
+    { "p": "sp", "start": 0.902, "end": 1.643, "token": 1, "level": 0.11 },
+    { "p": "t", "start": 1.643, "end": 1.712, "token": 2, "level": 0.13 },
+    { "p": "a", "start": 1.712, "end": 1.802, "token": 2, "level": 0.29 },
+    { "p": "k", "start": 1.802, "end": 1.883, "token": 2, "level": 0.17 },
+    { "p": "o", "start": 1.883, "end": 1.972, "token": 2, "level": 0.88 },
+    { "p": "y", "start": 1.972, "end": 2.013, "token": 3, "level": 0.92 },
+    { "p": "a", "start": 2.013, "end": 2.113, "token": 3, "level": 0.68 },
+    { "p": "k", "start": 2.113, "end": 2.193, "token": 4, "level": 0.13 },
+    { "p": "i", "start": 2.193, "end": 2.673, "token": 4, "level": 0.41 },
+    { "p": "sp", "start": 2.673, "end": 3.023, "token": 5, "level": 0.07 },
+    { "p": "i", "start": 3.023, "end": 3.133, "token": 6, "level": 0.44 },
+    { "p": "k", "start": 3.133, "end": 3.203, "token": 6, "level": 0.44 },
+    { "p": "a", "start": 3.203, "end": 3.273, "token": 6, "level": 1 },
+    { "p": "g", "start": 3.273, "end": 3.333, "token": 6, "level": 0.78 },
+    { "p": "a", "start": 3.333, "end": 3.413, "token": 6, "level": 0.93 },
+    { "p": "d", "start": 3.413, "end": 3.453, "token": 6, "level": 0.56 },
+    { "p": "e", "start": 3.453, "end": 3.493, "token": 6, "level": 0.8 },
+    { "p": "s", "start": 3.493, "end": 3.593, "token": 6, "level": 0.23 },
+    { "p": "u", "start": 3.593, "end": 3.623, "token": 6, "level": 0.03 },
+    { "p": "k", "start": 3.623, "end": 3.683, "token": 6, "level": 0.28 },
+    { "p": "a", "start": 3.683, "end": 3.923, "token": 6, "level": 0.32 }
+   ]
+  }
+ },
+ "yummy-look": {
+  "speaker": "leo",
+  "ja": "おいしそう！",
+  "en": "It looks delicious!",
+  "track": {
+   "seconds": 1.784,
+   "precision": "aligned",
+   "phones": [
+    { "p": "o", "start": 0.072, "end": 0.223, "token": 0, "level": 0.58 },
+    { "p": "i", "start": 0.223, "end": 0.532, "token": 0, "level": 0.74 },
+    { "p": "sh", "start": 0.532, "end": 0.563, "token": 0, "level": 0.18 },
+    { "p": "i", "start": 0.563, "end": 0.592, "token": 0, "level": 0.14 },
+    { "p": "s", "start": 0.592, "end": 0.862, "token": 0, "level": 0.68 },
+    { "p": "o:", "start": 0.862, "end": 1.323, "token": 0, "level": 1 }
+   ]
+  }
+ },
+ "two": {
+  "speaker": "daniel",
+  "ja": "たこ{焼|や}きを {二|ふた}つ ください。",
+  "en": "Two takoyaki, please.",
+  "track": {
+   "seconds": 2.601,
+   "precision": "aligned",
+   "phones": [
+    { "p": "t", "start": 0.053, "end": 0.083, "token": 0, "level": 0.09 },
+    { "p": "a", "start": 0.083, "end": 0.203, "token": 0, "level": 0.33 },
+    { "p": "k", "start": 0.203, "end": 0.353, "token": 0, "level": 0.04 },
+    { "p": "o", "start": 0.353, "end": 0.453, "token": 0, "level": 0.7 },
+    { "p": "y", "start": 0.453, "end": 0.563, "token": 1, "level": 1 },
+    { "p": "a", "start": 0.563, "end": 0.672, "token": 1, "level": 0.79 },
+    { "p": "k", "start": 0.672, "end": 0.852, "token": 2, "level": 0.08 },
+    { "p": "i", "start": 0.852, "end": 0.912, "token": 2, "level": 0.87 },
+    { "p": "o", "start": 0.912, "end": 1.083, "token": 2, "level": 0.95 },
+    { "p": "f", "start": 1.083, "end": 1.192, "token": 3, "level": 0.26 },
+    { "p": "u", "start": 1.192, "end": 1.222, "token": 3, "level": 0.06 },
+    { "p": "t", "start": 1.222, "end": 1.343, "token": 3, "level": 0.24 },
+    { "p": "a", "start": 1.343, "end": 1.462, "token": 3, "level": 0.64 },
+    { "p": "ts", "start": 1.462, "end": 1.623, "token": 4, "level": 0.14 },
+    { "p": "u", "start": 1.623, "end": 1.653, "token": 4, "level": 0.04 },
+    { "p": "k", "start": 1.653, "end": 1.742, "token": 5, "level": 0.09 },
+    { "p": "u", "start": 1.742, "end": 1.802, "token": 5, "level": 0.84 },
+    { "p": "d", "start": 1.802, "end": 1.932, "token": 5, "level": 0.57 },
+    { "p": "a", "start": 1.932, "end": 2.002, "token": 5, "level": 0.75 },
+    { "p": "s", "start": 2.002, "end": 2.193, "token": 5, "level": 0.27 },
+    { "p": "a", "start": 2.193, "end": 2.373, "token": 5, "level": 0.56 },
+    { "p": "i", "start": 2.373, "end": 2.433, "token": 5, "level": 0.17 }
+   ]
+  }
+ },
+ "price": {
+  "speaker": "daichi",
+  "ja": "はい！ {千|せん}{円|えん}です。",
+  "en": "Sure! That’s 1,000 yen.",
+  "track": {
+   "seconds": 2.193,
+   "precision": "aligned",
+   "phones": [
+    { "p": "h", "start": 0.042, "end": 0.133, "token": 0, "level": 0.57 },
+    { "p": "a", "start": 0.133, "end": 0.313, "token": 0, "level": 1 },
+    { "p": "i", "start": 0.313, "end": 0.453, "token": 0, "level": 0.41 },
+    { "p": "sp", "start": 0.453, "end": 1.133, "token": 1, "level": 0.04 },
+    { "p": "s", "start": 1.133, "end": 1.373, "token": 2, "level": 0.22 },
+    { "p": "e", "start": 1.373, "end": 1.542, "token": 2, "level": 0.86 },
+    { "p": "N", "start": 1.542, "end": 1.573, "token": 2, "level": 0.64 },
+    { "p": "e", "start": 1.573, "end": 1.643, "token": 3, "level": 0.69 },
+    { "p": "N", "start": 1.643, "end": 1.813, "token": 3, "level": 0.64 },
+    { "p": "d", "start": 1.813, "end": 1.853, "token": 4, "level": 0.41 },
+    { "p": "e", "start": 1.853, "end": 1.942, "token": 4, "level": 0.37 },
+    { "p": "s", "start": 1.942, "end": 2.123, "token": 4, "level": 0.12 },
+    { "p": "u", "start": 2.123, "end": 2.153, "token": 4, "level": 0.01 }
+   ]
+  }
+ },
+ "hot": {
+  "speaker": "sophie",
+  "ja": "{熱|あつ}いですか。",
+  "en": "Is it hot?",
+  "track": {
+   "seconds": 1.432,
+   "precision": "aligned",
+   "phones": [
+    { "p": "a", "start": 0.042, "end": 0.183, "token": 0, "level": 0.38 },
+    { "p": "ts", "start": 0.183, "end": 0.413, "token": 0, "level": 0.16 },
+    { "p": "u", "start": 0.413, "end": 0.492, "token": 0, "level": 0.69 },
+    { "p": "i", "start": 0.492, "end": 0.652, "token": 1, "level": 1 },
+    { "p": "d", "start": 0.652, "end": 0.682, "token": 1, "level": 0.26 },
+    { "p": "e", "start": 0.682, "end": 0.782, "token": 1, "level": 0.63 },
+    { "p": "s", "start": 0.782, "end": 0.902, "token": 1, "level": 0.23 },
+    { "p": "u", "start": 0.902, "end": 0.953, "token": 1, "level": 0.06 },
+    { "p": "k", "start": 0.953, "end": 1.032, "token": 1, "level": 0.14 },
+    { "p": "a", "start": 1.032, "end": 1.353, "token": 1, "level": 0.53 }
+   ]
+  }
+ },
+ "careful": {
+  "speaker": "daichi",
+  "ja": "{熱|あつ}いですよ。 {気|き}を つけて！",
+  "en": "It’s hot. Be careful!",
+  "track": {
+   "seconds": 3.111,
+   "precision": "aligned",
+   "phones": [
+    { "p": "a", "start": 0.042, "end": 0.313, "token": 0, "level": 0.32 },
+    { "p": "ts", "start": 0.313, "end": 0.563, "token": 0, "level": 0.2 },
+    { "p": "u", "start": 0.563, "end": 0.642, "token": 0, "level": 0.91 },
+    { "p": "i", "start": 0.642, "end": 0.732, "token": 1, "level": 0.8 },
+    { "p": "d", "start": 0.732, "end": 0.762, "token": 1, "level": 0.63 },
+    { "p": "e", "start": 0.762, "end": 0.843, "token": 1, "level": 0.71 },
+    { "p": "s", "start": 0.843, "end": 0.992, "token": 1, "level": 0.17 },
+    { "p": "u", "start": 0.992, "end": 1.022, "token": 1, "level": 0.2 },
+    { "p": "y", "start": 1.022, "end": 1.113, "token": 1, "level": 0.2 },
+    { "p": "o", "start": 1.113, "end": 1.302, "token": 1, "level": 0.22 },
+    { "p": "sp", "start": 1.302, "end": 2.133, "token": 2, "level": 0.05 },
+    { "p": "k", "start": 2.133, "end": 2.233, "token": 3, "level": 0.32 },
+    { "p": "i", "start": 2.233, "end": 2.293, "token": 3, "level": 0.61 },
+    { "p": "o", "start": 2.293, "end": 2.463, "token": 4, "level": 1 },
+    { "p": "ts", "start": 2.463, "end": 2.563, "token": 5, "level": 0.18 },
+    { "p": "u", "start": 2.563, "end": 2.593, "token": 5, "level": 0.07 },
+    { "p": "k", "start": 2.593, "end": 2.623, "token": 5, "level": 0.3 },
+    { "p": "e", "start": 2.623, "end": 2.743, "token": 5, "level": 0.8 },
+    { "p": "t", "start": 2.743, "end": 2.773, "token": 5, "level": 0.11 },
+    { "p": "e", "start": 2.773, "end": 2.992, "token": 5, "level": 0.33 }
+   ]
+  }
+ },
+ "itadakimasu": {
+  "speaker": "ema",
+  "ja": "いただきます。",
+  "en": "Let’s eat.",
+  "track": {
+   "seconds": 1.471,
+   "precision": "aligned",
+   "phones": [
+    { "p": "i", "start": 0.053, "end": 0.163, "token": 0, "level": 0.41 },
+    { "p": "t", "start": 0.163, "end": 0.283, "token": 0, "level": 0.32 },
+    { "p": "a", "start": 0.283, "end": 0.432, "token": 0, "level": 0.86 },
+    { "p": "d", "start": 0.432, "end": 0.483, "token": 0, "level": 0.57 },
+    { "p": "a", "start": 0.483, "end": 0.632, "token": 0, "level": 0.74 },
+    { "p": "k", "start": 0.632, "end": 0.762, "token": 0, "level": 0.07 },
+    { "p": "i", "start": 0.762, "end": 0.852, "token": 0, "level": 0.82 },
+    { "p": "m", "start": 0.852, "end": 0.982, "token": 0, "level": 1 },
+    { "p": "a", "start": 0.982, "end": 1.123, "token": 0, "level": 0.82 },
+    { "p": "s", "start": 1.123, "end": 1.393, "token": 0, "level": 0.09 },
+    { "p": "u", "start": 1.393, "end": 1.422, "token": 0, "level": 0.01 }
+   ]
+  }
+ },
+ "tasty": {
+  "speaker": "leo",
+  "ja": "おいしい！",
+  "en": "It’s delicious!",
+  "track": {
+   "seconds": 1.384,
+   "precision": "aligned",
+   "phones": [
+    { "p": "o", "start": 0.042, "end": 0.302, "token": 0, "level": 0.3 },
+    { "p": "i", "start": 0.302, "end": 0.563, "token": 0, "level": 0.37 },
+    { "p": "sh", "start": 0.563, "end": 0.752, "token": 0, "level": 0.13 },
+    { "p": "i:", "start": 0.752, "end": 1.253, "token": 0, "level": 1 }
+   ]
+  }
+ },
+ "thanks": {
+  "speaker": "daichi",
+  "ja": "ありがとう！",
+  "en": "Thank you!",
+  "track": {
+   "seconds": 1.343,
+   "precision": "aligned",
+   "phones": [
+    { "p": "a", "start": 0.183, "end": 0.263, "token": 0, "level": 0.46 },
+    { "p": "r", "start": 0.263, "end": 0.293, "token": 0, "level": 0.5 },
+    { "p": "i", "start": 0.293, "end": 0.483, "token": 0, "level": 0.61 },
+    { "p": "g", "start": 0.483, "end": 0.632, "token": 0, "level": 0.69 },
+    { "p": "a", "start": 0.632, "end": 0.752, "token": 0, "level": 1 },
+    { "p": "t", "start": 0.752, "end": 0.902, "token": 0, "level": 0.19 },
+    { "p": "o:", "start": 0.902, "end": 1.163, "token": 0, "level": 0.4 }
+   ]
+  }
+ },
+ "again": {
+  "speaker": "leo",
+  "ja": "また {来|き}ます！",
+  "en": "I’ll come again!",
+  "track": {
+   "seconds": 1.597,
+   "precision": "aligned",
+   "phones": [
+    { "p": "m", "start": 0.042, "end": 0.173, "token": 0, "level": 0.18 },
+    { "p": "a", "start": 0.173, "end": 0.293, "token": 0, "level": 0.47 },
+    { "p": "t", "start": 0.293, "end": 0.423, "token": 0, "level": 0.72 },
+    { "p": "a", "start": 0.423, "end": 0.532, "token": 0, "level": 1 },
+    { "p": "k", "start": 0.532, "end": 0.652, "token": 1, "level": 0.04 },
+    { "p": "i", "start": 0.652, "end": 0.752, "token": 1, "level": 0.37 },
+    { "p": "m", "start": 0.752, "end": 0.802, "token": 2, "level": 0.15 },
+    { "p": "a", "start": 0.802, "end": 1.002, "token": 2, "level": 0.53 },
+    { "p": "s", "start": 1.002, "end": 1.133, "token": 2, "level": 0.1 },
+    { "p": "u", "start": 1.133, "end": 1.283, "token": 2, "level": 0.6 }
+   ]
+  }
+ },
+ "fireworks": {
+  "speaker": "sophie",
+  "ja": "あ、 {花火|はなび}！",
+  "en": "Oh, fireworks!",
+  "track": {
+   "seconds": 1.683,
+   "precision": "aligned",
+   "phones": [
+    { "p": "a", "start": 0.053, "end": 0.453, "token": 0, "level": 0.52 },
+    { "p": "sp", "start": 0.453, "end": 0.833, "token": 1, "level": 0 },
+    { "p": "h", "start": 0.833, "end": 0.953, "token": 2, "level": 0.33 },
+    { "p": "a", "start": 0.953, "end": 1.022, "token": 2, "level": 0.88 },
+    { "p": "n", "start": 1.022, "end": 1.103, "token": 2, "level": 1 },
+    { "p": "a", "start": 1.103, "end": 1.282, "token": 2, "level": 0.81 },
+    { "p": "b", "start": 1.282, "end": 1.363, "token": 2, "level": 0.84 },
+    { "p": "i", "start": 1.363, "end": 1.643, "token": 2, "level": 0.77 }
+   ]
+  }
+ },
+ "pretty": {
+  "speaker": "ema",
+  "ja": "きれいですね。",
+  "en": "They’re beautiful.",
+  "track": {
+   "seconds": 1.441,
+   "precision": "aligned",
+   "phones": [
+    { "p": "k", "start": 0.053, "end": 0.113, "token": 0, "level": 0.15 },
+    { "p": "i", "start": 0.113, "end": 0.223, "token": 0, "level": 1 },
+    { "p": "r", "start": 0.223, "end": 0.253, "token": 0, "level": 0.45 },
+    { "p": "e:", "start": 0.253, "end": 0.463, "token": 0, "level": 0.81 },
+    { "p": "d", "start": 0.463, "end": 0.552, "token": 0, "level": 0.48 },
+    { "p": "e", "start": 0.552, "end": 0.622, "token": 0, "level": 0.91 },
+    { "p": "s", "start": 0.622, "end": 0.772, "token": 0, "level": 0.19 },
+    { "p": "u", "start": 0.772, "end": 0.802, "token": 0, "level": 0.07 },
+    { "p": "n", "start": 0.802, "end": 1.022, "token": 0, "level": 0.74 },
+    { "p": "e", "start": 1.022, "end": 1.333, "token": 0, "level": 0.86 }
+   ]
+  }
+ }
+}

@@ -1,0 +1,114 @@
+{
+ "id": "takahashi-front",
+ "height": 172,
+ "painting": "cast/takahashi_ryo_station_clerk_full_body.png",
+ "sharp": "flat/takahashi@2.png",
+ "head": {
+  "box": [
+   344,
+   -11,
+   328
+  ],
+  "sharp": "heads/takahashi.png"
+ },
+ "shows": "rest",
+ "faces": {
+  "a": "faces/takahashi_a.png",
+  "blink": "faces/takahashi_blink.png",
+  "joy": "faces/takahashi_happy.png"
+ },
+ "provenance": "The owner's full-body painting, cut; the face paintings were made from it with FLUX.2 Klein 4B (Apache-2.0), run locally.",
+ "kit": "kit-hands.json",
+ "fix": {
+  "hole": {
+   "f": {
+    "seam": [
+     [
+      354,
+      334
+     ],
+     [
+      360,
+      375
+     ],
+     [
+      370,
+      420
+     ],
+     [
+      376,
+      455
+     ]
+    ],
+    "side": [
+     [
+      380,
+      485
+     ]
+    ]
+   },
+   "b": {
+    "seam": [
+     [
+      668,
+      334
+     ],
+     [
+      664,
+      375
+     ],
+     [
+      656,
+      420
+     ],
+     [
+      650,
+      455
+     ]
+    ],
+    "side": [
+     [
+      645,
+      485
+     ]
+    ]
+   }
+  }
+ },
+ "badges": [
+  {
+   "at": [
+    511.3,
+    46.6
+   ],
+   "r": 14.6,
+   "field": [
+    62,
+    60,
+    84
+   ],
+   "mark": [
+    214,
+    160,
+    48
+   ]
+  },
+  {
+   "at": [
+    587.2,
+    365.2
+   ],
+   "r": 7.8,
+   "field": [
+    96,
+    88,
+    108
+   ],
+   "mark": [
+    216,
+    160,
+    50
+   ]
+  }
+ ]
+}

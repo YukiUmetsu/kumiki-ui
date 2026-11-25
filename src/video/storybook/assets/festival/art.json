@@ -1,0 +1,270 @@
+{
+ "pieces": {
+  "stall": {
+   "image": {
+    "src": "stall.webp",
+    "width": 2339,
+    "height": 1318
+   },
+   "x": -147.4,
+   "y": -218.0,
+   "width": 292.375,
+   "height": 164.75
+  },
+  "lantern-l": {
+   "image": {
+    "src": "lantern-l.webp",
+    "width": 174,
+    "height": 187
+   },
+   "x": -87.6,
+   "y": -174.4,
+   "width": 21.75,
+   "height": 23.375
+  },
+  "lantern-r": {
+   "image": {
+    "src": "lantern-r.webp",
+    "width": 190,
+    "height": 202
+   },
+   "x": 97.0,
+   "y": -174.0,
+   "width": 23.75,
+   "height": 25.25
+  },
+  "table": {
+   "image": {
+    "src": "table.webp",
+    "width": 2179,
+    "height": 536
+   },
+   "x": -136.8,
+   "y": -120.4,
+   "width": 272.375,
+   "height": 67.0
+  },
+  "stove": {
+   "image": {
+    "src": "stove.webp",
+    "width": 1826,
+    "height": 102
+   },
+   "x": -57.0,
+   "y": -91.9,
+   "width": 114.125,
+   "height": 6.375
+  },
+  "griddle-1": {
+   "image": {
+    "src": "griddle-1.webp",
+    "width": 1141,
+    "height": 275
+   },
+   "x": -58.167,
+   "y": -104.188,
+   "width": 57.05,
+   "height": 13.75
+  },
+  "griddle-2": {
+   "image": {
+    "src": "griddle-2.webp",
+    "width": 1141,
+    "height": 275
+   },
+   "x": -0.167,
+   "y": -104.188,
+   "width": 57.05,
+   "height": 13.75
+  },
+  "pick": {
+   "image": {
+    "src": "pick.webp",
+    "width": 380,
+    "height": 27
+   },
+   "x": 3.933,
+   "y": 7.615,
+   "width": 23.75,
+   "height": 1.688,
+   "grip": [
+    0.296,
+    0.4959
+   ]
+  },
+  "bite": {
+   "image": {
+    "src": "bite.webp",
+    "width": 226,
+    "height": 62
+   },
+   "x": 64.5,
+   "y": 48.167,
+   "width": 14.125,
+   "height": 3.875,
+   "grip": [
+    0.7906,
+    0.5305
+   ]
+  },
+  "toothpick": {
+   "image": {
+    "src": "toothpick.webp",
+    "width": 160,
+    "height": 14
+   },
+   "x": 68.611,
+   "y": 49.778,
+   "width": 10.0,
+   "height": 0.875,
+   "grip": [
+    0.7056,
+    0.5079
+   ]
+  },
+  "hanabi": {
+   "image": {
+    "src": "hanabi.webp",
+    "width": 198,
+    "height": 198
+   },
+   "x": 6.444,
+   "y": 2.176,
+   "width": 12.375,
+   "height": 12.375
+  },
+  "spark": {
+   "image": {
+    "src": "spark.webp",
+    "width": 145,
+    "height": 20
+   },
+   "x": 5.4,
+   "y": 4.3,
+   "width": 24.167,
+   "height": 3.333
+  },
+  "glow": {
+   "image": {
+    "src": "glow.webp",
+    "width": 133,
+    "height": 133
+   },
+   "x": 5.4,
+   "y": 3.4,
+   "width": 33.25,
+   "height": 33.25
+  },
+  "puff": {
+   "image": {
+    "src": "puff.webp",
+    "width": 126,
+    "height": 116
+   },
+   "x": 10.0,
+   "y": 8.6,
+   "width": 25.2,
+   "height": 23.2
+  },
+  "lane": {
+   "image": {
+    "src": "lane.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -348.095,
+   "y": -378.571,
+   "width": 696.19,
+   "height": 392.381
+  },
+  "lamp-l": {
+   "image": {
+    "src": "lamp-l.webp",
+    "width": 156,
+    "height": 174
+   },
+   "x": -168.095,
+   "y": -337.619,
+   "width": 37.143,
+   "height": 41.429
+  },
+  "lamp-c": {
+   "image": {
+    "src": "lamp-c.webp",
+    "width": 148,
+    "height": 164
+   },
+   "x": -17.619,
+   "y": -334.762,
+   "width": 35.238,
+   "height": 39.048
+  },
+  "lamp-d": {
+   "image": {
+    "src": "lamp-d.webp",
+    "width": 104,
+    "height": 118
+   },
+   "x": -12.381,
+   "y": -279.524,
+   "width": 24.762,
+   "height": 28.095
+  },
+  "lamp-r": {
+   "image": {
+    "src": "lamp-r.webp",
+    "width": 162,
+    "height": 172
+   },
+   "x": 139.524,
+   "y": -338.571,
+   "width": 38.571,
+   "height": 40.952
+  },
+  "lamp-f": {
+   "image": {
+    "src": "lamp-f.webp",
+    "width": 182,
+    "height": 214
+   },
+   "x": 293.81,
+   "y": -263.333,
+   "width": 43.333,
+   "height": 50.952
+  },
+  "people": {
+   "image": {
+    "src": "people.webp",
+    "width": 2935,
+    "height": 1654
+   },
+   "x": -258.364,
+   "y": -291.822,
+   "width": 543.519,
+   "height": 306.296
+  },
+  "sky": {
+   "image": {
+    "src": "sky.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -348.095,
+   "y": -426.19,
+   "width": 696.19,
+   "height": 392.381
+  },
+  "skyline": {
+   "image": {
+    "src": "skyline.webp",
+    "width": 2928,
+    "height": 742
+   },
+   "x": -348.571,
+   "y": -210.0,
+   "width": 697.143,
+   "height": 176.667
+  }
+ },
+ "provenance": "Painted with FLUX.2 Klein 4B (Apache-2.0), run locally, in the look of the owner's sheets; letters, picks, sparks and steam painted by this recipe. Takoyaki stalls, picks and fireworks studied from the sources in the docs."
+}

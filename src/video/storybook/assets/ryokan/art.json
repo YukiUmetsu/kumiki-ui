@@ -1,0 +1,269 @@
+{
+ "pieces": {
+  "gate": {
+   "image": {
+    "src": "gate.webp",
+    "width": 2936,
+    "height": 1655
+   },
+   "x": -302.049,
+   "y": -309.426,
+   "width": 599.184,
+   "height": 337.755
+  },
+  "noren-1": {
+   "image": {
+    "src": "noren-1.webp",
+    "width": 233,
+    "height": 400
+   },
+   "x": -87.295,
+   "y": -194.262,
+   "width": 47.551,
+   "height": 81.633
+  },
+  "noren-2": {
+   "image": {
+    "src": "noren-2.webp",
+    "width": 223,
+    "height": 400
+   },
+   "x": -43.443,
+   "y": -194.262,
+   "width": 45.51,
+   "height": 81.633
+  },
+  "noren-3": {
+   "image": {
+    "src": "noren-3.webp",
+    "width": 231,
+    "height": 400
+   },
+   "x": -1.639,
+   "y": -194.262,
+   "width": 47.143,
+   "height": 81.633
+  },
+  "noren-4": {
+   "image": {
+    "src": "noren-4.webp",
+    "width": 217,
+    "height": 400
+   },
+   "x": 41.803,
+   "y": -194.262,
+   "width": 44.286,
+   "height": 81.633
+  },
+  "genkan": {
+   "image": {
+    "src": "genkan.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -254.138,
+   "y": -253.448,
+   "width": 504.138,
+   "height": 284.138
+  },
+  "slippers-1": {
+   "image": {
+    "src": "slippers-1.webp",
+    "width": 325,
+    "height": 119
+   },
+   "x": -135.814,
+   "y": -53.197,
+   "width": 36.111,
+   "height": 13.222
+  },
+  "slippers-2": {
+   "image": {
+    "src": "slippers-2.webp",
+    "width": 325,
+    "height": 119
+   },
+   "x": -98.572,
+   "y": -53.197,
+   "width": 36.111,
+   "height": 13.222
+  },
+  "slippers-3": {
+   "image": {
+    "src": "slippers-3.webp",
+    "width": 325,
+    "height": 119
+   },
+   "x": -61.331,
+   "y": -53.197,
+   "width": 36.111,
+   "height": 13.222
+  },
+  "card": {
+   "image": {
+    "src": "card.webp",
+    "width": 537,
+    "height": 333
+   },
+   "x": -13.365,
+   "y": -8.269,
+   "width": 26.85,
+   "height": 16.65
+  },
+  "lamp": {
+   "image": {
+    "src": "lamp.webp",
+    "width": 154,
+    "height": 224
+   },
+   "x": -15.172,
+   "y": -246.897,
+   "width": 26.552,
+   "height": 38.621
+  },
+  "counter": {
+   "image": {
+    "src": "counter.webp",
+    "width": 746,
+    "height": 530
+   },
+   "x": 98.966,
+   "y": -112.759,
+   "width": 128.621,
+   "height": 91.379
+  },
+  "door": {
+   "image": {
+    "src": "door.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -255.172,
+   "y": -253.448,
+   "width": 504.138,
+   "height": 284.138
+  },
+  "room": {
+   "image": {
+    "src": "room.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -184.0,
+   "y": -183.75,
+   "width": 365.5,
+   "height": 206.0
+  },
+  "table": {
+   "image": {
+    "src": "table.webp",
+    "width": 860,
+    "height": 372
+   },
+   "x": -55.25,
+   "y": -55.75,
+   "width": 107.5,
+   "height": 46.5
+  },
+  "night": {
+   "image": {
+    "src": "night.webp",
+    "width": 1344,
+    "height": 692
+   },
+   "x": -85.5,
+   "y": -148.75,
+   "width": 168.0,
+   "height": 86.5
+  },
+  "shoe-daniel-l": {
+   "image": {
+    "src": "shoe-daniel-l.webp",
+    "width": 149,
+    "height": 145
+   },
+   "x": -94.126,
+   "y": -12.779,
+   "width": 16.556,
+   "height": 16.111
+  },
+  "shoe-daniel-r": {
+   "image": {
+    "src": "shoe-daniel-r.webp",
+    "width": 147,
+    "height": 146
+   },
+   "x": -78.762,
+   "y": -12.9,
+   "width": 16.333,
+   "height": 16.222
+  },
+  "shoe-emma-l": {
+   "image": {
+    "src": "shoe-emma-l.webp",
+    "width": 101,
+    "height": 128
+   },
+   "x": -52.598,
+   "y": -10.587,
+   "width": 11.222,
+   "height": 14.222
+  },
+  "shoe-emma-r": {
+   "image": {
+    "src": "shoe-emma-r.webp",
+    "width": 108,
+    "height": 128
+   },
+   "x": -40.652,
+   "y": -10.587,
+   "width": 12.0,
+   "height": 14.222
+  },
+  "shoe-sophie-l": {
+   "image": {
+    "src": "shoe-sophie-l.webp",
+    "width": 103,
+    "height": 125
+   },
+   "x": -18.78,
+   "y": -10.394,
+   "width": 11.444,
+   "height": 13.889
+  },
+  "shoe-sophie-r": {
+   "image": {
+    "src": "shoe-sophie-r.webp",
+    "width": 111,
+    "height": 125
+   },
+   "x": -7.055,
+   "y": -10.394,
+   "width": 12.333,
+   "height": 13.889
+  },
+  "shoe-leo-l": {
+   "image": {
+    "src": "shoe-leo-l.webp",
+    "width": 89,
+    "height": 114
+   },
+   "x": 16.115,
+   "y": -9.231,
+   "width": 9.889,
+   "height": 12.667
+  },
+  "shoe-leo-r": {
+   "image": {
+    "src": "shoe-leo-r.webp",
+    "width": 102,
+    "height": 114
+   },
+   "x": 26.192,
+   "y": -9.308,
+   "width": 11.333,
+   "height": 12.667
+  }
+ },
+ "provenance": "Painted with FLUX.2 Klein 4B (Apache-2.0), run locally, in the look of the owner's sheets; scroll lettered by this recipe. Ryokan entrances and rooms studied from the sources in the docs. The shoes are from the owner's paintings of the family."
+}

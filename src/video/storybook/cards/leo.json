@@ -1,0 +1,92 @@
+{
+ "id": "leo-front",
+ "height": 115,
+ "painting": "cast/leo_full_body.png",
+ "sharp": "flat/leo@2.png",
+ "head": {
+  "box": [
+   271,
+   -19,
+   488
+  ],
+  "sharp": "heads/leo.png"
+ },
+ "shows": "open",
+ "idle": "neutral",
+ "faces": {
+  "rest": "faces/leo_rest.png",
+  "blink": "faces/leo_blink.png",
+  "joy": "faces/leo_happy.png"
+ },
+ "provenance": "The owner's full-body painting, cut; the face paintings were made from it with FLUX.2 Klein 4B (Apache-2.0), run locally.",
+ "kit": "kit-hands.json",
+ "feet": {
+  "kit": "kit-feet.json",
+  "tone": [
+   253,
+   236,
+   214
+  ],
+  "wide": 0.8,
+  "cut": {
+   "f": 1342,
+   "b": 1342
+  }
+ },
+ "fix": {
+  "hole": {
+   "f": {
+    "seam": [
+     [
+      370,
+      434
+     ],
+     [
+      358,
+      490
+     ],
+     [
+      350,
+      545
+     ]
+    ],
+    "side": [
+     [
+      348,
+      600
+     ],
+     [
+      342,
+      650
+     ]
+    ]
+   },
+   "b": {
+    "seam": [
+     [
+      646,
+      434
+     ],
+     [
+      660,
+      490
+     ],
+     [
+      668,
+      545
+     ]
+    ],
+    "side": [
+     [
+      667,
+      600
+     ],
+     [
+      671,
+      650
+     ]
+    ]
+   }
+  }
+ }
+}

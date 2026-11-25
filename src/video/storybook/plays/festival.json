@@ -1,0 +1,184 @@
+{
+ "id": "festival",
+ "title": "{夏|なつ}{祭|まつ}りで — At the summer festival",
+ "lines": [
+  {"id": "how-about", "speaker": "daichi", "ja": "いらっしゃい！ たこ{焼|や}き、 いかがですか！", "en": "Welcome! How about some takoyaki?"},
+  {"id": "yummy-look", "speaker": "leo", "ja": "おいしそう！", "en": "It looks delicious!"},
+  {"id": "two", "speaker": "daniel", "ja": "たこ{焼|や}きを {二|ふた}つ ください。", "en": "Two takoyaki, please."},
+  {"id": "price", "speaker": "daichi", "ja": "はい！ {千|せん}{円|えん}です。", "en": "Sure! That’s 1,000 yen."},
+  {"id": "hot", "speaker": "sophie", "ja": "{熱|あつ}いですか。", "en": "Is it hot?"},
+  {"id": "careful", "speaker": "daichi", "ja": "{熱|あつ}いですよ。 {気|き}を つけて！", "en": "It’s hot. Be careful!"},
+  {"id": "itadakimasu", "speaker": "ema", "ja": "いただきます。", "en": "Let’s eat."},
+  {"id": "tasty", "speaker": "leo", "ja": "おいしい！", "en": "It’s delicious!", "speed": 0.8, "speak": "おいしい。"},
+  {"id": "thanks", "speaker": "daichi", "ja": "ありがとう！", "en": "Thank you!", "speed": 0.6, "speak": "ありがとう。", "pace": 4.6},
+  {"id": "again", "speaker": "leo", "ja": "また {来|き}ます！", "en": "I’ll come again!"},
+  {"id": "fireworks", "speaker": "sophie", "ja": "あ、 {花火|はなび}！", "en": "Oh, fireworks!"},
+  {"id": "pretty", "speaker": "ema", "ja": "きれいですね。", "en": "They’re beautiful."}
+ ],
+ "scenes": [
+  {
+   "id": "lane",
+   "stage": "festival-lane",
+   "cast": {"daniel": "far-1", "ema": "far-2", "sophie": "far-3", "leo": "far-4"},
+   "bed": [{"sound": "kalimba-2", "at": 0.3, "for": 12}],
+   "beats": [
+    {
+     "shot": {"id": "lane", "frame": {"at": [0, -166], "tall": 306}, "move": {"frame": {"at": [0, -128], "tall": 240}}, "about": "The family walks down a lane of stalls at night, under the lanterns."},
+     "go": {"daniel": "way-1", "ema": "way-2", "sophie": "way-3", "leo": "way-4"},
+     "in": 3.4,
+     "seconds": 4.8,
+     "look": {"daniel": "sophie", "ema": "viewer", "sophie": "ahead", "leo": "ahead"},
+     "words": [{"text": "お{祭|まつ}りで", "gloss": "At the festival", "tone": "title", "at": 0.8, "for": 3.2}],
+     "after": 0
+    }
+   ]
+  },
+  {
+   "id": "stall",
+   "stage": "festival",
+   "join": "dissolve",
+   "cast": {"daichi": "cook", "daniel": "ask-1", "ema": "ask-2", "sophie": "ask-3", "leo": "ask-4"},
+   "props": [{"prop": "pick", "to": "daichi:pen-f", "angle": -90}, {"prop": "pick-2", "to": "daichi:pen-b", "angle": -90}, {"prop": "takoyaki", "to": "boat-1"}, {"prop": "takoyaki-2", "to": "boat-2"}],
+   "beats": [
+    {
+     "shot": {"id": "call", "frame": "all", "without": ["daniel", "ema", "sophie", "leo"]},
+     "say": "how-about",
+     "to": "viewer",
+     "mood": "happy",
+     "pose": {"daichi": [{"act": "cook", "hand": "f", "to": [-30, -112], "wide": 34}, {"act": "cook", "hand": "b", "to": [28, -112], "wide": 24, "late": 0.5}]},
+     "give": [{"prop": "pick-2", "to": "daichi:pen-b", "hidden": true}],
+     "do": [{"who": "daichi", "act": "call", "hand": "b", "at": -0.2, "for": 3.4}]
+    },
+    {
+     "shot": {"id": "look", "on": ["leo", "sophie"], "size": "chest", "from": "door"},
+     "say": "yummy-look",
+     "to": "daichi",
+     "mood": "amazed",
+     "do": [{"who": "leo", "act": "hop", "at": 0.1}],
+     "look": {"leo": "plate", "sophie": "plate"},
+     "react": {"sophie": "happy"}
+    },
+    {
+     "shot": {"id": "turns", "frame": "plate", "without": ["daniel", "ema", "sophie", "leo"], "about": "Daichi turns takoyaki with two picks. Steam goes up."},
+     "give": [{"prop": "pick-2", "to": "daichi:pen-b", "angle": -90}],
+     "seconds": 3,
+     "words": [{"text": "たこ{焼|や}き", "gloss": "octopus dumplings", "at": 0.4, "for": 2.4}],
+     "after": 0
+    },
+    {"shot": {"id": "two", "on": ["daniel", "ema"], "size": "waist", "from": "door"}, "say": "two", "to": "daichi", "mood": "happy", "do": [{"who": "daniel", "act": "point", "to": "plate", "at": 0.2, "for": 1.6}]},
+    {"shot": {"id": "price", "frame": "cook", "without": ["daniel", "ema", "sophie", "leo"]}, "say": "price", "to": "daniel", "mood": "happy", "do": [{"who": "daichi", "act": "nod", "at": 0.1}]},
+    {"shot": {"id": "hot", "on": "sophie", "size": "chest", "from": "door"}, "say": "hot", "to": "daichi"},
+    {
+     "shot": {"id": "careful", "frame": "cook", "without": ["daniel", "ema", "sophie", "leo"]},
+     "say": "careful",
+     "to": "sophie",
+     "do": [{"who": "daichi", "act": "offer", "to": [-6, -118], "grip": "under", "apart": 7, "in": 0.6, "at": 0.1, "for": 4.4}],
+     "give": [{"prop": "pick", "to": "daichi:pen-f", "hidden": true}, {"prop": "pick-2", "to": "daichi:pen-b", "hidden": true}, {"prop": "takoyaki", "to": "daichi:hands", "scale": 0.9, "at": 0.3, "over": 0.2}]
+    },
+    {
+     "shot": {"id": "thanks", "on": ["ema", "sophie"], "size": "waist", "from": "door"},
+     "say": "itadakimasu",
+     "to": "daichi",
+     "mood": "happy",
+     "do": [{"who": "ema", "act": "receive", "to": [-22, -112], "grip": "under", "apart": 7, "in": 0.4, "at": -0.6, "for": 3.6}, {"who": "ema", "act": "nod", "at": 0.4}],
+     "give": [{"prop": "takoyaki", "to": "ema:hands", "scale": 1.15}],
+     "react": {"sophie": "happy"}
+    }
+   ]
+  },
+  {
+   "id": "eat",
+   "stage": "festival-eat",
+   "join": "dissolve",
+   "look": "happy",
+   "cast": {"daniel": "by-1", "ema": "by-2", "sophie": "by-3", "leo": "by-4"},
+   "props": [{"prop": "takoyaki", "to": "leo:tray-f", "scale": 0.8, "grip": [0.46, 0.95]}, {"prop": "bite", "to": "leo:pen-b", "angle": 90, "scale": 0.9}, {"prop": "takoyaki-2", "to": "ema:hands", "scale": 1.1}],
+   "beats": [
+    {
+     "shot": {"id": "bites", "frame": "leo", "without": ["sophie", "ema", "daniel"], "about": "Leo blows on a takoyaki and eats it."},
+     "seconds": 3.2,
+     "pose": {
+      "leo": [{"act": "carry", "hand": "f", "chest": [-0.045, 0.175], "grip": "under"}, {"act": "carry", "hand": "b", "chest": [0.06, 0.15], "angle": -150, "grip": "hold"}],
+      "ema": [{"act": "offer", "grip": "under", "apart": 7}]
+     },
+     "do": [{"who": "leo", "act": "eat", "hand": "b", "x": 0.054, "y": 0.083, "at": 0.5, "for": 2.2, "bite": 0.5}],
+     "give": [{"prop": "bite", "to": "leo:pen-b", "at": 1.6, "view": "eaten", "over": 0, "angle": 90, "scale": 0.9}],
+     "look": {"leo": "viewer"},
+     "after": 0.3
+    },
+    {"shot": {"id": "tasty", "frame": "all"}, "say": "tasty", "to": "viewer", "mood": "happy", "do": [{"who": "leo", "act": "hop", "at": 0.1}], "react": {"ema": "happy", "daniel": "happy", "sophie": "happy"}}
+   ]
+  },
+  {
+   "id": "bye",
+   "stage": "festival",
+   "join": "dissolve",
+   "cast": {"daichi": "cook", "daniel": "ask-1", "ema": "ask-2", "sophie": "ask-3", "leo": "ask-4"},
+   "props": [{"prop": "pick", "to": "daichi:pen-f", "angle": -90}, {"prop": "pick-2", "to": "daichi:pen-b", "angle": -90}, {"prop": "takoyaki", "to": "boat-1"}, {"prop": "takoyaki-2", "to": "boat-2"}],
+   "beats": [
+    {
+     "shot": {"id": "arigatou", "frame": "cook", "without": ["daniel", "ema", "sophie", "leo"]},
+     "say": "thanks",
+     "to": "leo",
+     "mood": "happy",
+     "pose": {"daichi": [{"act": "cook", "hand": "f", "to": [-30, -112], "wide": 34}, {"act": "cook", "hand": "b", "to": [28, -112], "wide": 24, "late": 0.5}]}
+    },
+    {"shot": {"id": "again", "on": ["leo", "sophie"], "size": "waist", "from": "door"}, "say": "again", "to": "daichi", "mood": "happy", "do": [{"who": "leo", "act": "wave", "at": 0.1, "for": 2.2}]}
+   ]
+  },
+  {
+   "id": "hanabi",
+   "stage": "festival-eat",
+   "join": "dissolve",
+   "cast": {"daniel": "by-1", "ema": "by-2", "sophie": "by-3", "leo": "by-4"},
+   "beats": [
+    {
+     "shot": {"id": "oh", "frame": {"at": [0, -118], "tall": 160}},
+     "say": "fireworks",
+     "to": "viewer",
+     "mood": "amazed",
+     "do": [{"who": "sophie", "act": "raise", "hand": "b", "grip": "point", "at": 0.2, "for": 2.6}],
+     "look": {"daniel": "sky", "ema": "sky", "sophie": "sky", "leo": "sky"},
+     "react": {"leo": "amazed", "ema": "happy"},
+     "bursts": [{"burst": "gold", "at": 0.1, "place": [0, -420]}, {"burst": "red", "at": 1.6, "place": [0, -420]}],
+     "sounds": [{"sound": "fireworks", "at": 0, "gain": -14}]
+    },
+    {
+     "shot": {"id": "pretty", "on": ["ema", "daniel"], "size": "chest"},
+     "say": "pretty",
+     "to": "daniel",
+     "mood": "happy",
+     "look": {"daniel": "sky", "ema": "sky"},
+     "bursts": [{"burst": "blue", "at": 0.3, "place": [0, -420]}]
+    }
+   ]
+  },
+  {
+   "id": "sky",
+   "stage": "festival-sky",
+   "join": "brush",
+   "cast": {"daniel": "see-1", "ema": "see-2", "sophie": "see-3", "leo": "see-4"},
+   "bed": [{"sound": "kalimba-1", "at": 0.2, "for": 7}],
+   "beats": [
+    {
+     "shot": {"id": "sky", "frame": {"at": [-20, -178], "tall": 248}, "move": {"frame": {"at": [0, -200], "tall": 304}}, "about": "The family looks at fireworks over the temple gate."},
+     "seconds": 7,
+     "look": {"daniel": "sky", "ema": "sky", "sophie": "sky", "leo": "sky"},
+     "bursts": [
+      {"burst": "gold", "at": 0.8, "place": [72, -236]},
+      {"burst": "red", "at": 2.5, "place": [-110, -262], "size": 0.95},
+      {"burst": "blue", "at": 3.5, "place": [214, -250]},
+      {"burst": "gold", "at": 4.7, "place": [50, -244], "size": 1.05}
+     ],
+     "sounds": [{"sound": "fireworks", "at": 0.6, "gain": -13}],
+     "after": 0
+    }
+   ]
+  },
+  {"id": "say", "practice": {"lines": ["hot", "itadakimasu"]}},
+  {
+   "id": "words",
+   "recap": {"words": [{"text": "たこ{焼|や}き", "gloss": "octopus dumplings", "prop": "takoyaki"}, {"text": "{提灯|ちょうちん}", "gloss": "paper lantern", "prop": "lantern"}, {"text": "{花火|はなび}", "gloss": "fireworks", "prop": "hanabi"}]}
+  }
+ ]
+}

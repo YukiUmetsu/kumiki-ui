@@ -1,0 +1,154 @@
+{
+ "id": "haruka-front",
+ "height": 162,
+ "painting": "cast/haruka_full_body.png",
+ "sharp": "flat/haruka@2.png",
+ "head": {
+  "box": [
+   354,
+   -10,
+   320
+  ],
+  "sharp": "heads/haruka.png"
+ },
+ "shows": "rest",
+ "faces": {
+  "a": "faces/haruka_a.png",
+  "blink": "faces/haruka_blink.png",
+  "joy": "faces/haruka_happy.png"
+ },
+ "provenance": "The owner's full-body painting, cut; the face paintings were made from it with FLUX.2 Klein 4B (Apache-2.0), run locally.",
+ "kit": "kit-hands.json",
+ "fix": {
+  "sleeve": {
+   "f": [
+    [
+     405,
+     452
+    ],
+    [
+     405,
+     590
+    ],
+    [
+     395,
+     636
+    ],
+    [
+     396,
+     652
+    ],
+    [
+     388,
+     720
+    ],
+    [
+     374,
+     775
+    ],
+    [
+     371,
+     805
+    ],
+    [
+     366,
+     840
+    ]
+   ],
+   "b": [
+    [
+     622,
+     455
+    ],
+    [
+     622,
+     540
+    ],
+    [
+     619,
+     560
+    ],
+    [
+     617,
+     590
+    ],
+    [
+     618,
+     600
+    ],
+    [
+     628,
+     637
+    ],
+    [
+     627,
+     648
+    ],
+    [
+     636,
+     705
+    ],
+    [
+     643,
+     780
+    ],
+    [
+     643,
+     805
+    ],
+    [
+     649,
+     840
+    ]
+   ]
+  }
+ },
+ "feet": {
+  "kit": "kit-feet.json",
+  "tone": [
+   250,
+   244,
+   230
+  ],
+  "wide": 0.82,
+  "cut": {
+   "f": 1452,
+   "b": 1452
+  },
+  "steps": [
+   {
+    "ink": [
+     [
+      257,
+      700
+     ],
+     [
+      253,
+      680
+     ],
+     [
+      256,
+      662
+     ],
+     [
+      266,
+      644
+     ],
+     [
+      276,
+      636
+     ]
+    ],
+    "width": 4.4,
+    "rgb": [
+     70,
+     52,
+     44
+    ]
+   }
+  ]
+ },
+ "body": {
+  "sits": false
+ }
+}

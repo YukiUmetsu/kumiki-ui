@@ -395,7 +395,8 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
           const age = (((f - s0 + offset) % life) + life) % life, st = flutterState(params, age, f), k = projectPlate(st.pitch, st.heading, roll * age);
           const q = P(id), b = byId.get(id)!;
           q.x = b.x + d.area[0] + rx * d.area[2] + st.x * w; q.y = b.y + d.area[1] + ry * d.area[3] + st.y * w;
-          q.rotate += k.rotate; q.sx *= k.scaleX; q.sy *= k.scaleY; q.ky = k.shear;
+          const size = d.grow ? d.grow[0] + (d.grow[1] - d.grow[0]) * (age / life) : 1;
+          q.rotate += k.rotate; q.sx *= k.scaleX * size; q.sy *= k.scaleY * size; q.ky = k.shear;
           q.opacity *= w * Math.min(1, age / fade, (life - age) / fade);
         });
         break;

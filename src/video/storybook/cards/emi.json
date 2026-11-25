@@ -1,0 +1,25 @@
+{
+ "id": "emi-front",
+ "height": 158,
+ "painting": "cast/emi_full_body.png",
+ "sharp": "flat/emi@2.png",
+ "head": {
+  "box": [
+   350,
+   -13,
+   320
+  ],
+  "sharp": "faces/emi_rest@2.png"
+ },
+ "shows": "rest",
+ "faces": {
+  "a": "heads/emi.png",
+  "blink": "faces/emi_blink.png",
+  "joy": "heads/emi.png"
+ },
+ "provenance": "The owner's full-body painting, cut; the face paintings were made from it with FLUX.2 Klein 4B (Apache-2.0), run locally.",
+ "kit": "kit-hands.json",
+ "body": {
+  "sits": false
+ }
+}

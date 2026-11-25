@@ -4162,6 +4162,119 @@
       ]
     },
     {
+      "name": "painted-rig",
+      "type": "registry:ui",
+      "title": "Painted Rig (RIG1 Painted)",
+      "description": "Puts painted artwork on a RIG1 skeleton without redrawing it. Each part is a cut-out of the painting on a triangle mesh; bones bend the mesh with smooth weights, so the paint stretches like cloth and no seam opens at a shoulder, an elbow, a knee or a neck. Limbs fold on the inside and show a crease, hands and faces change to another painting instead of being warped, one painting blinks and speaks in the mouth opening it was painted with, and the order of the layers follows the action (a far arm goes behind its own body). Expressions come from a face mesh and facial action units, so a face shows each look without a painting of its own, and the head and the trunk turn a little in depth. Two-bone arms reach a point in the world from the real shoulder, through the space in front of the body, with limits and a natural elbow side. Feet step on a floor in perspective, and a sleeve or a bag hangs when its arm turns. A joint list makes the skeleton, with walking, idle life and loose hair or bags that lag behind. Acts (wave, bow, point, offer, take, fold, steer, sit, eat and more) are data: keys in body units, so one act fits every figure, with entry and exit blends, speed, strength, mirroring and contact points for props. Everything is a pure function of time.",
+      "dependencies": [],
+      "registryDependencies": [
+        "human-anatomy",
+        "motion-track",
+        "universal-rig"
+      ],
+      "files": [
+        {
+          "path": "registry/rig/rig-look-painted.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-look-painted.ts"
+        },
+        {
+          "path": "registry/rig/rig-arm.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-arm.ts"
+        },
+        {
+          "path": "registry/rig/rig-joints.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-joints.ts"
+        },
+        {
+          "path": "registry/rig/rig-acting.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-acting.ts"
+        },
+        {
+          "path": "registry/rig/rig-face.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-face.ts"
+        },
+        {
+          "path": "registry/rig/rig-walk.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-walk.ts"
+        }
+      ]
+    },
+    {
+      "name": "storybook-film",
+      "type": "registry:ui",
+      "title": "Storybook Watercolour Film Engine (STORY1)",
+      "description": "Language-learning stories with painted figures, as data. A film lists shots; a shot has a painted set in layers with parallax, figures with acts, looks, marks and walks, props that stand on a counter, lie in a hand or go from hand to hand, dialogue, camera keys, drifting petals or leaves, and sounds. A WebGL2 stage lays the paintings on cold-pressed paper with an uneven wet edge, a slow boil of the line and colour grading, and joins two shots with a watercolour wash, a hake brush, a turning page, sliding shoji, a gust of petals, an enso, a dissolve or a cut. Japanese lines are written with inline readings ({店|みせ}); furigana stands over each word that has one, a brush mark follows the voice, and a translation stands under the line. Mouths follow the recorded voice: aligned phones become painted vowels, closed lips, rounded and half-open shapes with coarticulation, long vowels, geminates, and an ん that closes the lips only before a lip sound. The sound is mixed from the same data in the browser and for export, with beds that go down under a voice. A screenplay compiler makes the film from lines, beats and places: it finds the lengths, the pictures, the camera moves, who looks at whom, the steps on the floor, practice pages and a quiz, and joins plays into an episode. inspectStorybook names what is wrong before anything is drawn. A frame is a pure function of time, so a film can be scrubbed and exported frame by frame, and it holds still for a viewer who asks for less motion.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track",
+        "painted-rig",
+        "universal-rig"
+      ],
+      "files": [
+        {
+          "path": "registry/video/gl/film-gl.ts",
+          "type": "registry:ui",
+          "target": "components/video/gl/film-gl.ts"
+        },
+        {
+          "path": "registry/video/storybook/japanese-text.ts",
+          "type": "registry:ui",
+          "target": "components/video/storybook/japanese-text.ts"
+        },
+        {
+          "path": "registry/video/storybook/furigana.tsx",
+          "type": "registry:ui",
+          "target": "components/video/storybook/furigana.tsx"
+        },
+        {
+          "path": "registry/video/storybook/speech-mouth.ts",
+          "type": "registry:ui",
+          "target": "components/video/storybook/speech-mouth.ts"
+        },
+        {
+          "path": "registry/video/storybook/paint-stage.ts",
+          "type": "registry:ui",
+          "target": "components/video/storybook/paint-stage.ts"
+        },
+        {
+          "path": "registry/video/storybook/storybook-film.ts",
+          "type": "registry:ui",
+          "target": "components/video/storybook/storybook-film.ts"
+        },
+        {
+          "path": "registry/video/storybook/story-figure.ts",
+          "type": "registry:ui",
+          "target": "components/video/storybook/story-figure.ts"
+        },
+        {
+          "path": "registry/video/storybook/story-sound.ts",
+          "type": "registry:ui",
+          "target": "components/video/storybook/story-sound.ts"
+        },
+        {
+          "path": "registry/video/storybook/storybook-film-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/storybook/storybook-film-react.tsx"
+        },
+        {
+          "path": "registry/video/storybook/story-play.ts",
+          "type": "registry:ui",
+          "target": "components/video/storybook/story-play.ts"
+        },
+        {
+          "path": "registry/video/storybook/story-burst.ts",
+          "type": "registry:ui",
+          "target": "components/video/storybook/story-burst.ts"
+        }
+      ]
+    },
+    {
       "name": "universal-rig",
       "type": "registry:ui",
       "title": "Universal Rig (RIG1)",

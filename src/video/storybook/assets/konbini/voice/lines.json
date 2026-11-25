@@ -1,0 +1,208 @@
+{
+ "welcome": {
+  "speaker": "riku",
+  "ja": "いらっしゃいませ！",
+  "en": "Welcome!",
+  "track": {
+   "seconds": 1.411,
+   "precision": "aligned",
+   "phones": [
+    { "p": "i", "start": 0.053, "end": 0.122, "token": 0, "level": 0.68 },
+    { "p": "r", "start": 0.122, "end": 0.193, "token": 0, "level": 0.77 },
+    { "p": "a", "start": 0.193, "end": 0.293, "token": 0, "level": 0.98 },
+    { "p": "q", "start": 0.293, "end": 0.323, "token": 0, "level": 0.47 },
+    { "p": "sh", "start": 0.323, "end": 0.512, "token": 0, "level": 0.19 },
+    { "p": "a", "start": 0.512, "end": 0.682, "token": 0, "level": 1 },
+    { "p": "i", "start": 0.682, "end": 0.713, "token": 0, "level": 0.54 },
+    { "p": "m", "start": 0.713, "end": 0.792, "token": 0, "level": 0.64 },
+    { "p": "a", "start": 0.792, "end": 0.902, "token": 0, "level": 0.65 },
+    { "p": "s", "start": 0.902, "end": 1.032, "token": 0, "level": 0.13 },
+    { "p": "e", "start": 1.032, "end": 1.292, "token": 0, "level": 0.64 }
+   ]
+  }
+ },
+ "onigiri-please": {
+  "speaker": "ema",
+  "ja": "すみません。 おにぎりを {一|ひと}つ ください。",
+  "en": "Excuse me. One rice ball, please.",
+  "track": {
+   "seconds": 5.056,
+   "precision": "aligned",
+   "phones": [
+    { "p": "s", "start": 0.042, "end": 0.233, "token": 0, "level": 0.14 },
+    { "p": "u", "start": 0.233, "end": 0.313, "token": 0, "level": 0.54 },
+    { "p": "m", "start": 0.313, "end": 0.453, "token": 0, "level": 0.68 },
+    { "p": "i", "start": 0.453, "end": 0.522, "token": 0, "level": 0.69 },
+    { "p": "m", "start": 0.522, "end": 0.642, "token": 0, "level": 0.71 },
+    { "p": "a", "start": 0.642, "end": 0.732, "token": 0, "level": 0.57 },
+    { "p": "s", "start": 0.732, "end": 0.882, "token": 0, "level": 0.12 },
+    { "p": "e", "start": 0.882, "end": 1.103, "token": 0, "level": 0.6 },
+    { "p": "N", "start": 1.103, "end": 1.212, "token": 0, "level": 0.24 },
+    { "p": "sp", "start": 1.212, "end": 2.113, "token": 1, "level": 0 },
+    { "p": "o", "start": 2.113, "end": 2.263, "token": 2, "level": 0.55 },
+    { "p": "n", "start": 2.263, "end": 2.393, "token": 2, "level": 1 },
+    { "p": "i", "start": 2.393, "end": 2.513, "token": 2, "level": 0.69 },
+    { "p": "g", "start": 2.513, "end": 2.593, "token": 2, "level": 0.4 },
+    { "p": "i", "start": 2.593, "end": 2.723, "token": 2, "level": 0.57 },
+    { "p": "r", "start": 2.723, "end": 2.753, "token": 2, "level": 0.85 },
+    { "p": "i", "start": 2.753, "end": 2.933, "token": 2, "level": 0.82 },
+    { "p": "o", "start": 2.933, "end": 3.393, "token": 2, "level": 0.39 },
+    { "p": "sp", "start": 3.393, "end": 3.633, "token": 2, "level": 0.03 },
+    { "p": "h", "start": 3.633, "end": 3.723, "token": 3, "level": 0.07 },
+    { "p": "i", "start": 3.723, "end": 3.753, "token": 3, "level": 0.03 },
+    { "p": "t", "start": 3.753, "end": 3.883, "token": 3, "level": 0.18 },
+    { "p": "o", "start": 3.883, "end": 4.013, "token": 3, "level": 0.42 },
+    { "p": "ts", "start": 4.013, "end": 4.133, "token": 4, "level": 0.07 },
+    { "p": "u", "start": 4.133, "end": 4.163, "token": 4, "level": 0.01 },
+    { "p": "k", "start": 4.163, "end": 4.283, "token": 5, "level": 0.08 },
+    { "p": "u", "start": 4.283, "end": 4.313, "token": 5, "level": 0.51 },
+    { "p": "d", "start": 4.313, "end": 4.393, "token": 5, "level": 0.19 },
+    { "p": "a", "start": 4.393, "end": 4.513, "token": 5, "level": 0.3 },
+    { "p": "s", "start": 4.513, "end": 4.683, "token": 5, "level": 0.11 },
+    { "p": "a", "start": 4.683, "end": 4.902, "token": 5, "level": 0.34 },
+    { "p": "i", "start": 4.902, "end": 4.933, "token": 5, "level": 0.12 }
+   ]
+  }
+ },
+ "price": {
+  "speaker": "riku",
+  "ja": "はい。 {百|ひゃく}{五十|ごじゅう}{円|えん} です。",
+  "en": "Sure. That’s 150 yen.",
+  "track": {
+   "seconds": 2.915,
+   "precision": "aligned",
+   "phones": [
+    { "p": "h", "start": 0.042, "end": 0.113, "token": 0, "level": 0.06 },
+    { "p": "a", "start": 0.113, "end": 0.313, "token": 0, "level": 0.72 },
+    { "p": "i", "start": 0.313, "end": 0.602, "token": 0, "level": 0.36 },
+    { "p": "sp", "start": 0.602, "end": 0.782, "token": 1, "level": 0.01 },
+    { "p": "hy", "start": 0.782, "end": 0.992, "token": 2, "level": 0.17 },
+    { "p": "a", "start": 0.992, "end": 1.083, "token": 2, "level": 0.48 },
+    { "p": "k", "start": 1.083, "end": 1.232, "token": 2, "level": 0.07 },
+    { "p": "u", "start": 1.232, "end": 1.393, "token": 2, "level": 0.44 },
+    { "p": "g", "start": 1.393, "end": 1.432, "token": 3, "level": 0.36 },
+    { "p": "o", "start": 1.432, "end": 1.613, "token": 3, "level": 1 },
+    { "p": "j", "start": 1.613, "end": 1.752, "token": 3, "level": 0.28 },
+    { "p": "u:", "start": 1.752, "end": 1.972, "token": 3, "level": 0.89 },
+    { "p": "e", "start": 1.972, "end": 2.153, "token": 4, "level": 0.93 },
+    { "p": "N", "start": 2.153, "end": 2.293, "token": 4, "level": 0.41 },
+    { "p": "d", "start": 2.293, "end": 2.363, "token": 5, "level": 0.23 },
+    { "p": "e", "start": 2.363, "end": 2.433, "token": 5, "level": 0.52 },
+    { "p": "s", "start": 2.433, "end": 2.463, "token": 5, "level": 0.44 },
+    { "p": "u", "start": 2.463, "end": 2.503, "token": 5, "level": 0.33 }
+   ]
+  }
+ },
+ "bag": {
+  "speaker": "riku",
+  "ja": "{袋|ふくろ}[は|わ] いりますか。",
+  "en": "Do you need a bag?",
+  "track": {
+   "seconds": 2.335,
+   "precision": "aligned",
+   "phones": [
+    { "p": "f", "start": 0.042, "end": 0.092, "token": 0, "level": 0.02 },
+    { "p": "u", "start": 0.092, "end": 0.122, "token": 0, "level": 0.01 },
+    { "p": "k", "start": 0.122, "end": 0.293, "token": 0, "level": 0.04 },
+    { "p": "u", "start": 0.293, "end": 0.353, "token": 0, "level": 0.96 },
+    { "p": "r", "start": 0.353, "end": 0.432, "token": 0, "level": 0.61 },
+    { "p": "o", "start": 0.432, "end": 0.622, "token": 0, "level": 1 },
+    { "p": "w", "start": 0.622, "end": 0.792, "token": 1, "level": 0.76 },
+    { "p": "a", "start": 0.792, "end": 0.823, "token": 1, "level": 0.35 },
+    { "p": "sp", "start": 0.823, "end": 1.133, "token": 1, "level": 0.1 },
+    { "p": "i", "start": 1.133, "end": 1.172, "token": 2, "level": 0.46 },
+    { "p": "r", "start": 1.172, "end": 1.202, "token": 2, "level": 0.86 },
+    { "p": "i", "start": 1.202, "end": 1.512, "token": 2, "level": 0.67 },
+    { "p": "m", "start": 1.512, "end": 1.573, "token": 2, "level": 0.67 },
+    { "p": "a", "start": 1.573, "end": 1.673, "token": 2, "level": 0.74 },
+    { "p": "s", "start": 1.673, "end": 1.853, "token": 2, "level": 0.2 },
+    { "p": "u", "start": 1.853, "end": 1.883, "token": 2, "level": 0.02 },
+    { "p": "k", "start": 1.883, "end": 1.982, "token": 2, "level": 0.08 },
+    { "p": "a", "start": 1.982, "end": 2.163, "token": 2, "level": 0.37 }
+   ]
+  }
+ },
+ "yes-please": {
+  "speaker": "ema",
+  "ja": "はい、 お{願|ねが}いします。",
+  "en": "Yes, please.",
+  "track": {
+   "seconds": 2.661,
+   "precision": "aligned",
+   "phones": [
+    { "p": "h", "start": 0.042, "end": 0.122, "token": 0, "level": 0.27 },
+    { "p": "a", "start": 0.122, "end": 0.293, "token": 0, "level": 0.77 },
+    { "p": "i", "start": 0.293, "end": 0.473, "token": 0, "level": 0.53 },
+    { "p": "sp", "start": 0.473, "end": 1.302, "token": 1, "level": 0 },
+    { "p": "o", "start": 1.302, "end": 1.432, "token": 2, "level": 0.4 },
+    { "p": "n", "start": 1.432, "end": 1.512, "token": 3, "level": 0.72 },
+    { "p": "e", "start": 1.512, "end": 1.623, "token": 3, "level": 0.79 },
+    { "p": "g", "start": 1.623, "end": 1.742, "token": 3, "level": 0.79 },
+    { "p": "a", "start": 1.742, "end": 1.873, "token": 3, "level": 1 },
+    { "p": "i", "start": 1.873, "end": 1.932, "token": 4, "level": 0.85 },
+    { "p": "sh", "start": 1.932, "end": 2.093, "token": 4, "level": 0.16 },
+    { "p": "i", "start": 2.093, "end": 2.123, "token": 4, "level": 0.65 },
+    { "p": "m", "start": 2.123, "end": 2.263, "token": 4, "level": 0.91 },
+    { "p": "a", "start": 2.263, "end": 2.383, "token": 4, "level": 0.8 },
+    { "p": "s", "start": 2.383, "end": 2.593, "token": 4, "level": 0.13 },
+    { "p": "u", "start": 2.593, "end": 2.623, "token": 4, "level": 0.01 }
+   ]
+  }
+ },
+ "thanks": {
+  "speaker": "ema",
+  "ja": "ありがとうございます。",
+  "en": "Thank you.",
+  "track": {
+   "seconds": 2.099,
+   "precision": "aligned",
+   "phones": [
+    { "p": "a", "start": 0.053, "end": 0.173, "token": 0, "level": 0.64 },
+    { "p": "r", "start": 0.173, "end": 0.243, "token": 0, "level": 0.54 },
+    { "p": "i", "start": 0.243, "end": 0.413, "token": 0, "level": 0.82 },
+    { "p": "g", "start": 0.413, "end": 0.443, "token": 0, "level": 1 },
+    { "p": "a", "start": 0.443, "end": 0.563, "token": 0, "level": 0.87 },
+    { "p": "t", "start": 0.563, "end": 0.672, "token": 0, "level": 0.25 },
+    { "p": "o:", "start": 0.672, "end": 0.892, "token": 0, "level": 0.8 },
+    { "p": "g", "start": 0.892, "end": 0.972, "token": 0, "level": 0.32 },
+    { "p": "o", "start": 0.972, "end": 1.063, "token": 0, "level": 0.55 },
+    { "p": "z", "start": 1.063, "end": 1.202, "token": 0, "level": 0.41 },
+    { "p": "a", "start": 1.202, "end": 1.363, "token": 0, "level": 0.76 },
+    { "p": "i", "start": 1.363, "end": 1.422, "token": 0, "level": 0.77 },
+    { "p": "m", "start": 1.422, "end": 1.573, "token": 0, "level": 0.86 },
+    { "p": "a", "start": 1.573, "end": 1.742, "token": 0, "level": 0.95 },
+    { "p": "s", "start": 1.742, "end": 2.023, "token": 0, "level": 0.12 },
+    { "p": "u", "start": 2.023, "end": 2.053, "token": 0, "level": 0.01 }
+   ]
+  }
+ },
+ "thanks-again": {
+  "speaker": "riku",
+  "ja": "ありがとうございました！",
+  "en": "Thank you very much!",
+  "track": {
+   "seconds": 2.116,
+   "precision": "aligned",
+   "phones": [
+    { "p": "a", "start": 0.042, "end": 0.122, "token": 0, "level": 0.37 },
+    { "p": "r", "start": 0.122, "end": 0.193, "token": 0, "level": 0.34 },
+    { "p": "i", "start": 0.193, "end": 0.302, "token": 0, "level": 0.56 },
+    { "p": "g", "start": 0.302, "end": 0.383, "token": 0, "level": 0.98 },
+    { "p": "a", "start": 0.383, "end": 0.463, "token": 0, "level": 1 },
+    { "p": "t", "start": 0.463, "end": 0.583, "token": 0, "level": 0.21 },
+    { "p": "o:", "start": 0.583, "end": 0.823, "token": 0, "level": 0.81 },
+    { "p": "g", "start": 0.823, "end": 0.862, "token": 0, "level": 0.39 },
+    { "p": "o", "start": 0.862, "end": 0.943, "token": 0, "level": 0.7 },
+    { "p": "z", "start": 0.943, "end": 1.063, "token": 0, "level": 0.34 },
+    { "p": "a", "start": 1.063, "end": 1.212, "token": 0, "level": 0.72 },
+    { "p": "i", "start": 1.212, "end": 1.252, "token": 0, "level": 0.67 },
+    { "p": "m", "start": 1.252, "end": 1.403, "token": 0, "level": 0.52 },
+    { "p": "a", "start": 1.403, "end": 1.492, "token": 0, "level": 0.57 },
+    { "p": "sh", "start": 1.492, "end": 1.692, "token": 0, "level": 0.12 },
+    { "p": "i", "start": 1.692, "end": 1.722, "token": 0, "level": 0.02 },
+    { "p": "t", "start": 1.722, "end": 1.752, "token": 0, "level": 0.21 },
+    { "p": "a", "start": 1.752, "end": 1.903, "token": 0, "level": 0.39 }
+   ]
+  }
+ }
+}

@@ -1,0 +1,422 @@
+{
+ "ema": {
+  "speaker": "ema",
+  "ja": "はじめまして。 エマです。",
+  "en": "Nice to meet you. I’m Emma.",
+  "track": {
+   "seconds": 3.059,
+   "precision": "aligned",
+   "phones": [
+    { "p": "h", "start": 0.042, "end": 0.153, "token": 0, "level": 0.14 },
+    { "p": "a", "start": 0.153, "end": 0.213, "token": 0, "level": 0.38 },
+    { "p": "j", "start": 0.213, "end": 0.353, "token": 0, "level": 0.21 },
+    { "p": "i", "start": 0.353, "end": 0.423, "token": 0, "level": 0.52 },
+    { "p": "m", "start": 0.423, "end": 0.532, "token": 0, "level": 0.77 },
+    { "p": "e", "start": 0.532, "end": 0.612, "token": 0, "level": 0.72 },
+    { "p": "m", "start": 0.612, "end": 0.742, "token": 0, "level": 0.85 },
+    { "p": "a", "start": 0.742, "end": 0.843, "token": 0, "level": 0.76 },
+    { "p": "sh", "start": 0.843, "end": 0.992, "token": 0, "level": 0.21 },
+    { "p": "i", "start": 0.992, "end": 1.022, "token": 0, "level": 0.02 },
+    { "p": "t", "start": 1.022, "end": 1.093, "token": 0, "level": 0.04 },
+    { "p": "e", "start": 1.093, "end": 1.282, "token": 0, "level": 0.45 },
+    { "p": "sp", "start": 1.282, "end": 2.183, "token": 1, "level": 0.02 },
+    { "p": "e", "start": 2.183, "end": 2.263, "token": 2, "level": 0.7 },
+    { "p": "m", "start": 2.263, "end": 2.383, "token": 2, "level": 1 },
+    { "p": "a", "start": 2.383, "end": 2.523, "token": 2, "level": 0.85 },
+    { "p": "d", "start": 2.523, "end": 2.603, "token": 2, "level": 0.53 },
+    { "p": "e", "start": 2.603, "end": 2.753, "token": 2, "level": 0.61 },
+    { "p": "s", "start": 2.753, "end": 2.953, "token": 2, "level": 0.12 },
+    { "p": "u", "start": 2.953, "end": 2.983, "token": 2, "level": 0.01 }
+   ]
+  }
+ },
+ "ema-came": {
+  "speaker": "ema",
+  "ja": "{家族|かぞく}で {京都|きょうと}に {来|き}ました。",
+  "en": "I came to Kyoto with my family.",
+  "track": {
+   "seconds": 3,
+   "precision": "aligned",
+   "phones": [
+    { "p": "k", "start": 0.063, "end": 0.143, "token": 0, "level": 0.27 },
+    { "p": "a", "start": 0.143, "end": 0.233, "token": 0, "level": 0.92 },
+    { "p": "z", "start": 0.233, "end": 0.372, "token": 0, "level": 0.3 },
+    { "p": "o", "start": 0.372, "end": 0.522, "token": 0, "level": 0.7 },
+    { "p": "k", "start": 0.522, "end": 0.662, "token": 0, "level": 0.05 },
+    { "p": "u", "start": 0.662, "end": 0.762, "token": 0, "level": 0.69 },
+    { "p": "d", "start": 0.762, "end": 0.823, "token": 1, "level": 0.35 },
+    { "p": "e", "start": 0.823, "end": 1.022, "token": 1, "level": 0.45 },
+    { "p": "ky", "start": 1.022, "end": 1.242, "token": 2, "level": 0.34 },
+    { "p": "o:", "start": 1.242, "end": 1.482, "token": 2, "level": 0.65 },
+    { "p": "t", "start": 1.482, "end": 1.593, "token": 2, "level": 0.36 },
+    { "p": "o", "start": 1.593, "end": 1.682, "token": 2, "level": 0.83 },
+    { "p": "n", "start": 1.682, "end": 1.853, "token": 3, "level": 1 },
+    { "p": "i", "start": 1.853, "end": 1.932, "token": 3, "level": 0.61 },
+    { "p": "k", "start": 1.932, "end": 2.103, "token": 4, "level": 0.08 },
+    { "p": "i", "start": 2.103, "end": 2.173, "token": 4, "level": 0.48 },
+    { "p": "m", "start": 2.173, "end": 2.303, "token": 5, "level": 0.51 },
+    { "p": "a", "start": 2.303, "end": 2.443, "token": 5, "level": 0.62 },
+    { "p": "sh", "start": 2.443, "end": 2.603, "token": 5, "level": 0.14 },
+    { "p": "i", "start": 2.603, "end": 2.633, "token": 5, "level": 0.01 },
+    { "p": "t", "start": 2.633, "end": 2.713, "token": 5, "level": 0.17 },
+    { "p": "a", "start": 2.713, "end": 2.883, "token": 5, "level": 0.36 }
+   ]
+  }
+ },
+ "daniel": {
+  "speaker": "daniel",
+  "ja": "ダニエルです。 {写真|しゃしん}が {好|す}きです。",
+  "en": "I’m Daniel. I like photos.",
+  "track": {
+   "seconds": 3.703,
+   "precision": "aligned",
+   "phones": [
+    { "p": "d", "start": 0.063, "end": 0.193, "token": 0, "level": 0.43 },
+    { "p": "a", "start": 0.193, "end": 0.293, "token": 0, "level": 1 },
+    { "p": "n", "start": 0.293, "end": 0.432, "token": 0, "level": 0.96 },
+    { "p": "i", "start": 0.432, "end": 0.563, "token": 0, "level": 0.89 },
+    { "p": "e", "start": 0.563, "end": 0.602, "token": 0, "level": 0.65 },
+    { "p": "r", "start": 0.602, "end": 0.693, "token": 0, "level": 0.53 },
+    { "p": "u", "start": 0.693, "end": 0.742, "token": 0, "level": 0.56 },
+    { "p": "d", "start": 0.742, "end": 0.823, "token": 0, "level": 0.16 },
+    { "p": "e", "start": 0.823, "end": 0.943, "token": 0, "level": 0.5 },
+    { "p": "s", "start": 0.943, "end": 1.202, "token": 0, "level": 0.16 },
+    { "p": "u", "start": 1.202, "end": 1.232, "token": 0, "level": 0 },
+    { "p": "sp", "start": 1.232, "end": 2.063, "token": 1, "level": 0 },
+    { "p": "sh", "start": 2.063, "end": 2.223, "token": 2, "level": 0.29 },
+    { "p": "a", "start": 2.223, "end": 2.323, "token": 2, "level": 0.66 },
+    { "p": "sh", "start": 2.323, "end": 2.483, "token": 2, "level": 0.34 },
+    { "p": "i", "start": 2.483, "end": 2.603, "token": 2, "level": 0.76 },
+    { "p": "N", "start": 2.603, "end": 2.723, "token": 2, "level": 0.79 },
+    { "p": "g", "start": 2.723, "end": 2.783, "token": 3, "level": 0.77 },
+    { "p": "a", "start": 2.783, "end": 2.823, "token": 3, "level": 0.82 },
+    { "p": "s", "start": 2.823, "end": 2.983, "token": 4, "level": 0.29 },
+    { "p": "u", "start": 2.983, "end": 3.013, "token": 4, "level": 0.05 },
+    { "p": "k", "start": 3.013, "end": 3.063, "token": 5, "level": 0.06 },
+    { "p": "i", "start": 3.063, "end": 3.153, "token": 5, "level": 0.76 },
+    { "p": "d", "start": 3.153, "end": 3.213, "token": 5, "level": 0.24 },
+    { "p": "e", "start": 3.213, "end": 3.333, "token": 5, "level": 0.44 },
+    { "p": "s", "start": 3.333, "end": 3.603, "token": 5, "level": 0.16 },
+    { "p": "u", "start": 3.603, "end": 3.633, "token": 5, "level": 0.01 }
+   ]
+  }
+ },
+ "sophie": {
+  "speaker": "sophie",
+  "ja": "ソフィーです。 {花|はな}が {好|す}きです。",
+  "en": "I’m Sophie. I like flowers.",
+  "track": {
+   "seconds": 3.342,
+   "precision": "aligned",
+   "phones": [
+    { "p": "s", "start": 0.042, "end": 0.183, "token": 0, "level": 0.25 },
+    { "p": "o", "start": 0.183, "end": 0.333, "token": 0, "level": 0.71 },
+    { "p": "f", "start": 0.333, "end": 0.473, "token": 0, "level": 0.32 },
+    { "p": "i:", "start": 0.473, "end": 0.693, "token": 0, "level": 1 },
+    { "p": "d", "start": 0.693, "end": 0.732, "token": 0, "level": 0.1 },
+    { "p": "e", "start": 0.732, "end": 0.953, "token": 0, "level": 0.56 },
+    { "p": "s", "start": 0.953, "end": 1.123, "token": 0, "level": 0.16 },
+    { "p": "u", "start": 1.123, "end": 1.153, "token": 0, "level": 0.02 },
+    { "p": "sp", "start": 1.153, "end": 1.883, "token": 1, "level": 0 },
+    { "p": "h", "start": 1.883, "end": 2.023, "token": 2, "level": 0.3 },
+    { "p": "a", "start": 2.023, "end": 2.063, "token": 2, "level": 0.65 },
+    { "p": "n", "start": 2.063, "end": 2.183, "token": 2, "level": 0.72 },
+    { "p": "a", "start": 2.183, "end": 2.293, "token": 2, "level": 0.79 },
+    { "p": "g", "start": 2.293, "end": 2.393, "token": 3, "level": 0.36 },
+    { "p": "a", "start": 2.393, "end": 2.503, "token": 3, "level": 0.98 },
+    { "p": "s", "start": 2.503, "end": 2.633, "token": 4, "level": 0.24 },
+    { "p": "u", "start": 2.633, "end": 2.663, "token": 4, "level": 0.07 },
+    { "p": "k", "start": 2.663, "end": 2.773, "token": 5, "level": 0.09 },
+    { "p": "i", "start": 2.773, "end": 2.873, "token": 5, "level": 0.68 },
+    { "p": "d", "start": 2.873, "end": 2.913, "token": 5, "level": 0.25 },
+    { "p": "e", "start": 2.913, "end": 3.083, "token": 5, "level": 0.5 },
+    { "p": "s", "start": 3.083, "end": 3.253, "token": 5, "level": 0.17 },
+    { "p": "u", "start": 3.253, "end": 3.283, "token": 5, "level": 0.03 }
+   ]
+  }
+ },
+ "leo": {
+  "speaker": "leo",
+  "ja": "レオです！ たこ{焼|や}きが {食|た}べたいです！",
+  "en": "I’m Leo! I want to eat takoyaki!",
+  "track": {
+   "seconds": 4.182,
+   "precision": "aligned",
+   "phones": [
+    { "p": "r", "start": 0.042, "end": 0.072, "token": 0, "level": 0.22 },
+    { "p": "e", "start": 0.072, "end": 0.193, "token": 0, "level": 0.22 },
+    { "p": "o", "start": 0.193, "end": 0.632, "token": 0, "level": 0.8 },
+    { "p": "d", "start": 0.632, "end": 0.662, "token": 0, "level": 0.25 },
+    { "p": "e", "start": 0.662, "end": 0.713, "token": 0, "level": 0.96 },
+    { "p": "s", "start": 0.713, "end": 0.742, "token": 0, "level": 0.7 },
+    { "p": "u", "start": 0.742, "end": 0.903, "token": 0, "level": 0.51 },
+    { "p": "sp", "start": 0.903, "end": 1.813, "token": 1, "level": 0.04 },
+    { "p": "t", "start": 1.813, "end": 1.883, "token": 2, "level": 0.32 },
+    { "p": "a", "start": 1.883, "end": 1.952, "token": 2, "level": 0.33 },
+    { "p": "k", "start": 1.952, "end": 2.163, "token": 2, "level": 0.58 },
+    { "p": "o", "start": 2.163, "end": 2.293, "token": 2, "level": 0.69 },
+    { "p": "y", "start": 2.293, "end": 2.323, "token": 3, "level": 0.88 },
+    { "p": "a", "start": 2.323, "end": 2.383, "token": 3, "level": 0.67 },
+    { "p": "k", "start": 2.383, "end": 2.473, "token": 4, "level": 0.05 },
+    { "p": "i", "start": 2.473, "end": 2.543, "token": 4, "level": 0.68 },
+    { "p": "g", "start": 2.543, "end": 2.703, "token": 4, "level": 0.72 },
+    { "p": "a", "start": 2.703, "end": 2.833, "token": 4, "level": 1 },
+    { "p": "t", "start": 2.833, "end": 2.953, "token": 5, "level": 0.16 },
+    { "p": "a", "start": 2.953, "end": 3.063, "token": 5, "level": 0.63 },
+    { "p": "b", "start": 3.063, "end": 3.113, "token": 6, "level": 0.14 },
+    { "p": "e", "start": 3.113, "end": 3.313, "token": 6, "level": 0.62 },
+    { "p": "t", "start": 3.313, "end": 3.363, "token": 6, "level": 0.03 },
+    { "p": "a", "start": 3.363, "end": 3.663, "token": 6, "level": 0.92 },
+    { "p": "i", "start": 3.663, "end": 3.693, "token": 6, "level": 0.19 },
+    { "p": "d", "start": 3.693, "end": 3.723, "token": 6, "level": 0.1 },
+    { "p": "e", "start": 3.723, "end": 3.753, "token": 6, "level": 0.55 },
+    { "p": "s", "start": 3.753, "end": 3.783, "token": 6, "level": 0.71 },
+    { "p": "u", "start": 3.783, "end": 3.982, "token": 6, "level": 0.74 }
+   ]
+  }
+ },
+ "ema-please": {
+  "speaker": "ema",
+  "ja": "よろしく お{願|ねが}いします。",
+  "en": "Please treat us kindly.",
+  "track": {
+   "seconds": 2.42,
+   "precision": "aligned",
+   "phones": [
+    { "p": "y", "start": 0.042, "end": 0.163, "token": 0, "level": 0.52 },
+    { "p": "o", "start": 0.163, "end": 0.193, "token": 0, "level": 0.68 },
+    { "p": "r", "start": 0.193, "end": 0.313, "token": 0, "level": 0.72 },
+    { "p": "o", "start": 0.313, "end": 0.372, "token": 0, "level": 0.66 },
+    { "p": "sh", "start": 0.372, "end": 0.522, "token": 0, "level": 0.21 },
+    { "p": "i", "start": 0.522, "end": 0.552, "token": 0, "level": 0.06 },
+    { "p": "k", "start": 0.552, "end": 0.732, "token": 0, "level": 0.07 },
+    { "p": "u", "start": 0.732, "end": 0.772, "token": 0, "level": 0.76 },
+    { "p": "o", "start": 0.772, "end": 0.932, "token": 1, "level": 0.86 },
+    { "p": "n", "start": 0.932, "end": 1.032, "token": 2, "level": 0.96 },
+    { "p": "e", "start": 1.032, "end": 1.163, "token": 2, "level": 0.81 },
+    { "p": "g", "start": 1.163, "end": 1.272, "token": 2, "level": 0.73 },
+    { "p": "a", "start": 1.272, "end": 1.432, "token": 2, "level": 0.89 },
+    { "p": "i", "start": 1.432, "end": 1.502, "token": 3, "level": 0.8 },
+    { "p": "sh", "start": 1.502, "end": 1.702, "token": 3, "level": 0.15 },
+    { "p": "i", "start": 1.702, "end": 1.732, "token": 3, "level": 0.63 },
+    { "p": "m", "start": 1.732, "end": 1.913, "token": 3, "level": 1 },
+    { "p": "a", "start": 1.913, "end": 2.073, "token": 3, "level": 0.98 },
+    { "p": "s", "start": 2.073, "end": 2.353, "token": 3, "level": 0.15 },
+    { "p": "u", "start": 2.353, "end": 2.383, "token": 3, "level": 0 }
+   ]
+  }
+ },
+ "ema-fun": {
+  "speaker": "ema",
+  "ja": "{今日|きょう}[は|わ] {楽|たの}しかったですね。",
+  "en": "Today was fun.",
+  "track": {
+   "seconds": 2.739,
+   "precision": "aligned",
+   "phones": [
+    { "p": "ky", "start": 0.042, "end": 0.153, "token": 0, "level": 0.37 },
+    { "p": "o:", "start": 0.153, "end": 0.432, "token": 0, "level": 0.67 },
+    { "p": "w", "start": 0.432, "end": 0.522, "token": 1, "level": 0.79 },
+    { "p": "a", "start": 0.522, "end": 0.642, "token": 1, "level": 0.77 },
+    { "p": "t", "start": 0.642, "end": 0.782, "token": 2, "level": 0.16 },
+    { "p": "a", "start": 0.782, "end": 0.852, "token": 2, "level": 0.63 },
+    { "p": "n", "start": 0.852, "end": 0.953, "token": 2, "level": 1 },
+    { "p": "o", "start": 0.953, "end": 1.052, "token": 2, "level": 0.94 },
+    { "p": "sh", "start": 1.052, "end": 1.182, "token": 3, "level": 0.22 },
+    { "p": "i", "start": 1.182, "end": 1.212, "token": 3, "level": 0.07 },
+    { "p": "k", "start": 1.212, "end": 1.323, "token": 3, "level": 0.15 },
+    { "p": "a", "start": 1.323, "end": 1.472, "token": 3, "level": 0.96 },
+    { "p": "q", "start": 1.472, "end": 1.593, "token": 3, "level": 0.02 },
+    { "p": "t", "start": 1.593, "end": 1.633, "token": 3, "level": 0.58 },
+    { "p": "a", "start": 1.633, "end": 1.722, "token": 3, "level": 1 },
+    { "p": "d", "start": 1.722, "end": 1.813, "token": 3, "level": 0.57 },
+    { "p": "e", "start": 1.813, "end": 1.903, "token": 3, "level": 0.76 },
+    { "p": "s", "start": 1.903, "end": 2.073, "token": 3, "level": 0.15 },
+    { "p": "u", "start": 2.073, "end": 2.103, "token": 3, "level": 0.47 },
+    { "p": "n", "start": 2.103, "end": 2.213, "token": 3, "level": 0.57 },
+    { "p": "e", "start": 2.213, "end": 2.592, "token": 3, "level": 0.93 }
+   ]
+  }
+ },
+ "daniel-again": {
+  "speaker": "daniel",
+  "ja": "また {来|き}ましょう。",
+  "en": "Let’s come again.",
+  "track": {
+   "seconds": 1.4,
+   "precision": "aligned",
+   "phones": [
+    { "p": "m", "start": 0.053, "end": 0.133, "token": 0, "level": 0.39 },
+    { "p": "a", "start": 0.133, "end": 0.223, "token": 0, "level": 0.54 },
+    { "p": "t", "start": 0.223, "end": 0.323, "token": 0, "level": 0.32 },
+    { "p": "a", "start": 0.323, "end": 0.393, "token": 0, "level": 0.66 },
+    { "p": "k", "start": 0.393, "end": 0.552, "token": 1, "level": 0.1 },
+    { "p": "i", "start": 0.552, "end": 0.592, "token": 1, "level": 0.66 },
+    { "p": "m", "start": 0.592, "end": 0.713, "token": 2, "level": 0.87 },
+    { "p": "a", "start": 0.713, "end": 0.772, "token": 2, "level": 1 },
+    { "p": "sh", "start": 0.772, "end": 0.963, "token": 2, "level": 0.59 },
+    { "p": "o:", "start": 0.963, "end": 1.183, "token": 2, "level": 0.82 }
+   ]
+  }
+ },
+ "sophie-yes": {
+  "speaker": "sophie",
+  "ja": "はい！",
+  "en": "Yes!",
+  "track": {
+   "seconds": 0.493,
+   "precision": "aligned",
+   "phones": [
+    { "p": "h", "start": 0.042, "end": 0.173, "token": 0, "level": 0.57 },
+    { "p": "a", "start": 0.173, "end": 0.323, "token": 0, "level": 1 },
+    { "p": "i", "start": 0.323, "end": 0.473, "token": 0, "level": 1 }
+   ]
+  }
+ },
+ "leo-bye": {
+  "speaker": "leo",
+  "ja": "またね！",
+  "en": "See you!",
+  "track": {
+   "seconds": 1.102,
+   "precision": "aligned",
+   "phones": [
+    { "p": "m", "start": 0.042, "end": 0.153, "token": 0, "level": 0.18 },
+    { "p": "a", "start": 0.153, "end": 0.302, "token": 0, "level": 0.67 },
+    { "p": "t", "start": 0.302, "end": 0.432, "token": 0, "level": 0.8 },
+    { "p": "a", "start": 0.432, "end": 0.563, "token": 0, "level": 1 },
+    { "p": "n", "start": 0.563, "end": 0.622, "token": 0, "level": 0.13 },
+    { "p": "e", "start": 0.622, "end": 0.943, "token": 0, "level": 0.66 }
+   ]
+  }
+ },
+ "ema-what": {
+  "speaker": "ema",
+  "ja": "これ[は|わ] {何|なん}ですか。",
+  "en": "What is this?",
+  "track": {
+   "seconds": 1.745,
+   "precision": "aligned",
+   "phones": [
+    { "p": "k", "start": 0.042, "end": 0.092, "token": 0, "level": 0.18 },
+    { "p": "o", "start": 0.092, "end": 0.193, "token": 0, "level": 0.4 },
+    { "p": "r", "start": 0.193, "end": 0.243, "token": 0, "level": 0.43 },
+    { "p": "e", "start": 0.243, "end": 0.353, "token": 0, "level": 0.66 },
+    { "p": "w", "start": 0.353, "end": 0.502, "token": 1, "level": 0.74 },
+    { "p": "a", "start": 0.502, "end": 0.583, "token": 1, "level": 0.75 },
+    { "p": "n", "start": 0.583, "end": 0.693, "token": 2, "level": 1 },
+    { "p": "a", "start": 0.693, "end": 0.843, "token": 2, "level": 0.54 },
+    { "p": "N", "start": 0.843, "end": 0.963, "token": 2, "level": 0.39 },
+    { "p": "d", "start": 0.963, "end": 0.992, "token": 3, "level": 0.36 },
+    { "p": "e", "start": 0.992, "end": 1.093, "token": 3, "level": 0.62 },
+    { "p": "s", "start": 1.093, "end": 1.202, "token": 3, "level": 0.21 },
+    { "p": "u", "start": 1.202, "end": 1.232, "token": 3, "level": 0.04 },
+    { "p": "k", "start": 1.232, "end": 1.343, "token": 3, "level": 0.18 },
+    { "p": "a", "start": 1.343, "end": 1.583, "token": 3, "level": 0.52 }
+   ]
+  }
+ },
+ "sophie-ticket": {
+  "speaker": "sophie",
+  "ja": "{切符|きっぷ}です。",
+  "en": "It’s a ticket.",
+  "track": {
+   "seconds": 1.36,
+   "precision": "aligned",
+   "phones": [
+    { "p": "k", "start": 0.042, "end": 0.102, "token": 0, "level": 0.22 },
+    { "p": "i", "start": 0.102, "end": 0.323, "token": 0, "level": 0.84 },
+    { "p": "q", "start": 0.323, "end": 0.542, "token": 0, "level": 0 },
+    { "p": "p", "start": 0.542, "end": 0.642, "token": 0, "level": 0.23 },
+    { "p": "u", "start": 0.642, "end": 0.782, "token": 0, "level": 1 },
+    { "p": "d", "start": 0.782, "end": 0.833, "token": 1, "level": 0.5 },
+    { "p": "e", "start": 0.833, "end": 1.042, "token": 1, "level": 0.92 },
+    { "p": "s", "start": 1.042, "end": 1.252, "token": 1, "level": 0.19 },
+    { "p": "u", "start": 1.252, "end": 1.282, "token": 1, "level": 0.03 }
+   ]
+  }
+ },
+ "leo-taxi": {
+  "speaker": "leo",
+  "ja": "タクシーです。",
+  "en": "It’s a taxi.",
+  "track": {
+   "seconds": 1.453,
+   "precision": "aligned",
+   "phones": [
+    { "p": "t", "start": 0.042, "end": 0.102, "token": 0, "level": 0.38 },
+    { "p": "a", "start": 0.102, "end": 0.223, "token": 0, "level": 0.69 },
+    { "p": "k", "start": 0.223, "end": 0.302, "token": 0, "level": 0.01 },
+    { "p": "u", "start": 0.302, "end": 0.363, "token": 0, "level": 0.15 },
+    { "p": "sh", "start": 0.363, "end": 0.403, "token": 0, "level": 0.15 },
+    { "p": "i:", "start": 0.403, "end": 0.432, "token": 0, "level": 0.23 },
+    { "p": "d", "start": 0.432, "end": 0.642, "token": 0, "level": 0.29 },
+    { "p": "e", "start": 0.642, "end": 0.672, "token": 0, "level": 1 },
+    { "p": "s", "start": 0.672, "end": 0.703, "token": 0, "level": 0.95 },
+    { "p": "u", "start": 0.703, "end": 1.182, "token": 0, "level": 0.87 }
+   ]
+  }
+ },
+ "sophie-fan": {
+  "speaker": "sophie",
+  "ja": "{扇子|せんす}です。",
+  "en": "It’s a folding fan.",
+  "track": {
+   "seconds": 1.166,
+   "precision": "aligned",
+   "phones": [
+    { "p": "s", "start": 0.083, "end": 0.163, "token": 0, "level": 0.22 },
+    { "p": "e", "start": 0.163, "end": 0.233, "token": 0, "level": 1 },
+    { "p": "N", "start": 0.233, "end": 0.463, "token": 0, "level": 0.74 },
+    { "p": "s", "start": 0.463, "end": 0.573, "token": 0, "level": 0.25 },
+    { "p": "u", "start": 0.573, "end": 0.682, "token": 0, "level": 0.54 },
+    { "p": "d", "start": 0.682, "end": 0.713, "token": 1, "level": 0.48 },
+    { "p": "e", "start": 0.713, "end": 0.802, "token": 1, "level": 0.88 },
+    { "p": "s", "start": 0.802, "end": 0.833, "token": 1, "level": 0.92 },
+    { "p": "u", "start": 0.833, "end": 1.002, "token": 1, "level": 0.39 }
+   ]
+  }
+ },
+ "daniel-key": {
+  "speaker": "daniel",
+  "ja": "{鍵|かぎ}です。",
+  "en": "It’s a key.",
+  "track": {
+   "seconds": 0.991,
+   "precision": "aligned",
+   "phones": [
+    { "p": "k", "start": 0.042, "end": 0.143, "token": 0, "level": 0.18 },
+    { "p": "a", "start": 0.143, "end": 0.213, "token": 0, "level": 0.8 },
+    { "p": "g", "start": 0.213, "end": 0.273, "token": 0, "level": 0.44 },
+    { "p": "i", "start": 0.273, "end": 0.432, "token": 0, "level": 1 },
+    { "p": "d", "start": 0.432, "end": 0.492, "token": 1, "level": 0.74 },
+    { "p": "e", "start": 0.492, "end": 0.583, "token": 1, "level": 0.97 },
+    { "p": "s", "start": 0.583, "end": 0.762, "token": 1, "level": 0.33 },
+    { "p": "u", "start": 0.762, "end": 0.872, "token": 1, "level": 0.17 }
+   ]
+  }
+ },
+ "leo-takoyaki": {
+  "speaker": "leo",
+  "ja": "たこ{焼|や}きです！",
+  "en": "It’s takoyaki!",
+  "track": {
+   "seconds": 1.589,
+   "precision": "aligned",
+   "phones": [
+    { "p": "t", "start": 0.092, "end": 0.122, "token": 0, "level": 0.14 },
+    { "p": "a", "start": 0.122, "end": 0.193, "token": 0, "level": 0.18 },
+    { "p": "k", "start": 0.193, "end": 0.393, "token": 0, "level": 0.11 },
+    { "p": "o", "start": 0.393, "end": 0.592, "token": 0, "level": 0.87 },
+    { "p": "y", "start": 0.592, "end": 0.622, "token": 1, "level": 0.96 },
+    { "p": "a", "start": 0.622, "end": 0.762, "token": 1, "level": 1 },
+    { "p": "k", "start": 0.762, "end": 0.892, "token": 2, "level": 0.02 },
+    { "p": "i", "start": 0.892, "end": 1.063, "token": 2, "level": 0.39 },
+    { "p": "d", "start": 1.063, "end": 1.113, "token": 2, "level": 0.2 },
+    { "p": "e", "start": 1.113, "end": 1.153, "token": 2, "level": 0.46 },
+    { "p": "s", "start": 1.153, "end": 1.182, "token": 2, "level": 0.48 },
+    { "p": "u", "start": 1.182, "end": 1.383, "token": 2, "level": 0.57 }
+   ]
+  }
+ }
+}

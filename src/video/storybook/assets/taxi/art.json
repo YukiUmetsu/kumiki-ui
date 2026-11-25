@@ -1,0 +1,170 @@
+{
+ "pieces": {
+  "cabin": {
+   "image": {
+    "src": "cabin.webp",
+    "width": 1925,
+    "height": 1083
+   },
+   "x": -160.217,
+   "y": -149.783,
+   "width": 320.833,
+   "height": 180.5
+  },
+  "seat": {
+   "image": {
+    "src": "seat.webp",
+    "width": 713,
+    "height": 468
+   },
+   "x": 34.348,
+   "y": -46.739,
+   "width": 118.833,
+   "height": 78.0
+  },
+  "wheel": {
+   "image": {
+    "src": "wheel.webp",
+    "width": 610,
+    "height": 549
+   },
+   "x": -120.481,
+   "y": -47.404,
+   "width": 61.0,
+   "height": 54.9
+  },
+  "behind": {
+   "image": {
+    "src": "behind.webp",
+    "width": 792,
+    "height": 408
+   },
+   "x": -86.923,
+   "y": -136.385,
+   "width": 198.0,
+   "height": 102.0
+  },
+  "street": {
+   "image": {
+    "src": "street.webp",
+    "width": 1929,
+    "height": 705
+   },
+   "x": -11.923,
+   "y": -189.615,
+   "width": 482.25,
+   "height": 176.25
+  },
+  "lane": {
+   "image": {
+    "src": "lane.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -365.0,
+   "y": -347.5,
+   "width": 731.0,
+   "height": 412.0
+  },
+  "stand": {
+   "image": {
+    "src": "stand.webp",
+    "width": 3835,
+    "height": 2161
+   },
+   "x": -598.361,
+   "y": -627.049,
+   "width": 1198.437,
+   "height": 675.312
+  },
+  "car": {
+   "image": {
+    "src": "car.webp",
+    "width": 1981,
+    "height": 899
+   },
+   "x": -217.971,
+   "y": -224.638,
+   "width": 396.2,
+   "height": 179.8
+  },
+  "tyre-1": {
+   "image": {
+    "src": "tyre-1.webp",
+    "width": 299,
+    "height": 299
+   },
+   "x": -177.971,
+   "y": -105.797,
+   "width": 59.8,
+   "height": 59.8
+  },
+  "tyre-2": {
+   "image": {
+    "src": "tyre-2.webp",
+    "width": 284,
+    "height": 301
+   },
+   "x": 73.623,
+   "y": -108.696,
+   "width": 56.8,
+   "height": 60.2
+  },
+  "driver": {
+   "image": {
+    "src": "driver.webp",
+    "width": 745,
+    "height": 563
+   },
+   "x": 23.961,
+   "y": 6.623,
+   "width": 62.083,
+   "height": 46.917
+  },
+  "door": {
+   "image": {
+    "src": "door.webp",
+    "width": 458,
+    "height": 593
+   },
+   "x": 2.609,
+   "y": -194.493,
+   "width": 91.6,
+   "height": 118.6
+  },
+  "door-in": {
+   "image": {
+    "src": "door-in.webp",
+    "width": 458,
+    "height": 593
+   },
+   "x": 2.609,
+   "y": -194.493,
+   "width": 91.6,
+   "height": 118.6
+  },
+  "dash": {
+   "image": {
+    "src": "dash.webp",
+    "width": 1917,
+    "height": 322
+   },
+   "x": -159.783,
+   "y": -23.913,
+   "width": 319.5,
+   "height": 53.667
+  },
+  "console": {
+   "image": {
+    "src": "console.webp",
+    "width": 231,
+    "height": 267
+   },
+   "x": -19.13,
+   "y": -29.783,
+   "width": 38.5,
+   "height": 44.5
+  }
+ },
+ "provenance": "Painted with FLUX.2 Klein 4B (Apache-2.0), run locally, in the look of the owner's sheets. Taxis and streets studied from photographs on Wikimedia Commons and the sources in the docs."
+}
