@@ -322,9 +322,9 @@ const frontalAngle = (h: ActHand, forward: number): number => (Math.abs(forward)
 const turnTo = (from: number, to: number): number => (Math.abs(to - from) <= 205 ? to - from : turnBetween(from, to));
 const polar = (o: ActPoint, p: ActPoint): [number, number] => [(Math.atan2(-(p[0] - o[0]), p[1] - o[1]) * 180) / Math.PI, Math.hypot(p[0] - o[0], p[1] - o[1])];
 const place = (o: ActPoint, deg: number, r: number): ActPoint => [o[0] - Math.sin((deg * Math.PI) / 180) * r, o[1] + Math.cos((deg * Math.PI) / 180) * r];
-/** From one place to the next: straight, but a hand that comes from over the shoulder to under it goes round the shoulder, at a steady pace. */
-function passing(from: ActPoint, a: ActPoint, b: ActPoint, u: number): ActPoint {
-  const [a0, r0] = polar(from, a), [a1, r1] = polar(from, b), turn = turnBetween(a0, a1), k = smooth((Math.abs(turn) - 70) / 50), round = place(from, a0 + turn * u, lerp(r0, r1, u));
+/** From one place to the next: straight, but a hand whose way would go through its own shoulder goes round it, at a steady pace. A body that faces the viewer (`ahead` 0) has `around` for that. */
+function passing(from: ActPoint, a: ActPoint, b: ActPoint, u: number, L: number, ahead: number): ActPoint {
+  const [a0, r0] = polar(from, a), [a1, r1] = polar(from, b), turn = turnBetween(a0, a1), dx = b[0] - a[0], dy = b[1] - a[1], near = Math.abs((a[0] - from[0]) * dy - (a[1] - from[1]) * dx) / (Math.hypot(dx, dy) || 1), k = ahead * smooth((Math.abs(turn) - 70) / 50) * (1 - smooth((near / L - 0.18) / 0.14)), round = place(from, a0 + turn * u, lerp(r0, r1, u));
   return [lerp(lerp(a[0], b[0], u), round[0], k), lerp(lerp(a[1], b[1], u), round[1], k)];
 }
 /**
@@ -370,7 +370,7 @@ function solveArms(body: ActingBody, s: Pick<Stands, "p" | "at" | "hands" | "pos
       const from = r.head ? joint("head") : r.chest ? joint("neck") : up, q = r.head ?? r.chest ?? r.shoulder ?? [0, 0], to: ActPoint = r.to ?? [from.x + (r.chest ? q[0] + ahead * (r.ahead ?? 0) : lerp(frontal(h, q), q[0], ahead)) * body.height, from.y + q[1] * body.height], aimed = r.angle ?? (r.forward === undefined ? undefined : lerp(frontalAngle(h, r.forward), r.forward, ahead)), angle = aimed === undefined ? undefined : aimed + (r.spin ?? 0);
       const inside = r.to ? smooth((((r.to[0] - up.x) * (h === "f" ? 1 : -1)) / (U + V) - 0.09) / 0.02) : r.chest || (r.head && Math.abs(r.head[0]) < 0.075) ? 1 : 0;
       const was: Reached | undefined = on, weight = r.weight + (was?.weight ?? 0) * (1 - r.weight), u = was ? r.weight / weight : 1;
-      on = { to: was ? passing([up.x, up.y], was.to, to, u) : to, inside: lerp(was?.inside ?? 0, inside, was ? u : 1), angle: was?.angle !== undefined && angle !== undefined ? lerp(was.angle, angle, u) : (angle ?? was?.angle), out: lerp(was?.out ?? 0, r.out ?? 0, was ? u : 1), aside: lerp(was?.aside ?? 0, r.aside ?? 0, was ? u : 1), near: lerp(was?.near ?? NEAR, r.near ?? NEAR, was ? u : 1), shortest: lerp(was?.shortest ?? 0.62, r.shortest ?? 0.62, was ? u : 1), palm: lerp(was?.palm ?? own0[1], r.palm === undefined ? own0[1] : r.palm * body.height, was ? u : 1), weight };
+      on = { to: was ? passing([up.x, up.y], was.to, to, u, U + V, ahead) : to, inside: lerp(was?.inside ?? 0, inside, was ? u : 1), angle: was?.angle !== undefined && angle !== undefined ? lerp(was.angle, angle, u) : (angle ?? was?.angle), out: lerp(was?.out ?? 0, r.out ?? 0, was ? u : 1), aside: lerp(was?.aside ?? 0, r.aside ?? 0, was ? u : 1), near: lerp(was?.near ?? NEAR, r.near ?? NEAR, was ? u : 1), shortest: lerp(was?.shortest ?? 0.62, r.shortest ?? 0.62, was ? u : 1), palm: lerp(was?.palm ?? own0[1], r.palm === undefined ? own0[1] : r.palm * body.height, was ? u : 1), weight };
     }
     const g = on!, palm: ActPoint = [own0[0], g.palm], build = { side: h, upper: U, lower: V, facing, palm }, a = (tip.angle * Math.PI) / 180, rests: ActPoint = [tip.x + palm[0] * Math.cos(a) - palm[1] * Math.sin(a), tip.y + palm[0] * Math.sin(a) + palm[1] * Math.cos(a)];
     // what is far off is only a direction: the hand goes as far that way as the arm does, all the time that the act gives it
