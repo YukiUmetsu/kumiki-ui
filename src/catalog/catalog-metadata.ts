@@ -156,6 +156,8 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:ink-studio":{storyId:"video-ink-scenes--peaks"},
   "pack:ink-brush":{storyId:"video-ink-brush--brush-contact-microscope"},
   "pack:editorial-collage":{storyId:"video-editorial-collage--collage-film"},
+  "pack:painted-rig":{storyId:"video-storybook-acts--act"},
+  "pack:storybook-film":{storyId:"video-storybook-film--convenience-store"},
   "pack:universal-rig":{storyId:"video-universal-rig--lab"},
   "pack:watercolour-brush":{storyId:"film-art-watercolour-brush--painted-film"},
   "pack:watercolour-wet-paper":{storyId:"film-art-watercolour-wet-paper--wet-pigment-studio"},
@@ -446,5 +448,7 @@ export const CATALOG_DOCS:Record<string,string>={
   "ink-motifs":"docs/component-specs/chinese-ink-film.md",
   "ink-cast":"docs/component-specs/chinese-ink-film.md",
   "ink-studio":"docs/component-specs/chinese-ink-film.md",
+  "painted-rig":"docs/component-specs/storybook-film.md",
+  "storybook-film":"docs/component-specs/storybook-film.md",
   "universal-rig":"docs/component-specs/universal-rig.md",
 };

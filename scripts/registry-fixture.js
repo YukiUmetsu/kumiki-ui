@@ -93,6 +93,52 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "painted-rig": (specifier) => {
+    const at = name => specifier.replace(/rig-look-painted$/, name);
+    return {
+      imports: [`import { inspectPainted, paintedMeshes, paintedRest, type PaintedArt } from "${specifier}";`, `import { personFromJoints, type PersonJoints } from "${at("rig-joints")}";`,
+        `import { ACTS, actFrame, type ActingBody } from "${at("rig-acting")}";`, `import { solveArm, type ArmAim, type ArmBuild } from "${at("rig-arm")}";`, `import { FACE_LOOKS } from "${at("rig-face")}";`, `import { floorOf, stepsOf } from "${at("rig-walk")}";`],
+      componentName: "PaintedRigConsumerExample",
+      component: `const joints: PersonJoints = { pelvis: [0, -84], neck: [0, -132], head: [2, -140], crown: [2, -160], ground: 0,
+  armF: { top: [-12, -128], mid: [-18, -104], end: [-22, -82], tip: [-24, -70] }, armB: { top: [12, -128], mid: [18, -104], end: [22, -82], tip: [24, -70] },
+  legF: { top: [-6, -84], mid: [-6, -46], end: [-6, -8], tip: [4, -2] }, legB: { top: [6, -84], mid: [6, -46], end: [6, -8], tip: [16, -2] } };
+const person = personFromJoints("guest", joints);
+const art: PaintedArt = { id: "guest", images: { coat: { src: "coat.webp", width: 400, height: 600 } }, pose: person.pose,
+  layers: [{ id: "coat", image: "coat", x: -20, y: -134, width: 40, height: 60, z: 10, bind: { kind: "rigid", bone: "torso" } }] };
+const body: ActingBody = { spec: person.spec, height: person.height };
+export function PaintedRigConsumerExample() {
+  const { frame, spec } = actFrame(body, [{ act: "bow", at: 0.5 }, { act: "wave", at: 2, strength: 1.2 }], 1, { fps: 24 });
+  const arm = (build: ArmBuild, aim: ArmAim) => solveArm(build, aim);
+  return <div data-issues={inspectPainted(art, spec).length} data-meshes={paintedMeshes(art, spec, frame).length} data-rest={Object.keys(paintedRest(art, spec)).length} data-acts={Object.keys(ACTS).length} data-arm={arm.length} data-looks={Object.keys(FACE_LOOKS).length} data-steps={stepsOf(300, 160).list.length} data-floor={Object.keys(floorOf({ horizon: [0, -120], distance: 400 })).length} />;
+}`,
+    };
+  },
+  "storybook-film": (specifier) => {
+    const at = name => specifier.replace(/gl\/film-gl$/, `storybook/${name}`);
+    return {
+      imports: [`import { StorybookFilmPlayer, StorybookFilmStage } from "${at("storybook-film-react")}";`, `import { inspectStorybook, planStorybook, storyTranscript, type StorybookFilm } from "${at("storybook-film")}";`,
+        `import { storyFigure, type PaintedCut } from "${at("story-figure")}";`, `import { Furigana, StorySubtitle } from "${at("furigana")}";`, `import { parseRuby, phonesOf } from "${at("japanese-text")}";`, `import { mixStory } from "${at("story-sound")}";`,
+        `import { composeStory, joinStories, type PlayLibrary, type StoryPlay } from "${at("story-play")}";`],
+      componentName: "StorybookFilmConsumerExample",
+      component: `const street = { src: "street.webp", width: 1600, height: 700 };
+const film: StorybookFilm = { id: "greeting", title: "A greeting", size: { width: 1920, height: 1080 }, fps: 24, frame: { x: 48, y: 40, width: 1824, height: 810 }, cast: {}, props: {}, lines: {},
+  sets: { street: { home: { at: [0, -110], tall: 250 }, layers: [{ id: "street", image: street, x: -300, y: -240, width: 600, height: 262, depth: 0.9 }] } },
+  shots: [{ id: "street", label: "A street.", set: "street", seconds: 2, camera: [{ t: 0, at: [0, -110], tall: 250 }] },
+    { id: "again", label: "The same street, closer.", set: "street", seconds: 3, camera: [{ t: 0, at: [0, -110], tall: 210 }], transition: { kind: "wash", seconds: 0.6 }, words: [{ text: "{京都|きょうと}", gloss: "Kyoto", place: [960, 200], size: 80 }] }] };
+const library: PlayLibrary = { cast: {}, sets: film.sets, stages: { street: { set: "street", about: "A quiet street.", spots: { door: { at: [0, 0] } }, frames: { wide: { at: [0, -110], tall: 250 } } } }, props: {}, lines: {}, size: film.size, frame: film.frame, fps: 24 };
+const play: StoryPlay = { id: "walk", title: "A walk", scenes: [{ id: "street", stage: "street", cast: {}, beats: [{ shot: { frame: "wide", about: "The street." }, seconds: 2 }] }] };
+export function StorybookFilmConsumerExample() {
+  const episode = joinStories("episode", "An episode", [film, composeStory(play, library)]);
+  const plan = planStorybook(film), tokens = parseRuby("{店|みせ}[は|わ] どこ です か"), figure = (cut: PaintedCut) => storyFigure(cut, file => "/art/" + file);
+  return <div data-issues={inspectStorybook(film).length} data-phones={phonesOf(tokens).length} data-silent={mixStory(plan, () => undefined).missing.length} data-figure={figure.length} data-shots={episode.shots.length} title={String(storyTranscript(plan).length)}>
+    <StorybookFilmStage film={film} frame={30} still />
+    <StorybookFilmPlayer film={film} loop speeds={[1, 0.75]} />
+    <Furigana tokens={tokens} token={1} />
+    <StorySubtitle speaker={parseRuby("Guest")} tokens={tokens} gloss="Where is the shop?" />
+  </div>;
+}`,
+    };
+  },
   "universal-rig": (specifier) => {
     const at = name => specifier.replace(/rig-spec$/, name);
     return {
