@@ -247,7 +247,8 @@ export type RigDriver = RigWindow & (
       /** Share of particles that tumble instead of fluttering (0..1), default .4. */ tumble?: number;
       /** Random spread of speeds, swing and timing (0..1), default .35. */ vary?: number;
       /** Roll about the particle's own length, radians per frame (petals curl and twist as they fall). */ roll?: number;
-      /** Fade in and out over this many frames, default 10. */ fade?: number; seed?: number }
+      /** Fade in and out over this many frames, default 10. */ fade?: number; seed?: number;
+      /** Its size when it comes and when it goes (steam widens), default 1 and 1. */ grow?: readonly [number, number] }
   /**
    * Hanging chains that touch the body (long hair, a sash, a scarf end). It runs after every other driver. First `hang`
    * (0..1) keeps the chain pointing down when its parent tilts away from its rest pose: 1 hangs like hair or a rope, 0
