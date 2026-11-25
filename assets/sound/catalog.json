@@ -2,6 +2,70 @@
  "schemaVersion": 1,
  "sounds": [
   {
+   "id": "bag-plastic-rustle-1",
+   "path": "recorded/bag-plastic-rustle-1.wav",
+   "sha256": "384906c0f7c6c27c2f1fa462331f3b630fbdc94a788bec1e3fb14b2cdae5146a",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 81600,
+   "peakSeconds": 0.0592,
+   "loudnessLufs": -36.5,
+   "tags": [
+    "bag",
+    "plastic",
+    "rustle",
+    "crinkle",
+    "shopping",
+    "foley",
+    "recorded"
+   ],
+   "material": "plastic",
+   "description": "A thin plastic shopping bag shaken open: a dry rustle.",
+   "sourceUrl": "https://freesound.org/people/SpliceSound/sounds/218337/",
+   "author": "SpliceSound",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-25"
+  },
+  {
+   "id": "bag-plastic-rustle-2",
+   "path": "recorded/bag-plastic-rustle-2.wav",
+   "sha256": "e0c6004728d013bffd4d39421c8f092431a99b5bc804d37e919ab754900e5fea",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 45360,
+   "peakSeconds": 0.4575,
+   "loudnessLufs": -30.8,
+   "tags": [
+    "bag",
+    "plastic",
+    "rustle",
+    "crinkle",
+    "shopping",
+    "foley",
+    "recorded"
+   ],
+   "material": "plastic",
+   "description": "A thin plastic shopping bag taken in the hand: one short rustle.",
+   "sourceUrl": "https://freesound.org/people/SpliceSound/sounds/218337/",
+   "author": "SpliceSound",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-25"
+  },
+  {
    "id": "bark-dog-1",
    "path": "recorded/bark-dog-1.wav",
    "sha256": "6f2a238ad6b1906b8335c337efd30525e9984e28da26e5429bfde676f0388566",
@@ -660,6 +724,38 @@
    "verifiedAt": "2026-11-15"
   },
   {
+   "id": "beep-scanner-shop",
+   "path": "recorded/beep-scanner-shop.wav",
+   "sha256": "5d2a6589248c526e06302d951fd7ebbc06f819bd5564679179680ab969b3dd9c",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 25680,
+   "peakSeconds": 0.395,
+   "loudnessLufs": -23.8,
+   "tags": [
+    "beep",
+    "scanner",
+    "barcode",
+    "shop",
+    "checkout",
+    "register",
+    "ui",
+    "recorded"
+   ],
+   "description": "A shop's hand scanner reading a bar code: a trigger click and one short beep.",
+   "sourceUrl": "https://freesound.org/people/Beetlemuse/sounds/529825/",
+   "author": "Beetlemuse",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-25"
+  },
+  {
    "id": "bell-temple-large",
    "path": "recorded/bell-temple-large.wav",
    "sha256": "66aa44d6bc91f7ac6c0637824116d2c5542850eb8060d7e10718f24032cb0ccc",
@@ -1001,6 +1097,71 @@
    "verifiedAt": "2026-11-15"
   },
   {
+   "id": "coin-slot-1",
+   "path": "recorded/coin-slot-1.wav",
+   "sha256": "58b01088c69b513f0193108b32d279f992c9d71e23131f4b45284fc5fc521739",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 78960,
+   "peakSeconds": 1.041,
+   "loudnessLufs": -25.7,
+   "tags": [
+    "coin",
+    "money",
+    "slot",
+    "vending",
+    "machine",
+    "insert",
+    "metal",
+    "recorded"
+   ],
+   "material": "metal",
+   "description": "A coin put into a machine: it rolls down the chute and lands with two clinks.",
+   "sourceUrl": "https://freesound.org/people/Krokulator/sounds/696745/",
+   "author": "Krokulator",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-25"
+  },
+  {
+   "id": "coin-slot-2",
+   "path": "recorded/coin-slot-2.wav",
+   "sha256": "99a4bb9bfed7efa2ff51f2f725122b0ec8572a073fa1c0890bb7fa46a6d0fdbb",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 73920,
+   "peakSeconds": 0.1141,
+   "loudnessLufs": -21.6,
+   "tags": [
+    "coin",
+    "money",
+    "slot",
+    "machine",
+    "insert",
+    "metal",
+    "recorded"
+   ],
+   "material": "metal",
+   "description": "A coin put into a machine and falling through it: a run of bright clinks.",
+   "sourceUrl": "https://freesound.org/people/bassmosphere/sounds/384700/",
+   "author": "bassmosphere",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-25"
+  },
+  {
    "id": "creak-wood",
    "path": "recorded/creak-wood.wav",
    "sha256": "910b155e1afc5d11ed9260e57149fdbee4e1dde966b98cca29da954c097405e9",
@@ -1028,6 +1189,37 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "door-slide-wood",
+   "path": "recorded/door-slide-wood.wav",
+   "sha256": "1b91bdf19c6b7b6f64367d2dce885493980531d066ddc5f3971ad28ac818b832",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 73920,
+   "peakSeconds": 0.7429,
+   "loudnessLufs": -21.2,
+   "tags": [
+    "door",
+    "slide",
+    "wood",
+    "open",
+    "foley",
+    "recorded"
+   ],
+   "material": "wood",
+   "description": "A wooden sliding door drawn open: a soft rolling rub that swells and stops.",
+   "sourceUrl": "https://freesound.org/people/Diramus/sounds/346776/",
+   "author": "Diramus",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-25"
   },
   {
    "id": "draw-sword",
@@ -2905,6 +3097,67 @@
    ],
    "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
    "verifiedAt": "2026-11-07"
+  },
+  {
+   "id": "music-kalimba-1",
+   "path": "recorded/music-kalimba-1.wav",
+   "sha256": "8b3ae631d2adfc0ddef87ecfd061c060e1e471cff3f12e1eeb3a4b6c3a1f9078",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 546960,
+   "peakSeconds": 2.8472,
+   "loudnessLufs": -20.6,
+   "tags": [
+    "music",
+    "kalimba",
+    "calm",
+    "warm",
+    "phrase",
+    "recorded"
+   ],
+   "description": "A slow kalimba phrase, eleven seconds, that rings away at its end.",
+   "sourceUrl": "https://freesound.org/people/ondrosik/sounds/728663/",
+   "author": "ondrosik",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-25"
+  },
+  {
+   "id": "music-kalimba-2",
+   "path": "recorded/music-kalimba-2.wav",
+   "sha256": "1eacfbd293e960202f95cea2f25bc4ad5b79011186739ee1c1e0ca1bedd1f531",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 817440,
+   "peakSeconds": 2.6769,
+   "loudnessLufs": -22,
+   "tags": [
+    "music",
+    "kalimba",
+    "calm",
+    "warm",
+    "phrase",
+    "ending",
+    "recorded"
+   ],
+   "description": "A kalimba phrase that fills in and comes to a close, seventeen seconds.",
+   "sourceUrl": "https://freesound.org/people/ondrosik/sounds/728663/",
+   "author": "ondrosik",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-25"
   },
   {
    "id": "paper-fold",
