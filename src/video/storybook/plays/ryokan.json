@@ -91,19 +91,19 @@
      "give": [{"prop": "passport", "to": "ema:hands", "scale": 1.1, "grip": [0.5, 0.84]}]
     },
     {
-     "shot": {"id": "takes", "on": "haruka", "size": "waist", "without": ["ema", "daniel"]},
+     "shot": {"id": "takes", "on": "haruka", "without": ["ema", "daniel"], "frame": {"at": [16, -150], "tall": 72}},
      "seconds": 1.5,
-     "do": [{"who": "haruka", "act": "receive", "to": [10, -118], "grip": "under", "apart": 5, "in": 0.45, "at": -0.6, "for": 2.6}],
+     "do": [{"who": "haruka", "act": "receive", "to": [10, -128], "grip": "under", "apart": 5, "in": 0.45, "at": -0.6, "for": 2.6}],
      "give": [{"prop": "passport", "to": "haruka:hands", "scale": 0.8, "grip": [0.5, 0.84]}],
      "after": 0
     },
     {
-     "shot": {"id": "key", "on": "haruka", "size": "waist", "without": ["ema", "daniel"]},
+     "shot": {"id": "key", "on": "haruka", "without": ["ema", "daniel"], "frame": {"at": [16, -150], "tall": 72}},
      "say": "room",
      "to": "daniel",
      "mood": "happy",
-     "do": [{"who": "haruka", "act": "offer", "to": [10, -118], "grip": "under", "apart": 5, "in": 0.5, "at": 1.9, "for": 3.2}],
-     "give": [{"prop": "passport", "to": "haruka:hands", "hidden": true}, {"prop": "key", "to": "haruka:hands", "scale": 0.8, "grip": [0.5, 0.6], "at": 2}],
+     "do": [{"who": "haruka", "act": "offer", "to": [10, -129], "grip": "under", "apart": 5, "in": 0.5, "at": 1.9, "for": 3.2}],
+     "give": [{"prop": "passport", "to": "haruka:hands", "hidden": true}, {"prop": "key", "to": "haruka:hands", "scale": 0.9, "grip": [0.5, 0.6], "at": 2}],
      "sounds": [{"sound": "bell-high", "at": 1.6, "gain": -28}]
     },
     {
@@ -116,12 +116,12 @@
     },
     {"shot": {"id": "ask", "on": "ema", "size": "chest", "from": "door"}, "say": "breakfast", "to": "haruka"},
     {
-     "shot": {"id": "seven", "on": "haruka", "size": "waist"},
+     "shot": {"id": "seven", "on": "haruka", "frame": {"at": [16, -150], "tall": 72}},
      "say": "seven",
      "to": "ema",
      "mood": "happy",
-     "do": [{"who": "haruka", "act": "offer", "to": [10, -122], "grip": "under", "apart": 10, "in": 0.5, "at": -0.7, "for": 5, "degrees": 3}],
-     "give": [{"prop": "breakfast", "to": "haruka:hands", "scale": 0.8, "grip": [0.5, 0.88]}],
+     "do": [{"who": "haruka", "act": "offer", "to": [10, -128], "grip": "under", "apart": 11.5, "in": 0.5, "at": -0.7, "for": 5, "degrees": 3}],
+     "give": [{"prop": "breakfast", "to": "haruka:hands", "scale": 0.8, "grip": [0.5, 0.97]}],
      "after": 0.6
     }
    ]

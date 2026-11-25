@@ -161,10 +161,10 @@
    "frames": {"all": {"at": [0, -84], "tall": 186}, "window": {"at": [0, -92], "tall": 140}},
    "grade": {"tint": [0.94, 0.87, 0.84]},
    "spots": {
-    "view-1": {"at": [-44, -52], "view": "rear", "toward": [-20, -100]},
-    "view-2": {"at": [40, -52], "view": "rear", "toward": [20, -100]},
-    "view-3": {"at": [-13, -54], "view": "rear", "toward": "window"},
-    "view-4": {"at": [13, -54], "view": "rear", "toward": "window"}
+    "view-1": {"at": [-44, -40], "view": "rear", "toward": [-20, -100]},
+    "view-2": {"at": [40, -40], "view": "rear", "toward": [20, -100]},
+    "view-3": {"at": [-13, -42], "view": "rear", "toward": "window"},
+    "view-4": {"at": [13, -42], "view": "rear", "toward": "window"}
    }
   }
  }
