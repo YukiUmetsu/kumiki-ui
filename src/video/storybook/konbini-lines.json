@@ -1,0 +1,15 @@
+{
+  "voices": {
+    "ema": { "fish": "5da7f24e9e274f91b2b677669c818ce9", "speed": 0.7, "pace": 5.6 },
+    "riku": { "fish": "dcd9abe430854e82b46451d13736dd6e", "speed": 0.7, "pace": 5.8 }
+  },
+  "lines": [
+    { "id": "welcome", "speaker": "riku", "ja": "いらっしゃいませ！", "en": "Welcome!" },
+    { "id": "onigiri-please", "speaker": "ema", "ja": "すみません。 おにぎりを {一|ひと}つ ください。", "en": "Excuse me. One rice ball, please.", "speak": "すみません。おにぎりを、ひとつください。" },
+    { "id": "price", "speaker": "riku", "ja": "はい。 {百|ひゃく}{五十|ごじゅう}{円|えん} です。", "en": "Sure. That’s 150 yen.", "speak": "はい。百五十円です。" },
+    { "id": "bag", "speaker": "riku", "ja": "{袋|ふくろ}[は|わ] いりますか。", "en": "Do you need a bag?", "speak": "袋は、いりますか？", "gap": 0.2 },
+    { "id": "yes-please", "speaker": "ema", "ja": "はい、 お{願|ねが}いします。", "en": "Yes, please.", "speak": "はい、お願いします。" },
+    { "id": "thanks", "speaker": "ema", "ja": "ありがとうございます。", "en": "Thank you." },
+    { "id": "thanks-again", "speaker": "riku", "ja": "ありがとうございました！", "en": "Thank you very much!" }
+  ]
+}

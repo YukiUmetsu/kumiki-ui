@@ -1,0 +1,885 @@
+{
+ "props": {
+  "breakfast": {
+   "name": "朝ご飯の時間",
+   "piece": "ryokan/card"
+  }
+ },
+ "sets": {
+  "ryokan-gate": {
+   "home": {
+    "at": [
+     0,
+     -139
+    ],
+    "tall": 320
+   },
+   "ground": {
+    "horizon": [
+     0,
+     -135
+    ],
+    "distance": 330
+   },
+   "layers": [
+    {
+     "piece": "ryokan/gate",
+     "z": -100
+    },
+    {
+     "piece": "ryokan/noren-1",
+     "z": -95,
+     "sway": {
+      "pivot": [
+       0.5,
+       0.02
+      ],
+      "degrees": 0.45,
+      "period": 5.35,
+      "phase": 0.17
+     }
+    },
+    {
+     "piece": "ryokan/noren-2",
+     "z": -95,
+     "sway": {
+      "pivot": [
+       0.5,
+       0.02
+      ],
+      "degrees": 0.45,
+      "period": 5.7,
+      "phase": 0.34
+     }
+    },
+    {
+     "piece": "ryokan/noren-3",
+     "z": -95,
+     "sway": {
+      "pivot": [
+       0.5,
+       0.02
+      ],
+      "degrees": 0.45,
+      "period": 6.05,
+      "phase": 0.51
+     }
+    },
+    {
+     "piece": "ryokan/noren-4",
+     "z": -95,
+     "sway": {
+      "pivot": [
+       0.5,
+       0.02
+      ],
+      "degrees": 0.45,
+      "period": 6.4,
+      "phase": 0.68
+     }
+    }
+   ]
+  },
+  "ryokan-hall": {
+   "home": {
+    "at": [
+     0,
+     -112
+    ],
+    "tall": 270
+   },
+   "ground": {
+    "horizon": [
+     0,
+     -150
+    ],
+    "distance": 320
+   },
+   "marks": {
+    "slippers": [
+     -72,
+     -44
+    ],
+    "step": [
+     -30,
+     -12
+    ]
+   },
+   "layers": [
+    {
+     "piece": "ryokan/genkan",
+     "z": -100
+    },
+    {
+     "piece": "ryokan/lamp",
+     "z": -95,
+     "sway": {
+      "pivot": [
+       0.5,
+       0.02
+      ],
+      "degrees": 0.5,
+      "period": 6.2
+     }
+    },
+    {
+     "piece": "ryokan/counter",
+     "stands": -23
+    },
+    {
+     "piece": "ryokan/slippers-1",
+     "stands": -40
+    },
+    {
+     "piece": "ryokan/slippers-2",
+     "stands": -40
+    },
+    {
+     "piece": "ryokan/slippers-3",
+     "stands": -40
+    }
+   ]
+  },
+  "ryokan-in": {
+   "home": {
+    "at": [
+     0,
+     -112
+    ],
+    "tall": 270
+   },
+   "ground": {
+    "horizon": [
+     0,
+     -150
+    ],
+    "distance": 320
+   },
+   "marks": {
+    "slippers": [
+     -72,
+     -44
+    ],
+    "step": [
+     -30,
+     -12
+    ]
+   },
+   "layers": [
+    {
+     "piece": "ryokan/genkan",
+     "z": -100
+    },
+    {
+     "piece": "ryokan/lamp",
+     "z": -95,
+     "sway": {
+      "pivot": [
+       0.5,
+       0.02
+      ],
+      "degrees": 0.5,
+      "period": 6.2
+     }
+    },
+    {
+     "piece": "ryokan/counter",
+     "stands": -23
+    },
+    {
+     "piece": "ryokan/slippers-1",
+     "stands": -40
+    },
+    {
+     "piece": "ryokan/slippers-2",
+     "stands": -40
+    },
+    {
+     "piece": "ryokan/slippers-3",
+     "stands": -40
+    },
+    {
+     "piece": "ryokan/shoe-daniel-l",
+     "stands": -3
+    },
+    {
+     "piece": "ryokan/shoe-daniel-r",
+     "stands": -3
+    },
+    {
+     "piece": "ryokan/shoe-emma-l",
+     "stands": -3
+    },
+    {
+     "piece": "ryokan/shoe-emma-r",
+     "stands": -3
+    },
+    {
+     "piece": "ryokan/shoe-sophie-l",
+     "stands": -3
+    },
+    {
+     "piece": "ryokan/shoe-sophie-r",
+     "stands": -3
+    },
+    {
+     "piece": "ryokan/shoe-leo-l",
+     "stands": -3
+    },
+    {
+     "piece": "ryokan/shoe-leo-r",
+     "stands": -3
+    }
+   ]
+  },
+  "ryokan-door": {
+   "home": {
+    "at": [
+     0,
+     -112
+    ],
+    "tall": 270
+   },
+   "ground": {
+    "horizon": [
+     0,
+     -150
+    ],
+    "distance": 320
+   },
+   "marks": {
+    "step": [
+     0,
+     16
+    ]
+   },
+   "layers": [
+    {
+     "piece": "ryokan/door",
+     "z": -100
+    }
+   ]
+  },
+  "ryokan-room": {
+   "home": {
+    "at": [
+     0,
+     -84
+    ],
+    "tall": 186
+   },
+   "ground": {
+    "horizon": [
+     0,
+     -117
+    ],
+    "distance": 330
+   },
+   "marks": {
+    "window": [
+     0,
+     -104
+    ],
+    "table": [
+     0,
+     -54
+    ]
+   },
+   "layers": [
+    {
+     "piece": "ryokan/room",
+     "z": -100
+    },
+    {
+     "piece": "ryokan/table",
+     "stands": -10.75
+    }
+   ]
+  },
+  "ryokan-night": {
+   "home": {
+    "at": [
+     0,
+     -84
+    ],
+    "tall": 186
+   },
+   "ground": {
+    "horizon": [
+     0,
+     -117
+    ],
+    "distance": 330
+   },
+   "marks": {
+    "window": [
+     0,
+     -104
+    ],
+    "table": [
+     0,
+     -54
+    ]
+   },
+   "layers": [
+    {
+     "piece": "ryokan/room",
+     "z": -100
+    },
+    {
+     "piece": "ryokan/night",
+     "z": -99
+    },
+    {
+     "piece": "ryokan/table",
+     "stands": -10.75
+    }
+   ]
+  }
+ },
+ "stages": {
+  "ryokan-gate": {
+   "set": "ryokan-gate",
+   "about": "The gate of an inn in the evening.",
+   "soft": 1,
+   "bounds": [
+    -300,
+    -303,
+    296,
+    25
+   ],
+   "steps": {
+    "takes": [
+     "stone-1",
+     "stone-2",
+     "stone-3",
+     "stone-4"
+    ],
+    "gain": -24
+   },
+   "bed": [
+    {
+     "sound": "crickets",
+     "gain": -26
+    }
+   ],
+   "spots": {
+    "way-1": {
+     "at": [
+      -66,
+      16
+     ],
+     "view": "rear"
+    },
+    "way-2": {
+     "at": [
+      -18,
+      10
+     ],
+     "view": "rear"
+    },
+    "way-3": {
+     "at": [
+      26,
+      16
+     ],
+     "view": "rear"
+    },
+    "way-4": {
+     "at": [
+      62,
+      12
+     ],
+     "view": "rear"
+    },
+    "gate-1": {
+     "at": [
+      -34,
+      -30
+     ],
+     "view": "rear"
+    },
+    "gate-2": {
+     "at": [
+      -8,
+      -33
+     ],
+     "view": "rear"
+    },
+    "gate-3": {
+     "at": [
+      16,
+      -30
+     ],
+     "view": "rear"
+    },
+    "gate-4": {
+     "at": [
+      36,
+      -32
+     ],
+     "view": "rear"
+    }
+   }
+  },
+  "ryokan-hall": {
+   "set": "ryokan-hall",
+   "about": "The entrance hall of an inn: a stone floor, a step, and a floor of polished wood.",
+   "soft": 0.9,
+   "bounds": [
+    -253,
+    -252,
+    249,
+    29
+   ],
+   "steps": {
+    "takes": [
+     "wood-1",
+     "wood-2",
+     "wood-3",
+     "wood-4"
+    ],
+    "gain": -24
+   },
+   "bed": [
+    {
+     "sound": "crickets",
+     "gain": -34
+    }
+   ],
+   "frames": {
+    "all": {
+     "at": [
+      0,
+      -112
+     ],
+     "tall": 268
+    }
+   },
+   "spots": {
+    "host": {
+     "at": [
+      10,
+      -50
+     ],
+     "view": "front",
+     "scale": 1.2,
+     "pose": [
+      {
+       "act": "fold"
+      }
+     ],
+     "toward": [
+      0,
+      -110
+     ],
+     "wear": [
+      "sock"
+     ]
+    },
+    "guest-1": {
+     "at": [
+      -112,
+      12
+     ],
+     "view": "rear",
+     "toward": "haruka"
+    },
+    "guest-2": {
+     "at": [
+      -66,
+      16
+     ],
+     "view": "rear",
+     "toward": "haruka"
+    },
+    "guest-3": {
+     "at": [
+      82,
+      14
+     ],
+     "view": "rear",
+     "toward": "haruka"
+    },
+    "guest-4": {
+     "at": [
+      118,
+      10
+     ],
+     "view": "rear",
+     "toward": "haruka"
+    }
+   },
+   "sides": {
+    "door": {
+     "set": "ryokan-door",
+     "about": "The family at the door.",
+     "soft": 1,
+     "bounds": [
+      -250,
+      -252,
+      246,
+      29
+     ],
+     "frames": {
+      "all": {
+       "at": [
+        -8,
+        -92
+       ],
+       "tall": 206
+      }
+     },
+     "spots": {
+      "guest-1": {
+       "at": [
+        -40,
+        -6
+       ],
+       "view": "front",
+       "toward": [
+        20,
+        -130
+       ]
+      },
+      "guest-2": {
+       "at": [
+        12,
+        -10
+       ],
+       "view": "front",
+       "toward": [
+        20,
+        -130
+       ]
+      },
+      "guest-3": {
+       "at": [
+        -84,
+        2
+       ],
+       "view": "front",
+       "toward": [
+        20,
+        -120
+       ]
+      },
+      "guest-4": {
+       "at": [
+        54,
+        4
+       ],
+       "view": "front",
+       "toward": [
+        20,
+        -120
+       ]
+      }
+     }
+    }
+   }
+  },
+  "ryokan-in": {
+   "set": "ryokan-in",
+   "about": "The entrance hall of an inn. Shoes are on the stone floor, toes to the door.",
+   "soft": 0.9,
+   "bounds": [
+    -253,
+    -252,
+    249,
+    29
+   ],
+   "wear": [
+    "sock"
+   ],
+   "steps": {
+    "takes": [
+     "wood-1",
+     "wood-2",
+     "wood-3",
+     "wood-4"
+    ],
+    "gain": -24
+   },
+   "bed": [
+    {
+     "sound": "crickets",
+     "gain": -34
+    }
+   ],
+   "frames": {
+    "step": {
+     "at": [
+      -24,
+      -24
+     ],
+     "tall": 82
+    },
+    "rack": {
+     "at": [
+      -40,
+      -88
+     ],
+     "tall": 128
+    }
+   },
+   "spots": {
+    "host": {
+     "at": [
+      10,
+      -50
+     ],
+     "view": "front",
+     "scale": 1.2,
+     "pose": [
+      {
+       "act": "fold"
+      }
+     ],
+     "toward": [
+      0,
+      -110
+     ],
+     "wear": [
+      "sock"
+     ]
+    },
+    "by-slippers": {
+     "at": [
+      0,
+      -46
+     ],
+     "view": "front",
+     "scale": 1.2,
+     "toward": "slippers"
+    },
+    "guest-1": {
+     "at": [
+      -112,
+      -34
+     ],
+     "view": "rear",
+     "scale": 1.2,
+     "toward": "haruka"
+    },
+    "guest-2": {
+     "at": [
+      -66,
+      -33
+     ],
+     "view": "rear",
+     "scale": 1.2,
+     "toward": "haruka"
+    }
+   },
+   "sides": {
+    "door": {
+     "set": "ryokan-door",
+     "about": "The family, seen from the wooden floor.",
+     "soft": 1.2,
+     "bounds": [
+      -250,
+      -252,
+      246,
+      29
+     ],
+     "frames": {
+      "all": {
+       "at": [
+        -8,
+        -110
+       ],
+       "tall": 150
+      }
+     },
+     "spots": {
+      "guest-1": {
+       "at": [
+        -46,
+        20
+       ],
+       "view": "front",
+       "toward": [
+        20,
+        -130
+       ]
+      },
+      "guest-2": {
+       "at": [
+        18,
+        18
+       ],
+       "view": "front",
+       "toward": [
+        20,
+        -130
+       ]
+      }
+     }
+    }
+   }
+  },
+  "ryokan-room": {
+   "set": "ryokan-room",
+   "about": "A room with a floor of tatami mats and a garden behind the window.",
+   "soft": 0.6,
+   "bounds": [
+    -183,
+    -180,
+    180,
+    20
+   ],
+   "wear": [
+    "sock"
+   ],
+   "steps": {
+    "takes": [
+     "wood-1",
+     "wood-2",
+     "wood-3",
+     "wood-4"
+    ],
+    "gain": -34
+   },
+   "frames": {
+    "all": {
+     "at": [
+      0,
+      -83
+     ],
+     "tall": 190
+    },
+    "left": {
+     "at": [
+      -50,
+      -86
+     ],
+     "tall": 132
+    }
+   },
+   "spots": {
+    "mat-1": {
+     "at": [
+      52,
+      -43
+     ],
+     "view": "front",
+     "toward": [
+      -60,
+      -110
+     ]
+    },
+    "mat-2": {
+     "at": [
+      -74,
+      -46
+     ],
+     "view": "front",
+     "toward": [
+      60,
+      -110
+     ]
+    },
+    "mat-3": {
+     "at": [
+      -118,
+      -3
+     ],
+     "view": "front",
+     "toward": "viewer"
+    },
+    "mat-4": {
+     "at": [
+      118,
+      -5
+     ],
+     "view": "front",
+     "toward": "window"
+    }
+   }
+  },
+  "ryokan-night": {
+   "set": "ryokan-night",
+   "about": "The room at night. The family looks at the garden.",
+   "soft": 0.5,
+   "bounds": [
+    -183,
+    -180,
+    180,
+    20
+   ],
+   "wear": [
+    "sock"
+   ],
+   "bed": [
+    {
+     "sound": "crickets",
+     "gain": -20
+    }
+   ],
+   "frames": {
+    "all": {
+     "at": [
+      0,
+      -84
+     ],
+     "tall": 186
+    },
+    "window": {
+     "at": [
+      0,
+      -92
+     ],
+     "tall": 140
+    }
+   },
+   "grade": {
+    "tint": [
+     0.94,
+     0.87,
+     0.84
+    ]
+   },
+   "spots": {
+    "view-1": {
+     "at": [
+      -44,
+      -52
+     ],
+     "view": "rear",
+     "toward": [
+      -20,
+      -100
+     ]
+    },
+    "view-2": {
+     "at": [
+      40,
+      -52
+     ],
+     "view": "rear",
+     "toward": [
+      20,
+      -100
+     ]
+    },
+    "view-3": {
+     "at": [
+      -13,
+      -54
+     ],
+     "view": "rear",
+     "toward": "window"
+    },
+    "view-4": {
+     "at": [
+      13,
+      -54
+     ],
+     "view": "rear",
+     "toward": "window"
+    }
+   }
+  }
+ }
+}

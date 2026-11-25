@@ -1,0 +1,666 @@
+{
+ "id": "hello",
+ "title": "はじめまして — Nice to meet you",
+ "lines": [
+  {
+   "id": "ema",
+   "speaker": "ema",
+   "ja": "はじめまして。 エマです。",
+   "en": "Nice to meet you. I’m Emma."
+  },
+  {
+   "id": "ema-came",
+   "speaker": "ema",
+   "ja": "{家族|かぞく}で {京都|きょうと}に {来|き}ました。",
+   "en": "I came to Kyoto with my family."
+  },
+  {
+   "id": "daniel",
+   "speaker": "daniel",
+   "ja": "ダニエルです。 {写真|しゃしん}が {好|す}きです。",
+   "en": "I’m Daniel. I like photos."
+  },
+  {
+   "id": "sophie",
+   "speaker": "sophie",
+   "ja": "ソフィーです。 {花|はな}が {好|す}きです。",
+   "en": "I’m Sophie. I like flowers."
+  },
+  {
+   "id": "leo",
+   "speaker": "leo",
+   "ja": "レオです！ たこ{焼|や}きが {食|た}べたいです！",
+   "en": "I’m Leo! I want to eat takoyaki!"
+  },
+  {
+   "id": "ema-please",
+   "speaker": "ema",
+   "ja": "よろしく お{願|ねが}いします。",
+   "en": "Please treat us kindly."
+  },
+  {
+   "id": "ema-fun",
+   "speaker": "ema",
+   "ja": "{今日|きょう}[は|わ] {楽|たの}しかったですね。",
+   "en": "Today was fun."
+  },
+  {
+   "id": "daniel-again",
+   "speaker": "daniel",
+   "ja": "また {来|き}ましょう。",
+   "en": "Let’s come again."
+  },
+  {
+   "id": "sophie-yes",
+   "speaker": "sophie",
+   "ja": "はい！",
+   "en": "Yes!"
+  },
+  {
+   "id": "leo-bye",
+   "speaker": "leo",
+   "ja": "またね！",
+   "en": "See you!"
+  },
+  {
+   "id": "ema-what",
+   "speaker": "ema",
+   "ja": "これ[は|わ] {何|なん}ですか。",
+   "en": "What is this?"
+  },
+  {
+   "id": "sophie-ticket",
+   "speaker": "sophie",
+   "ja": "{切符|きっぷ}です。",
+   "en": "It’s a ticket."
+  },
+  {
+   "id": "leo-taxi",
+   "speaker": "leo",
+   "ja": "タクシーです。",
+   "en": "It’s a taxi."
+  },
+  {
+   "id": "sophie-fan",
+   "speaker": "sophie",
+   "ja": "{扇子|せんす}です。",
+   "en": "It’s a folding fan."
+  },
+  {
+   "id": "daniel-key",
+   "speaker": "daniel",
+   "ja": "{鍵|かぎ}です。",
+   "en": "It’s a key."
+  },
+  {
+   "id": "leo-takoyaki",
+   "speaker": "leo",
+   "ja": "たこ{焼|や}きです！",
+   "en": "It’s takoyaki!"
+  }
+ ],
+ "scenes": [
+  {
+   "id": "title",
+   "stage": "paper",
+   "layout": "full",
+   "cast": {
+    "daniel": "cover-1",
+    "ema": "cover-2",
+    "sophie": "cover-3",
+    "leo": "cover-4"
+   },
+   "cover": "none",
+   "drifts": [
+    "petals"
+   ],
+   "bed": [
+    {
+     "sound": "kalimba-1",
+     "at": 0.3,
+     "for": 6
+    }
+   ],
+   "props": [
+    {
+     "prop": "torii",
+     "to": [
+      26,
+      4
+     ],
+     "scale": 1.75,
+     "z": 4
+    },
+    {
+     "prop": "pagoda",
+     "to": [
+      116,
+      2
+     ],
+     "scale": 1.55,
+     "z": 3
+    }
+   ],
+   "beats": [
+    {
+     "shot": {
+      "id": "title",
+      "size": "wide",
+      "move": "hold",
+      "about": "The title: a family’s first time in Kyoto."
+     },
+     "seconds": 4.6,
+     "after": 0,
+     "look": {
+      "daniel": [
+       60,
+       -120
+      ],
+      "ema": [
+       60,
+       -120
+      ],
+      "sophie": [
+       60,
+       -120
+      ],
+      "leo": [
+       60,
+       -120
+      ]
+     },
+     "do": [
+      {
+       "who": "leo",
+       "act": "hop",
+       "at": 1.6
+      }
+     ],
+     "words": [
+      {
+       "text": "はじめての {京都|きょうと}",
+       "gloss": "Our first time in Kyoto",
+       "tone": "title",
+       "place": [
+        900,
+        250
+       ],
+       "size": 128,
+       "at": 0.5,
+       "for": 3.7
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "family",
+   "stage": "paper",
+   "join": "page",
+   "cast": {
+    "daniel": "left",
+    "ema": "mid-left",
+    "sophie": "mid-right",
+    "leo": "right"
+   },
+   "beats": [
+    {
+     "shot": {
+      "id": "hello",
+      "frame": {
+       "at": [
+        0,
+        -88
+       ],
+       "tall": 196
+      }
+     },
+     "say": "ema",
+     "to": "viewer",
+     "mood": "happy",
+     "do": [
+      {
+       "who": "ema",
+       "act": "wave",
+       "hand": "b",
+       "at": 0,
+       "for": 2.8
+      }
+     ],
+     "look": {
+      "daniel": "viewer",
+      "sophie": "viewer",
+      "leo": "viewer"
+     }
+    },
+    {
+     "say": "ema-came",
+     "to": "viewer",
+     "mood": "happy",
+     "do": [
+      {
+       "who": "ema",
+       "act": "explain",
+       "hand": "b",
+       "at": 0.4,
+       "for": 2
+      }
+     ],
+     "look": {
+      "daniel": "ema",
+      "sophie": "ema",
+      "leo": "viewer"
+     }
+    },
+    {
+     "shot": {
+      "id": "daniel",
+      "frame": {
+       "at": [
+        -60,
+        -126
+       ],
+       "tall": 118
+      },
+      "without": [
+       "ema",
+       "sophie",
+       "leo"
+      ]
+     },
+     "say": "daniel",
+     "to": "viewer",
+     "mood": "happy",
+     "give": [
+      {
+       "prop": "camera",
+       "to": [
+        -8,
+        -112
+       ],
+       "scale": 4,
+       "z": 30,
+       "at": 1.2,
+       "over": 0.3
+      }
+     ]
+    },
+    {
+     "shot": {
+      "id": "sophie",
+      "frame": {
+       "at": [
+        62,
+        -100
+       ],
+       "tall": 100
+      },
+      "without": [
+       "ema",
+       "daniel",
+       "leo"
+      ]
+     },
+     "say": "sophie",
+     "to": "viewer",
+     "mood": "happy",
+     "drifts": [
+      "petals"
+     ],
+     "give": [
+      {
+       "prop": "camera",
+       "to": [
+        -8,
+        -112
+       ],
+       "scale": 4,
+       "hidden": true
+      },
+      {
+       "prop": "blossom",
+       "to": [
+        106,
+        -96
+       ],
+       "scale": 0.72,
+       "z": 30,
+       "at": 1.2,
+       "over": 0.3
+      }
+     ]
+    },
+    {
+     "shot": {
+      "id": "leo",
+      "frame": {
+       "at": [
+        124,
+        -80
+       ],
+       "tall": 88
+      },
+      "without": [
+       "ema",
+       "sophie",
+       "daniel"
+      ]
+     },
+     "say": "leo",
+     "to": "viewer",
+     "mood": "amazed",
+     "do": [
+      {
+       "who": "leo",
+       "act": "hop",
+       "at": 0.2
+      }
+     ],
+     "give": [
+      {
+       "prop": "blossom",
+       "to": [
+        106,
+        -96
+       ],
+       "scale": 0.72,
+       "hidden": true
+      },
+      {
+       "prop": "takoyaki",
+       "to": [
+        164,
+        -74
+       ],
+       "scale": 2.1,
+       "z": 30,
+       "at": 1.1,
+       "over": 0.3
+      }
+     ]
+    },
+    {
+     "shot": {
+      "id": "please",
+      "frame": {
+       "at": [
+        0,
+        -88
+       ],
+       "tall": 196
+      }
+     },
+     "say": "ema-please",
+     "to": "viewer",
+     "give": [
+      {
+       "prop": "takoyaki",
+       "to": [
+        164,
+        -74
+       ],
+       "scale": 2.1,
+       "hidden": true
+      }
+     ],
+     "look": {
+      "daniel": "viewer",
+      "ema": "viewer",
+      "sophie": "viewer",
+      "leo": "viewer"
+     },
+     "do": [
+      {
+       "who": "ema",
+       "act": "bow",
+       "at": 1.0,
+       "for": 2
+      },
+      {
+       "who": "daniel",
+       "act": "bow",
+       "at": 1.12,
+       "for": 2
+      },
+      {
+       "who": "sophie",
+       "act": "bow",
+       "at": 1.24,
+       "for": 2
+      },
+      {
+       "who": "leo",
+       "act": "bow",
+       "at": 1.3599999999999999,
+       "for": 2
+      }
+     ],
+     "after": 0.6
+    }
+   ]
+  },
+  {
+   "id": "next",
+   "stage": "paper",
+   "join": "page",
+   "layout": "full",
+   "cast": {},
+   "cover": "none",
+   "drifts": [
+    "petals"
+   ],
+   "beats": [
+    {
+     "shot": {
+      "id": "next",
+      "size": "wide",
+      "move": "hold",
+      "about": "The next day."
+     },
+     "seconds": 2.8,
+     "after": 0,
+     "words": [
+      {
+       "text": "{次|つぎ}の {日|ひ}",
+       "gloss": "The next day",
+       "tone": "title",
+       "place": [
+        960,
+        520
+       ],
+       "size": 120,
+       "at": 0.1,
+       "for": 2.4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "quiz",
+   "quiz": {
+    "ask": "ema-what",
+    "items": [
+     {
+      "prop": "ticket",
+      "answer": "sophie-ticket",
+      "word": "{切符|きっぷ}",
+      "gloss": "a ticket"
+     },
+     {
+      "prop": "taxi",
+      "answer": "leo-taxi",
+      "word": "タクシー",
+      "gloss": "a taxi"
+     },
+     {
+      "prop": "key",
+      "answer": "daniel-key",
+      "word": "{鍵|かぎ}",
+      "gloss": "a key"
+     },
+     {
+      "prop": "fan",
+      "answer": "sophie-fan",
+      "word": "{扇子|せんす}",
+      "gloss": "a folding fan"
+     },
+     {
+      "prop": "takoyaki",
+      "answer": "leo-takoyaki",
+      "word": "たこ{焼|や}き",
+      "gloss": "octopus dumplings"
+     }
+    ]
+   }
+  },
+  {
+   "id": "bye",
+   "stage": "festival-eat",
+   "join": "dissolve",
+   "cast": {
+    "daniel": "by-1",
+    "ema": "by-2",
+    "sophie": "by-3",
+    "leo": "by-4"
+   },
+   "bed": [
+    {
+     "sound": "kalimba-2",
+     "at": 0.3,
+     "for": 10
+    }
+   ],
+   "beats": [
+    {
+     "shot": {
+      "id": "fun",
+      "on": [
+       "ema",
+       "daniel"
+      ],
+      "size": "waist"
+     },
+     "say": "ema-fun",
+     "to": "daniel",
+     "mood": "happy"
+    },
+    {
+     "say": "daniel-again",
+     "to": "ema",
+     "mood": "happy"
+    },
+    {
+     "shot": {
+      "id": "yes",
+      "on": [
+       "sophie",
+       "leo"
+      ],
+      "size": "waist"
+     },
+     "say": "sophie-yes",
+     "to": "ema",
+     "mood": "happy",
+     "react": {
+      "leo": "happy"
+     },
+     "do": [
+      {
+       "who": "leo",
+       "act": "nod",
+       "at": 0.3
+      },
+      {
+       "who": "leo",
+       "act": "hop",
+       "at": 0.7
+      }
+     ],
+     "seconds": 2,
+     "after": 0.3
+    },
+    {
+     "shot": {
+      "id": "bye",
+      "frame": "all"
+     },
+     "say": "leo-bye",
+     "to": "viewer",
+     "mood": "happy",
+     "look": {
+      "daniel": "viewer",
+      "ema": "viewer",
+      "sophie": "viewer",
+      "leo": "viewer"
+     },
+     "do": [
+      {
+       "who": "leo",
+       "act": "wave",
+       "at": 0,
+       "for": 3.2
+      },
+      {
+       "who": "sophie",
+       "act": "wave",
+       "at": 0.2,
+       "for": 3
+      },
+      {
+       "who": "ema",
+       "act": "greet",
+       "at": 0.5
+      },
+      {
+       "who": "daniel",
+       "act": "wave",
+       "hand": "f",
+       "at": 0.5,
+       "for": 2.8
+      }
+     ],
+     "seconds": 3.4,
+     "after": 0.4
+    }
+   ]
+  },
+  {
+   "id": "end",
+   "stage": "paper",
+   "join": "page",
+   "layout": "full",
+   "cast": {},
+   "cover": "none",
+   "drifts": [
+    "petals"
+   ],
+   "beats": [
+    {
+     "shot": {
+      "id": "end",
+      "size": "wide",
+      "move": "hold",
+      "about": "The end."
+     },
+     "seconds": 3.6,
+     "after": 0,
+     "words": [
+      {
+       "text": "おわり",
+       "gloss": "The end",
+       "tone": "title",
+       "place": [
+        960,
+        520
+       ],
+       "size": 128,
+       "at": 0.2,
+       "for": 3.2
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

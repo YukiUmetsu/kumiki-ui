@@ -1,0 +1,99 @@
+{
+ "id": "sophie-front",
+ "height": 138,
+ "painting": "cast/sophie_full_body.png",
+ "sharp": "flat/sophie@2.png",
+ "head": {
+  "box": [
+   300,
+   -14,
+   424
+  ],
+  "sharp": "heads/sophie.png"
+ },
+ "shows": "rest",
+ "faces": {
+  "a": "faces/sophie_a.png",
+  "blink": "faces/sophie_blink.png",
+  "joy": "faces/sophie_happy.png"
+ },
+ "provenance": "The owner's full-body painting, cut; the face paintings were made from it with FLUX.2 Klein 4B (Apache-2.0), run locally.",
+ "kit": "kit-hands.json",
+ "feet": {
+  "kit": "kit-feet.json",
+  "tone": [
+   250,
+   237,
+   220
+  ],
+  "wide": 0.79,
+  "cut": {
+   "f": 1372,
+   "b": 1372
+  }
+ },
+ "fix": {
+  "hole": {
+   "f": {
+    "seam": [
+     [
+      394,
+      372
+     ],
+     [
+      406,
+      430
+     ],
+     [
+      405,
+      478
+     ]
+    ],
+    "side": [
+     [
+      403,
+      518
+     ],
+     [
+      395,
+      540
+     ],
+     [
+      386,
+      566
+     ]
+    ]
+   },
+   "b": {
+    "seam": [
+     [
+      632,
+      372
+     ],
+     [
+      619,
+      430
+     ],
+     [
+      620,
+      478
+     ]
+    ],
+    "side": [
+     [
+      621,
+      520
+     ],
+     [
+      630,
+      541
+     ],
+     [
+      639,
+      566
+     ]
+    ]
+   }
+  }
+ }
+}

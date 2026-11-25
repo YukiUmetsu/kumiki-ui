@@ -1,0 +1,38 @@
+{
+ "id": "first-trip",
+ "title": "はじめての京都 — Our first time in Kyoto",
+ "parts": [
+  {
+   "play": "hello",
+   "scenes": [
+    "title",
+    "family"
+   ]
+  },
+  "station",
+  "taxi",
+  "ryokan",
+  {
+   "play": "hello",
+   "scenes": [
+    "next"
+   ]
+  },
+  "konbini",
+  "shop",
+  "festival",
+  {
+   "play": "hello",
+   "scenes": [
+    "quiz"
+   ]
+  },
+  {
+   "play": "hello",
+   "scenes": [
+    "bye",
+    "end"
+   ]
+  }
+ ]
+}

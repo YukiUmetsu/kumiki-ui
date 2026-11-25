@@ -1,0 +1,166 @@
+{
+ "id": "daniel-front",
+ "height": 182,
+ "painting": "cast/daniel_full_body.png",
+ "sharp": "flat/daniel@2.png",
+ "head": {
+  "box": [
+   358,
+   -7,
+   296
+  ],
+  "sharp": "heads/daniel.png"
+ },
+ "shows": "open",
+ "faces": {
+  "rest": "faces/daniel_rest.png",
+  "a": "faces/daniel_a.png",
+  "blink": "faces/daniel_blink.png",
+  "joy": "faces/daniel_happy.png"
+ },
+ "provenance": "The owner's full-body painting, cut; the face paintings were made from it with FLUX.2 Klein 4B (Apache-2.0), run locally.",
+ "kit": "kit-hands.json",
+ "feet": {
+  "kit": "kit-feet.json",
+  "tone": [
+   124,
+   116,
+   112
+  ],
+  "wide": 0.85,
+  "cut": {
+   "f": [
+    [
+     310,
+     1400
+    ],
+    [
+     340,
+     1401
+    ],
+    [
+     352,
+     1396
+    ],
+    [
+     370,
+     1390
+    ],
+    [
+     390,
+     1387
+    ],
+    [
+     410,
+     1390
+    ],
+    [
+     425,
+     1396
+    ],
+    [
+     436,
+     1402
+    ],
+    [
+     460,
+     1404
+    ]
+   ],
+   "b": [
+    [
+     540,
+     1402
+    ],
+    [
+     568,
+     1402
+    ],
+    [
+     580,
+     1396
+    ],
+    [
+     600,
+     1389
+    ],
+    [
+     620,
+     1386
+    ],
+    [
+     640,
+     1389
+    ],
+    [
+     655,
+     1395
+    ],
+    [
+     662,
+     1400
+    ],
+    [
+     700,
+     1400
+    ]
+   ]
+  }
+ },
+ "fix": {
+  "hole": {
+   "f": {
+    "seam": [
+     [
+      372,
+      298
+     ],
+     [
+      362,
+      360
+     ],
+     [
+      363,
+      420
+     ]
+    ],
+    "side": [
+     [
+      359,
+      467
+     ],
+     [
+      356,
+      500
+     ]
+    ]
+   },
+   "b": {
+    "seam": [
+     [
+      645,
+      298
+     ],
+     [
+      656,
+      360
+     ],
+     [
+      659,
+      420
+     ]
+    ],
+    "side": [
+     [
+      661,
+      467
+     ],
+     [
+      663,
+      500
+     ]
+    ]
+   }
+  }
+ }
+}

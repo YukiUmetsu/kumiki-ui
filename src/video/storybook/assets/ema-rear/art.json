@@ -1,0 +1,1045 @@
+{
+ "art": {
+  "id": "ema-rear",
+  "images": {
+   "foot-b": {
+    "src": "foot-b.webp",
+    "width": 310,
+    "height": 266
+   },
+   "foot-b-sock": {
+    "src": "foot-b-sock.webp",
+    "width": 494,
+    "height": 650
+   },
+   "leg-b": {
+    "src": "leg-b.webp",
+    "width": 343,
+    "height": 904
+   },
+   "leg-b-sock": {
+    "src": "leg-b-sock.webp",
+    "width": 343,
+    "height": 901
+   },
+   "foot-f": {
+    "src": "foot-f.webp",
+    "width": 314,
+    "height": 266
+   },
+   "foot-f-sock": {
+    "src": "foot-f-sock.webp",
+    "width": 494,
+    "height": 650
+   },
+   "leg-f": {
+    "src": "leg-f.webp",
+    "width": 343,
+    "height": 904
+   },
+   "leg-f-sock": {
+    "src": "leg-f-sock.webp",
+    "width": 343,
+    "height": 901
+   },
+   "torso": {
+    "src": "torso.webp",
+    "width": 516,
+    "height": 983
+   },
+   "nape": {
+    "src": "nape.webp",
+    "width": 137,
+    "height": 62
+   },
+   "neck": {
+    "src": "neck.webp",
+    "width": 130,
+    "height": 213
+   },
+   "arm-b": {
+    "src": "arm-b.webp",
+    "width": 273,
+    "height": 636
+   },
+   "hand-b-easy": {
+    "src": "hand-b-easy.webp",
+    "width": 650,
+    "height": 728
+   },
+   "hand-b-open": {
+    "src": "hand-b-open.webp",
+    "width": 364,
+    "height": 624
+   },
+   "hand-b-under": {
+    "src": "hand-b-under.webp",
+    "width": 364,
+    "height": 624
+   },
+   "hand-b-under-front": {
+    "src": "hand-b-under-front.webp",
+    "width": 260,
+    "height": 338
+   },
+   "hand-b-grip": {
+    "src": "hand-b-grip.webp",
+    "width": 312,
+    "height": 468
+   },
+   "hand-b-grip-front": {
+    "src": "hand-b-grip-front.webp",
+    "width": 312,
+    "height": 338
+   },
+   "hand-b-hold": {
+    "src": "hand-b-hold.webp",
+    "width": 338,
+    "height": 546
+   },
+   "hand-b-hold-front": {
+    "src": "hand-b-hold-front.webp",
+    "width": 260,
+    "height": 364
+   },
+   "hand-b-point": {
+    "src": "hand-b-point.webp",
+    "width": 338,
+    "height": 598
+   },
+   "hand-b-guide": {
+    "src": "hand-b-guide.webp",
+    "width": 442,
+    "height": 572
+   },
+   "hand-b-card": {
+    "src": "hand-b-card.webp",
+    "width": 494,
+    "height": 546
+   },
+   "hand-b-fist": {
+    "src": "hand-b-fist.webp",
+    "width": 364,
+    "height": 468
+   },
+   "hand-b-bar": {
+    "src": "hand-b-bar.webp",
+    "width": 390,
+    "height": 416
+   },
+   "hand-b-bar-front": {
+    "src": "hand-b-bar-front.webp",
+    "width": 390,
+    "height": 364
+   },
+   "arm-f": {
+    "src": "arm-f.webp",
+    "width": 267,
+    "height": 636
+   },
+   "hand-f-easy": {
+    "src": "hand-f-easy.webp",
+    "width": 650,
+    "height": 728
+   },
+   "hand-f-open": {
+    "src": "hand-f-open.webp",
+    "width": 364,
+    "height": 624
+   },
+   "hand-f-under": {
+    "src": "hand-f-under.webp",
+    "width": 364,
+    "height": 624
+   },
+   "hand-f-under-front": {
+    "src": "hand-f-under-front.webp",
+    "width": 260,
+    "height": 338
+   },
+   "hand-f-grip": {
+    "src": "hand-f-grip.webp",
+    "width": 312,
+    "height": 468
+   },
+   "hand-f-grip-front": {
+    "src": "hand-f-grip-front.webp",
+    "width": 312,
+    "height": 338
+   },
+   "hand-f-hold": {
+    "src": "hand-f-hold.webp",
+    "width": 338,
+    "height": 546
+   },
+   "hand-f-hold-front": {
+    "src": "hand-f-hold-front.webp",
+    "width": 260,
+    "height": 364
+   },
+   "hand-f-point": {
+    "src": "hand-f-point.webp",
+    "width": 338,
+    "height": 598
+   },
+   "hand-f-guide": {
+    "src": "hand-f-guide.webp",
+    "width": 442,
+    "height": 572
+   },
+   "hand-f-card": {
+    "src": "hand-f-card.webp",
+    "width": 494,
+    "height": 546
+   },
+   "hand-f-fist": {
+    "src": "hand-f-fist.webp",
+    "width": 364,
+    "height": 468
+   },
+   "hand-f-bar": {
+    "src": "hand-f-bar.webp",
+    "width": 390,
+    "height": 416
+   },
+   "hand-f-bar-front": {
+    "src": "hand-f-bar-front.webp",
+    "width": 390,
+    "height": 364
+   },
+   "head": {
+    "src": "head.webp",
+    "width": 742,
+    "height": 734
+   }
+  },
+  "layers": [
+   {
+    "id": "foot-b",
+    "z": 5,
+    "bind": {
+     "kind": "rigid",
+     "bone": "foot-b"
+    },
+    "image": "foot-b",
+    "x": 1.409,
+    "y": -18.316,
+    "width": 22.143,
+    "height": 19.0,
+    "grid": [
+     4,
+     4
+    ],
+    "variants": {
+     "sock": {
+      "image": "foot-b-sock",
+      "x": -9.0,
+      "y": -5.0,
+      "width": 19.0,
+      "height": 25.0,
+      "wrist": 10.84
+     }
+    }
+   },
+   {
+    "id": "leg-b",
+    "z": 6,
+    "bind": {
+     "kind": "limb",
+     "upper": "thigh-b",
+     "lower": "shin-b",
+     "soft": 4.645,
+     "root": {
+      "bone": "pelvis",
+      "soft": 8.166
+     }
+    },
+    "image": "leg-b",
+    "x": -0.975,
+    "y": -77.057,
+    "width": 24.5,
+    "height": 64.571,
+    "grid": [
+     6,
+     26
+    ],
+    "variants": {
+     "sock": {
+      "image": "leg-b-sock",
+      "x": -0.975,
+      "y": -77.057,
+      "width": 24.5,
+      "height": 64.357,
+      "rest": true
+     }
+    }
+   },
+   {
+    "id": "foot-f",
+    "z": 7,
+    "bind": {
+     "kind": "rigid",
+     "bone": "foot-f"
+    },
+    "image": "foot-f",
+    "x": -24.277,
+    "y": -18.316,
+    "width": 22.429,
+    "height": 19.0,
+    "grid": [
+     4,
+     4
+    ],
+    "variants": {
+     "sock": {
+      "image": "foot-f-sock",
+      "x": -10.0,
+      "y": -5.0,
+      "width": 19.0,
+      "height": 25.0,
+      "wrist": -10.84
+     }
+    }
+   },
+   {
+    "id": "leg-f",
+    "z": 8,
+    "bind": {
+     "kind": "limb",
+     "upper": "thigh-f",
+     "lower": "shin-f",
+     "soft": 4.645,
+     "root": {
+      "bone": "pelvis",
+      "soft": 8.166
+     }
+    },
+    "image": "leg-f",
+    "x": -24.168,
+    "y": -77.057,
+    "width": 24.5,
+    "height": 64.571,
+    "grid": [
+     6,
+     26
+    ],
+    "variants": {
+     "sock": {
+      "image": "leg-f-sock",
+      "x": -24.168,
+      "y": -77.057,
+      "width": 24.5,
+      "height": 64.357,
+      "rest": true
+     }
+    }
+   },
+   {
+    "id": "torso",
+    "z": 12,
+    "bind": {
+     "kind": "skin",
+     "bone": "torso",
+     "pulls": [
+      {
+       "bone": "pelvis",
+       "from": [
+        0.245,
+        -100.348
+       ],
+       "to": [
+        0.245,
+        -82.382
+       ]
+      }
+     ]
+    },
+    "image": "torso",
+    "x": -18.858,
+    "y": -137.856,
+    "width": 36.857,
+    "height": 70.214,
+    "grid": [
+     18,
+     20
+    ],
+    "turns": "trunk"
+   },
+   {
+    "id": "nape",
+    "z": 10.5,
+    "bind": {
+     "kind": "skin",
+     "bone": "torso",
+     "pulls": []
+    },
+    "image": "nape",
+    "x": -5.311,
+    "y": -136.881,
+    "width": 9.786,
+    "height": 4.429,
+    "grid": [
+     6,
+     8
+    ],
+    "turns": "trunk"
+   },
+   {
+    "id": "neck",
+    "z": 11,
+    "bind": {
+     "kind": "skin",
+     "bone": "torso",
+     "pulls": [
+      {
+       "bone": "head",
+       "from": [
+        0.735,
+        -134.936
+       ],
+       "to": [
+        0.735,
+        -140.613
+       ]
+      }
+     ]
+    },
+    "image": "neck",
+    "x": -4.01,
+    "y": -145.443,
+    "width": 7.143,
+    "height": 11.703,
+    "grid": [
+     6,
+     10
+    ],
+    "turns": "trunk"
+   },
+   {
+    "id": "arm-b",
+    "z": 16,
+    "bind": {
+     "kind": "limb",
+     "upper": "arm-b",
+     "lower": "fore-b",
+     "soft": 3.941,
+     "root": {
+      "bone": "torso",
+      "soft": 6.49,
+      "hole": [
+       [
+        13.764,
+        -126.802
+       ],
+       [
+        13.764,
+        -121.925
+       ],
+       [
+        13.33,
+        -115.964
+       ]
+      ]
+     }
+    },
+    "image": "arm-b",
+    "x": 13.005,
+    "y": -127.886,
+    "width": 19.5,
+    "height": 45.429,
+    "grid": [
+     8,
+     26
+    ]
+   },
+   {
+    "id": "hand-b",
+    "z": 15.9,
+    "bind": {
+     "kind": "rigid",
+     "bone": "hand-b"
+    },
+    "grid": [
+     6,
+     6
+    ],
+    "variants": {
+     "easy": {
+      "image": "hand-b-easy",
+      "x": -13.0,
+      "y": -7.0,
+      "width": 25.0,
+      "height": 28.0,
+      "wrist": 0.9
+     },
+     "open": {
+      "image": "hand-b-open",
+      "x": -7.0,
+      "y": -4.0,
+      "width": 14.0,
+      "height": 24.0,
+      "wrist": 0
+     },
+     "under": {
+      "image": "hand-b-under",
+      "x": -7.0,
+      "y": -4.0,
+      "width": 14.0,
+      "height": 24.0,
+      "wrist": 0,
+      "front": {
+       "image": "hand-b-under-front",
+       "x": -7.0,
+       "y": 1.0,
+       "width": 10.0,
+       "height": 13.0
+      }
+     },
+     "grip": {
+      "image": "hand-b-grip",
+      "x": -6.0,
+      "y": -4.0,
+      "width": 12.0,
+      "height": 18.0,
+      "wrist": 0,
+      "front": {
+       "image": "hand-b-grip-front",
+       "x": -6.0,
+       "y": 1.0,
+       "width": 12.0,
+       "height": 13.0
+      }
+     },
+     "hold": {
+      "image": "hand-b-hold",
+      "x": -7.0,
+      "y": -4.0,
+      "width": 13.0,
+      "height": 21.0,
+      "wrist": 0,
+      "front": {
+       "image": "hand-b-hold-front",
+       "x": -6.0,
+       "y": 0.0,
+       "width": 10.0,
+       "height": 14.0
+      }
+     },
+     "point": {
+      "image": "hand-b-point",
+      "x": -7.0,
+      "y": -4.0,
+      "width": 13.0,
+      "height": 23.0,
+      "wrist": 0
+     },
+     "guide": {
+      "image": "hand-b-guide",
+      "x": -7.0,
+      "y": -4.0,
+      "width": 17.0,
+      "height": 22.0,
+      "wrist": 0
+     },
+     "card": {
+      "image": "hand-b-card",
+      "x": -7.0,
+      "y": -4.0,
+      "width": 19.0,
+      "height": 21.0,
+      "wrist": 0
+     },
+     "fist": {
+      "image": "hand-b-fist",
+      "x": -7.0,
+      "y": -4.0,
+      "width": 14.0,
+      "height": 18.0,
+      "wrist": 0
+     },
+     "bar": {
+      "image": "hand-b-bar",
+      "x": -8.0,
+      "y": -4.0,
+      "width": 15.0,
+      "height": 16.0,
+      "wrist": 0,
+      "front": {
+       "image": "hand-b-bar-front",
+       "x": -8.0,
+       "y": -2.0,
+       "width": 15.0,
+       "height": 14.0
+      },
+      "over": 0.4
+     }
+    },
+    "image": "hand-b-easy",
+    "x": -13.0,
+    "y": -7.0,
+    "width": 25.0,
+    "height": 28.0,
+    "wrist": 0.9,
+    "space": "bone"
+   },
+   {
+    "id": "arm-f",
+    "z": 17,
+    "bind": {
+     "kind": "limb",
+     "upper": "arm-f",
+     "lower": "fore-f",
+     "soft": 3.941,
+     "root": {
+      "bone": "torso",
+      "soft": 6.49,
+      "hole": [
+       [
+        -13.764,
+        -126.802
+       ],
+       [
+        -13.764,
+        -121.925
+       ],
+       [
+        -13.33,
+        -115.964
+       ]
+      ]
+     }
+    },
+    "image": "arm-f",
+    "x": -31.971,
+    "y": -127.994,
+    "width": 19.071,
+    "height": 45.429,
+    "grid": [
+     8,
+     26
+    ]
+   },
+   {
+    "id": "hand-f",
+    "z": 16.9,
+    "bind": {
+     "kind": "rigid",
+     "bone": "hand-f"
+    },
+    "grid": [
+     6,
+     6
+    ],
+    "variants": {
+     "easy": {
+      "image": "hand-f-easy",
+      "x": -12.0,
+      "y": -7.0,
+      "width": 25.0,
+      "height": 28.0,
+      "wrist": 0.18
+     },
+     "open": {
+      "image": "hand-f-open",
+      "x": -7.0,
+      "y": -4.0,
+      "width": 14.0,
+      "height": 24.0,
+      "wrist": 0
+     },
+     "under": {
+      "image": "hand-f-under",
+      "x": -7.0,
+      "y": -4.0,
+      "width": 14.0,
+      "height": 24.0,
+      "wrist": 0,
+      "front": {
+       "image": "hand-f-under-front",
+       "x": -3.0,
+       "y": 1.0,
+       "width": 10.0,
+       "height": 13.0
+      }
+     },
+     "grip": {
+      "image": "hand-f-grip",
+      "x": -6.0,
+      "y": -4.0,
+      "width": 12.0,
+      "height": 18.0,
+      "wrist": 0,
+      "front": {
+       "image": "hand-f-grip-front",
+       "x": -6.0,
+       "y": 1.0,
+       "width": 12.0,
+       "height": 13.0
+      }
+     },
+     "hold": {
+      "image": "hand-f-hold",
+      "x": -6.0,
+      "y": -4.0,
+      "width": 13.0,
+      "height": 21.0,
+      "wrist": 0,
+      "front": {
+       "image": "hand-f-hold-front",
+       "x": -4.0,
+       "y": 0.0,
+       "width": 10.0,
+       "height": 14.0
+      }
+     },
+     "point": {
+      "image": "hand-f-point",
+      "x": -6.0,
+      "y": -4.0,
+      "width": 13.0,
+      "height": 23.0,
+      "wrist": 0
+     },
+     "guide": {
+      "image": "hand-f-guide",
+      "x": -10.0,
+      "y": -4.0,
+      "width": 17.0,
+      "height": 22.0,
+      "wrist": 0
+     },
+     "card": {
+      "image": "hand-f-card",
+      "x": -12.0,
+      "y": -4.0,
+      "width": 19.0,
+      "height": 21.0,
+      "wrist": 0
+     },
+     "fist": {
+      "image": "hand-f-fist",
+      "x": -7.0,
+      "y": -4.0,
+      "width": 14.0,
+      "height": 18.0,
+      "wrist": 0
+     },
+     "bar": {
+      "image": "hand-f-bar",
+      "x": -7.0,
+      "y": -4.0,
+      "width": 15.0,
+      "height": 16.0,
+      "wrist": 0,
+      "front": {
+       "image": "hand-f-bar-front",
+       "x": -7.0,
+       "y": -2.0,
+       "width": 15.0,
+       "height": 14.0
+      },
+      "over": 0.4
+     }
+    },
+    "image": "hand-f-easy",
+    "x": -12.0,
+    "y": -7.0,
+    "width": 25.0,
+    "height": 28.0,
+    "wrist": 0.18,
+    "space": "bone"
+   },
+   {
+    "id": "head",
+    "z": 20,
+    "bind": {
+     "kind": "rigid",
+     "bone": "head"
+    },
+    "image": "head",
+    "x": -15.064,
+    "y": -163.325,
+    "width": 29.68,
+    "height": 29.36,
+    "grid": [
+     40,
+     40
+    ],
+    "turns": true
+   }
+  ],
+  "trunk": {
+   "at": [
+    0.245,
+    -106.255
+   ],
+   "radius": [
+    16.858,
+    46.137
+   ]
+  },
+  "sockets": {
+   "pen-f": {
+    "bone": "hand-f",
+    "at": [
+     1.481,
+     10.078
+    ],
+    "layer": "hand-f",
+    "angle": 154.0
+   },
+   "pen-b": {
+    "bone": "hand-b",
+    "at": [
+     -1.481,
+     10.078
+    ],
+    "layer": "hand-b",
+    "angle": -154.0
+   },
+   "palm-f": {
+    "bone": "hand-f",
+    "at": [
+     -0.576,
+     7.49
+    ],
+    "layer": "hand-f"
+   },
+   "palm-b": {
+    "bone": "hand-b",
+    "at": [
+     0.576,
+     7.49
+    ],
+    "layer": "hand-b"
+   },
+   "fist-f": {
+    "bone": "hand-f",
+    "at": [
+     1.896,
+     6.616
+    ],
+    "layer": "hand-f"
+   },
+   "fist-b": {
+    "bone": "hand-b",
+    "at": [
+     -1.896,
+     6.616
+    ],
+    "layer": "hand-b"
+   },
+   "ball-f": {
+    "bone": "hand-f",
+    "at": [
+     -0.518,
+     9.462
+    ],
+    "layer": "hand-f"
+   },
+   "ball-b": {
+    "bone": "hand-b",
+    "at": [
+     0.518,
+     9.462
+    ],
+    "layer": "hand-b"
+   },
+   "card-f": {
+    "bone": "hand-f",
+    "at": [
+     -4.841,
+     9.096
+    ],
+    "layer": "hand-f"
+   },
+   "card-b": {
+    "bone": "hand-b",
+    "at": [
+     4.841,
+     9.096
+    ],
+    "layer": "hand-b"
+   },
+   "tip-f": {
+    "bone": "hand-f",
+    "at": [
+     -1.821,
+     15.854
+    ],
+    "layer": "hand-f"
+   },
+   "tip-b": {
+    "bone": "hand-b",
+    "at": [
+     1.821,
+     15.854
+    ],
+    "layer": "hand-b"
+   },
+   "key-f": {
+    "bone": "hand-f",
+    "at": [
+     2.459,
+     10.53
+    ],
+    "layer": "hand-f"
+   },
+   "key-b": {
+    "bone": "hand-b",
+    "at": [
+     -2.459,
+     10.53
+    ],
+    "layer": "hand-b"
+   },
+   "bar-f": {
+    "bone": "hand-f",
+    "at": [
+     -1.42,
+     4.09
+    ],
+    "layer": "hand-f",
+    "angle": 127.0
+   },
+   "bar-b": {
+    "bone": "hand-b",
+    "at": [
+     1.42,
+     4.09
+    ],
+    "layer": "hand-b",
+    "angle": -127.0
+   },
+   "tray-f": {
+    "bone": "hand-f",
+    "at": [
+     0.451,
+     7.5
+    ],
+    "layer": "hand-f",
+    "angle": 85.6
+   },
+   "tray-b": {
+    "bone": "hand-b",
+    "at": [
+     -0.451,
+     7.5
+    ],
+    "layer": "hand-b",
+    "angle": -85.6
+   }
+  }
+ },
+ "joints": {
+  "legB": {
+   "top": [
+    8.128,
+    -79.116
+   ],
+   "mid": [
+    10.946,
+    -46.061
+   ],
+   "end": [
+    11.271,
+    -15.606
+   ],
+   "tip": [
+    14.197,
+    -0.325
+   ]
+  },
+  "legF": {
+   "top": [
+    -8.128,
+    -79.116
+   ],
+   "mid": [
+    -10.946,
+    -46.061
+   ],
+   "end": [
+    -11.271,
+    -15.606
+   ],
+   "tip": [
+    -14.197,
+    -0.325
+   ]
+  },
+  "armB": {
+   "top": [
+    13.547,
+    -124.634
+   ],
+   "mid": [
+    20.158,
+    -102.417
+   ],
+   "end": [
+    28.72,
+    -85.076
+   ],
+   "tip": [
+    36.957,
+    -69.037
+   ]
+  },
+  "armF": {
+   "top": [
+    -13.547,
+    -124.634
+   ],
+   "mid": [
+    -20.158,
+    -102.417
+   ],
+   "end": [
+    -28.72,
+    -85.076
+   ],
+   "tip": [
+    -36.523,
+    -69.145
+   ]
+  },
+  "pelvis": [
+   0.0,
+   -82.382
+  ],
+  "neck": [
+   0.735,
+   -133.395
+  ],
+  "head": [
+   0.735,
+   -142.015
+  ],
+  "crown": [
+   0.735,
+   -163.0
+  ],
+  "ground": 0,
+  "over": 0
+ },
+ "extra": [],
+ "body": {
+  "facing": 270,
+  "palm": [
+   0,
+   7.2
+  ],
+  "stance": {
+   "arm-f": 11,
+   "fore-f": -5,
+   "hand-f": -2,
+   "arm-b": -11,
+   "fore-b": 5,
+   "hand-b": 2,
+   "head": 0,
+   "neck": 0
+  }
+ },
+ "provenance": "The rear view was made from the owner's full-body painting with FLUX.2 Klein 4B (Apache-2.0), run locally, then cut."
+}

@@ -1,0 +1,453 @@
+{
+ "sets": {
+  "paper": {
+   "home": {
+    "at": [
+     0,
+     -90
+    ],
+    "tall": 200
+   },
+   "layers": [
+    {
+     "piece": "konbini/branch",
+     "x": 118,
+     "y": -196,
+     "width": 112,
+     "height": 75,
+     "z": 1,
+     "sway": {
+      "pivot": [
+       1,
+       0
+      ],
+      "degrees": 1.2,
+      "period": 5.2
+     }
+    }
+   ]
+  }
+ },
+ "stages": {
+  "paper": {
+   "set": "paper",
+   "about": "A page of the book.",
+   "bounds": [
+    -300,
+    -215,
+    300,
+    40
+   ],
+   "spots": {
+    "asker": {
+     "at": [
+      -118,
+      6
+     ],
+     "toward": "viewer"
+    },
+    "other": {
+     "at": [
+      118,
+      6
+     ],
+     "toward": "viewer"
+    },
+    "left": {
+     "at": [
+      -92,
+      6
+     ],
+     "view": "front"
+    },
+    "mid-left": {
+     "at": [
+      -32,
+      6
+     ],
+     "view": "front"
+    },
+    "mid-right": {
+     "at": [
+      34,
+      6
+     ],
+     "view": "front"
+    },
+    "right": {
+     "at": [
+      96,
+      6
+     ],
+     "view": "front"
+    },
+    "middle": {
+     "at": [
+      0,
+      6
+     ],
+     "view": "front"
+    },
+    "cover-1": {
+     "at": [
+      -132,
+      8
+     ],
+     "view": "rear",
+     "scale": 0.56
+    },
+    "cover-2": {
+     "at": [
+      -104,
+      8
+     ],
+     "view": "rear",
+     "scale": 0.56
+    },
+    "cover-3": {
+     "at": [
+      -78,
+      8
+     ],
+     "view": "rear",
+     "scale": 0.56
+    },
+    "cover-4": {
+     "at": [
+      -55,
+      8
+     ],
+     "view": "rear",
+     "scale": 0.56
+    }
+   }
+  }
+ },
+ "teach": {
+  "stage": "paper",
+  "asker": "asker",
+  "other": "other",
+  "show": {
+   "at": [
+    0,
+    -82
+   ],
+   "width": 112,
+   "height": 92
+  },
+  "ribbon": "ribbon"
+ },
+ "props": {
+  "ticket": {
+   "name": "切符",
+   "piece": "props/ticket"
+  },
+  "passport": {
+   "name": "パスポート",
+   "piece": "props/passport"
+  },
+  "card": {
+   "name": "カード",
+   "piece": "props/card"
+  },
+  "phone": {
+   "name": "電話",
+   "piece": "props/phone"
+  },
+  "map": {
+   "name": "地図",
+   "piece": "props/map"
+  },
+  "camera": {
+   "name": "カメラ",
+   "piece": "props/camera"
+  },
+  "key": {
+   "name": "鍵",
+   "piece": "props/key"
+  },
+  "slippers": {
+   "name": "スリッパ",
+   "piece": "props/slippers",
+   "shadow": 0.3
+  },
+  "fan": {
+   "name": "扇子",
+   "piece": "props/fan",
+   "views": {
+    "half": "props/fan-half",
+    "narrow": "props/fan-narrow",
+    "closed": "props/fan-closed"
+   }
+  },
+  "gift": {
+   "name": "お土産",
+   "piece": "props/gift",
+   "shadow": 0.3
+  },
+  "paper-bag": {
+   "name": "紙袋",
+   "piece": "props/paper-bag",
+   "hangs": 0.7,
+   "shadow": 0.3
+  },
+  "suitcase": {
+   "name": "スーツケース",
+   "piece": "props/suitcase",
+   "shadow": 0.45
+  },
+  "lantern": {
+   "name": "提灯",
+   "piece": "props/lantern",
+   "hangs": 0.4
+  },
+  "takoyaki": {
+   "name": "たこ焼き",
+   "piece": "props/takoyaki",
+   "hangs": 0,
+   "shadow": 0.3
+  },
+  "ribbon": {
+   "name": "",
+   "piece": "props/ribbon"
+  },
+  "shinkansen": {
+   "name": "新幹線",
+   "piece": "props/shinkansen"
+  },
+  "taxi": {
+   "name": "タクシー",
+   "piece": "props/taxi"
+  },
+  "pagoda": {
+   "name": "お寺",
+   "piece": "props/pagoda"
+  },
+  "torii": {
+   "name": "鳥居",
+   "piece": "props/torii"
+  },
+  "omamori": {
+   "name": "お守り",
+   "piece": "props/omamori"
+  },
+  "arrow-right": {
+   "name": "右",
+   "piece": "props/arrow-right"
+  },
+  "arrow-up": {
+   "name": "まっすぐ",
+   "piece": "props/arrow-up"
+  },
+  "blossom": {
+   "name": "花",
+   "piece": "props/blossom"
+  }
+ },
+ "sounds": {
+  "birds": {
+   "file": "bed-birds-uguisu.wav",
+   "gain": -15
+  },
+  "kalimba-1": {
+   "file": "music-kalimba-1.wav",
+   "gain": -8
+  },
+  "kalimba-2": {
+   "file": "music-kalimba-2.wav",
+   "gain": -8
+  },
+  "crickets": {
+   "file": "bed-crickets-night.wav",
+   "gain": -17
+  },
+  "fireworks": {
+   "file": "bed-fireworks-distant.wav",
+   "gain": -12
+  },
+  "fire": {
+   "file": "bed-fire-hearth.wav",
+   "gain": -18
+  },
+  "page-turns": {
+   "file": "paper-page-turn-1.wav",
+   "lead": 0.0856,
+   "gain": -6
+  },
+  "paper-slides": {
+   "file": "paper-sheet-slide.wav",
+   "for": 0.8,
+   "fade": [
+    0.1,
+    0.3
+   ],
+   "gain": -14
+  },
+  "paper-laid": {
+   "file": "paper-sheet-lay.wav",
+   "gain": -14
+  },
+  "paper-folds": {
+   "file": "paper-fold.wav",
+   "gain": -14
+  },
+  "unrolls": {
+   "file": "paper-unroll.wav",
+   "gain": -14
+  },
+  "flaps": {
+   "file": "flap-wings-1.wav",
+   "gain": -18
+  },
+  "door-slides": {
+   "file": "door-slide-wood.wav",
+   "lead": 0.74,
+   "gain": -10
+  },
+  "bell-high": {
+   "file": "tone-ding-mid.wav",
+   "gain": -13
+  },
+  "bell-low": {
+   "file": "tone-ding-low.wav",
+   "gain": -13
+  },
+  "suzu": {
+   "file": "bells-suzu.wav",
+   "gain": -15
+  },
+  "beep": {
+   "file": "beep-scanner-shop.wav",
+   "lead": 0.36,
+   "gain": -11
+  },
+  "coin": {
+   "file": "coin-slot-1.wav",
+   "gain": -7
+  },
+  "coins": {
+   "file": "coin-slot-2.wav",
+   "lead": 0.11,
+   "gain": -9
+  },
+  "bag-opens": {
+   "file": "bag-plastic-rustle-1.wav",
+   "lead": 0.06,
+   "for": 0.9,
+   "fade": [
+    0,
+    0.4
+   ],
+   "gain": -16
+  },
+  "bag-taken": {
+   "file": "bag-plastic-rustle-2.wav",
+   "lead": 0.4575,
+   "gain": -14
+  },
+  "lid": {
+   "file": "lid-box-wood.wav",
+   "gain": -12
+  },
+  "thud": {
+   "file": "thud-club-1.wav",
+   "gain": -20
+  },
+  "creak": {
+   "file": "creak-wood.wav",
+   "gain": -17
+  },
+  "drop": {
+   "file": "drop-water-small.wav",
+   "gain": -14
+  },
+  "stone-1": {
+   "file": "step-stone-1.wav",
+   "lead": 0.02
+  },
+  "stone-2": {
+   "file": "step-stone-3.wav",
+   "lead": 0.02
+  },
+  "stone-3": {
+   "file": "step-stone-4.wav",
+   "lead": 0.02
+  },
+  "stone-4": {
+   "file": "step-stone-5.wav",
+   "lead": 0.02
+  },
+  "wood-1": {
+   "file": "step-wood-1.wav",
+   "lead": 0.02
+  },
+  "wood-2": {
+   "file": "step-wood-2.wav",
+   "lead": 0.02
+  },
+  "wood-3": {
+   "file": "step-wood-3.wav",
+   "lead": 0.02
+  },
+  "wood-4": {
+   "file": "step-wood-4.wav",
+   "lead": 0.02
+  },
+  "gravel-1": {
+   "file": "step-gravel-1.wav",
+   "lead": 0.02
+  },
+  "gravel-2": {
+   "file": "step-gravel-2.wav",
+   "lead": 0.02
+  },
+  "gravel-3": {
+   "file": "step-gravel-3.wav",
+   "lead": 0.02
+  },
+  "gravel-4": {
+   "file": "step-gravel-4.wav",
+   "lead": 0.02
+  }
+ },
+ "drifts": {
+  "petals": {
+   "id": "petals",
+   "sprites": [
+    "konbini/petal-a",
+    "konbini/petal-b",
+    "konbini/petal-c"
+   ],
+   "count": 16,
+   "area": [
+    -280,
+    -360,
+    620,
+    120
+   ],
+   "size": [
+    4,
+    9
+   ],
+   "life": 150,
+   "flutter": {
+    "fall": 1.5,
+    "wind": 0.95,
+    "swing": 6,
+    "period": 44,
+    "tilt": 0.8,
+    "lift": 1.4,
+    "spin": 0.13,
+    "gust": 0.5,
+    "gustPeriod": 110,
+    "precess": 0.006
+   },
+   "tumble": 0.3,
+   "roll": 0.03,
+   "vary": 0.4,
+   "fade": 0.1,
+   "seed": 5,
+   "z": 45
+  }
+ }
+}

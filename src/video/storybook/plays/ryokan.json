@@ -1,0 +1,694 @@
+{
+ "id": "ryokan",
+ "title": "{旅館|りょかん}で — At the inn",
+ "lines": [
+  {
+   "id": "welcome",
+   "speaker": "haruka",
+   "ja": "いらっしゃいませ。 ようこそ。",
+   "en": "Welcome."
+  },
+  {
+   "id": "booked",
+   "speaker": "daniel",
+   "ja": "{予約|よやく}した ダニエルです。",
+   "en": "I’m Daniel. I have a reservation."
+  },
+  {
+   "id": "waiting",
+   "speaker": "haruka",
+   "ja": "お{待|ま}ちして おりました。",
+   "en": "We have been expecting you."
+  },
+  {
+   "id": "shoes",
+   "speaker": "haruka",
+   "ja": "{靴|くつ}[は|わ] ここで {脱|ぬ}いでください。",
+   "en": "Please take off your shoes here.",
+   "speak": "靴は、ここで脱いでください。"
+  },
+  {
+   "id": "slippers",
+   "speaker": "leo",
+   "ja": "スリッパ！",
+   "en": "Slippers!"
+  },
+  {
+   "id": "passport",
+   "speaker": "haruka",
+   "ja": "パスポートを お{願|ねが}いします。",
+   "en": "Your passport, please."
+  },
+  {
+   "id": "here",
+   "speaker": "ema",
+   "ja": "はい、 どうぞ。",
+   "en": "Here you are."
+  },
+  {
+   "id": "room",
+   "speaker": "haruka",
+   "ja": "お{部屋|へや}[は|わ] {三|さん}{〇|まる}{二|に}です。 {鍵|かぎ}を どうぞ。",
+   "en": "Your room is 302. Here is the key.",
+   "speak": "お部屋は、さんまるにです。鍵を、どうぞ。"
+  },
+  {
+   "id": "thanks",
+   "speaker": "daniel",
+   "ja": "ありがとうございます。",
+   "en": "Thank you."
+  },
+  {
+   "id": "breakfast",
+   "speaker": "ema",
+   "ja": "{朝|あさ}ご{飯|はん}[は|わ] {何時|なんじ}ですか。",
+   "en": "What time is breakfast?"
+  },
+  {
+   "id": "seven",
+   "speaker": "haruka",
+   "ja": "{七時|しちじ}から {九時|くじ}までです。",
+   "en": "From seven to nine."
+  },
+  {
+   "id": "wide",
+   "speaker": "sophie",
+   "ja": "わあ、 {広|ひろ}い！ {畳|たたみ}の {部屋|へや}ですね。",
+   "en": "Wow, it’s big! It’s a tatami room."
+  }
+ ],
+ "scenes": [
+  {
+   "id": "gate",
+   "stage": "ryokan-gate",
+   "cast": {
+    "daniel": "way-1",
+    "ema": "way-2",
+    "sophie": "way-3",
+    "leo": "way-4"
+   },
+   "bed": [
+    {
+     "sound": "kalimba-2",
+     "at": 0.3,
+     "for": 12
+    }
+   ],
+   "beats": [
+    {
+     "shot": {
+      "id": "dusk",
+      "frame": {
+       "at": [
+        0,
+        -142
+       ],
+       "tall": 314
+      },
+      "move": {
+       "frame": {
+        "at": [
+         0,
+         -118
+        ],
+        "tall": 244
+       }
+      },
+      "about": "The family walks to the gate of an inn at dusk."
+     },
+     "go": {
+      "daniel": "gate-1",
+      "ema": "gate-2",
+      "sophie": "gate-3",
+      "leo": "gate-4"
+     },
+     "in": 3,
+     "seconds": 4.6,
+     "look": {
+      "daniel": "ahead",
+      "ema": "ahead",
+      "sophie": "ahead",
+      "leo": "ahead"
+     },
+     "words": [
+      {
+       "text": "{旅館|りょかん}で",
+       "gloss": "At the inn",
+       "tone": "title",
+       "at": 0.8,
+       "for": 3.2
+      }
+     ],
+     "after": 0
+    }
+   ]
+  },
+  {
+   "id": "arrive",
+   "stage": "ryokan-hall",
+   "join": "dissolve",
+   "cast": {
+    "haruka": "host",
+    "daniel": "guest-1",
+    "ema": "guest-2",
+    "sophie": "guest-3",
+    "leo": "guest-4"
+   },
+   "beats": [
+    {
+     "shot": {
+      "id": "welcome",
+      "frame": "all"
+     },
+     "say": "welcome",
+     "to": "daniel",
+     "mood": "happy",
+     "do": [
+      {
+       "who": "haruka",
+       "act": "deep-bow",
+       "arms": false,
+       "at": 0.5
+      }
+     ],
+     "sounds": [
+      {
+       "sound": "door-slides",
+       "at": 0,
+       "gain": -24
+      }
+     ]
+    },
+    {
+     "shot": {
+      "id": "booked",
+      "on": [
+       "daniel",
+       "ema"
+      ],
+      "size": "waist",
+      "from": "door"
+     },
+     "say": "booked",
+     "to": "haruka",
+     "do": [
+      {
+       "who": "daniel",
+       "act": "nod",
+       "at": 0.2
+      }
+     ]
+    },
+    {
+     "shot": {
+      "id": "waiting",
+      "on": "haruka",
+      "size": "waist"
+     },
+     "say": "waiting",
+     "to": "daniel",
+     "mood": "happy",
+     "do": [
+      {
+       "who": "haruka",
+       "act": "bow",
+       "arms": false,
+       "at": 0.3
+      }
+     ]
+    },
+    {
+     "shot": {
+      "id": "shoes",
+      "on": "haruka",
+      "size": "waist"
+     },
+     "say": "shoes",
+     "to": "ema",
+     "do": [
+      {
+       "who": "haruka",
+       "act": "invite",
+       "hand": "f",
+       "to": [
+        -26,
+        -92
+       ],
+       "grip": "guide",
+       "at": 0.1,
+       "for": 2.6
+      }
+     ],
+     "nod": false
+    }
+   ]
+  },
+  {
+   "id": "step",
+   "stage": "ryokan-in",
+   "join": "dissolve",
+   "cast": {
+    "leo": "by-slippers"
+   },
+   "beats": [
+    {
+     "shot": {
+      "id": "row",
+      "frame": "step",
+      "move": {
+       "frame": {
+        "at": [
+         -40,
+         -28
+        ],
+        "tall": 80
+       }
+      },
+      "without": [
+       "leo"
+      ],
+      "about": "Four pairs of shoes in a row on the stone floor, toes to the door. Slippers on the wooden floor."
+     },
+     "seconds": 3.4,
+     "words": [
+      {
+       "text": "{靴|くつ}",
+       "gloss": "shoes",
+       "at": 0.3,
+       "for": 2.6
+      }
+     ],
+     "sounds": [
+      {
+       "sound": "wood-2",
+       "at": 0.5,
+       "gain": -20
+      },
+      {
+       "sound": "wood-3",
+       "at": 0.95,
+       "gain": -22
+      }
+     ],
+     "after": 0
+    },
+    {
+     "shot": {
+      "id": "slip",
+      "frame": "rack"
+     },
+     "say": "slippers",
+     "mood": "amazed",
+     "do": [
+      {
+       "who": "leo",
+       "act": "point",
+       "to": "slippers",
+       "at": 0.15,
+       "for": 1.9
+      },
+      {
+       "who": "leo",
+       "act": "hop",
+       "at": 0.1
+      }
+     ],
+     "look": {
+      "leo": "slippers"
+     },
+     "after": 0.6
+    }
+   ]
+  },
+  {
+   "id": "desk",
+   "stage": "ryokan-in",
+   "join": "dissolve",
+   "cast": {
+    "haruka": "host",
+    "daniel": "guest-1",
+    "ema": "guest-2"
+   },
+   "props": [
+    {
+     "prop": "key",
+     "to": "haruka:hands",
+     "hidden": true
+    },
+    {
+     "prop": "passport",
+     "to": "ema:hands",
+     "hidden": true
+    }
+   ],
+   "beats": [
+    {
+     "shot": {
+      "id": "asks",
+      "on": "haruka",
+      "size": "chest"
+     },
+     "say": "passport",
+     "to": "ema",
+     "mood": "happy"
+    },
+    {
+     "shot": {
+      "id": "here",
+      "on": "ema",
+      "size": "waist",
+      "from": "door"
+     },
+     "say": "here",
+     "to": "haruka",
+     "do": [
+      {
+       "who": "ema",
+       "act": "offer",
+       "to": [
+        18,
+        -108
+       ],
+       "grip": "under",
+       "apart": 5.5,
+       "in": 0.6,
+       "at": -0.7,
+       "for": 3.2
+      }
+     ],
+     "give": [
+      {
+       "prop": "passport",
+       "to": "ema:hands",
+       "scale": 1.1,
+       "grip": [
+        0.5,
+        0.84
+       ]
+      }
+     ]
+    },
+    {
+     "shot": {
+      "id": "takes",
+      "on": "haruka",
+      "size": "waist",
+      "without": [
+       "ema",
+       "daniel"
+      ]
+     },
+     "seconds": 1.5,
+     "do": [
+      {
+       "who": "haruka",
+       "act": "receive",
+       "to": [
+        10,
+        -118
+       ],
+       "grip": "under",
+       "apart": 5,
+       "in": 0.45,
+       "at": -0.6,
+       "for": 2.6
+      }
+     ],
+     "give": [
+      {
+       "prop": "passport",
+       "to": "haruka:hands",
+       "scale": 0.8,
+       "grip": [
+        0.5,
+        0.84
+       ]
+      }
+     ],
+     "after": 0
+    },
+    {
+     "shot": {
+      "id": "key",
+      "on": "haruka",
+      "size": "waist",
+      "without": [
+       "ema",
+       "daniel"
+      ]
+     },
+     "say": "room",
+     "to": "daniel",
+     "mood": "happy",
+     "do": [
+      {
+       "who": "haruka",
+       "act": "offer",
+       "to": [
+        10,
+        -118
+       ],
+       "grip": "under",
+       "apart": 5,
+       "in": 0.5,
+       "at": 1.9,
+       "for": 3.2
+      }
+     ],
+     "give": [
+      {
+       "prop": "passport",
+       "to": "haruka:hands",
+       "hidden": true
+      },
+      {
+       "prop": "key",
+       "to": "haruka:hands",
+       "scale": 0.8,
+       "grip": [
+        0.5,
+        0.6
+       ],
+       "at": 2
+      }
+     ],
+     "sounds": [
+      {
+       "sound": "bell-high",
+       "at": 1.6,
+       "gain": -28
+      }
+     ]
+    },
+    {
+     "shot": {
+      "id": "thanks",
+      "on": [
+       "daniel",
+       "ema"
+      ],
+      "size": "waist",
+      "from": "door"
+     },
+     "say": "thanks",
+     "to": "haruka",
+     "mood": "happy",
+     "do": [
+      {
+       "who": "daniel",
+       "act": "receive",
+       "to": [
+        -46,
+        -112
+       ],
+       "grip": "under",
+       "apart": 5.5,
+       "in": 0.4,
+       "at": -0.6,
+       "for": 3.4
+      }
+     ],
+     "give": [
+      {
+       "prop": "key",
+       "to": "daniel:hands",
+       "scale": 1.1,
+       "grip": [
+        0.5,
+        0.6
+       ]
+      }
+     ]
+    },
+    {
+     "shot": {
+      "id": "ask",
+      "on": "ema",
+      "size": "chest",
+      "from": "door"
+     },
+     "say": "breakfast",
+     "to": "haruka"
+    },
+    {
+     "shot": {
+      "id": "seven",
+      "on": "haruka",
+      "size": "waist"
+     },
+     "say": "seven",
+     "to": "ema",
+     "mood": "happy",
+     "do": [
+      {
+       "who": "haruka",
+       "act": "offer",
+       "to": [
+        10,
+        -122
+       ],
+       "grip": "under",
+       "apart": 10,
+       "in": 0.5,
+       "at": -0.7,
+       "for": 5,
+       "degrees": 3
+      }
+     ],
+     "give": [
+      {
+       "prop": "breakfast",
+       "to": "haruka:hands",
+       "scale": 0.8,
+       "grip": [
+        0.5,
+        0.88
+       ]
+      }
+     ],
+     "after": 0.6
+    }
+   ]
+  },
+  {
+   "id": "room",
+   "stage": "ryokan-room",
+   "join": "brush",
+   "cast": {
+    "daniel": "mat-1",
+    "ema": "mat-2",
+    "sophie": "mat-3",
+    "leo": "mat-4"
+   },
+   "beats": [
+    {
+     "shot": {
+      "id": "tatami",
+      "frame": "all",
+      "move": {
+       "frame": {
+        "at": [
+         -18,
+         -86
+        ],
+        "tall": 160
+       }
+      },
+      "about": "The family in a wide room with a floor of tatami mats."
+     },
+     "say": "wide",
+     "to": "ema",
+     "mood": "amazed",
+     "do": [
+      {
+       "who": "sophie",
+       "act": "hop",
+       "at": 0.1
+      },
+      {
+       "who": "leo",
+       "act": "look-around",
+       "at": 0.3
+      }
+     ],
+     "look": {
+      "sophie": "viewer",
+      "leo": "window"
+     },
+     "react": {
+      "ema": "happy",
+      "daniel": "happy"
+     },
+     "after": 0.4
+    }
+   ]
+  },
+  {
+   "id": "evening",
+   "stage": "ryokan-night",
+   "join": "dissolve",
+   "cast": {
+    "daniel": "view-1",
+    "ema": "view-2",
+    "sophie": "view-3",
+    "leo": "view-4"
+   },
+   "bed": [
+    {
+     "sound": "kalimba-1",
+     "at": 0.4,
+     "for": 6
+    }
+   ],
+   "beats": [
+    {
+     "shot": {
+      "id": "garden",
+      "frame": "all",
+      "move": {
+       "frame": "window"
+      },
+      "about": "The family looks at the garden in the evening."
+     },
+     "seconds": 4.4,
+     "look": {
+      "daniel": "sophie",
+      "ema": "window"
+     },
+     "after": 0
+    }
+   ]
+  },
+  {
+   "id": "say",
+   "practice": {
+    "lines": [
+     "breakfast",
+     "passport"
+    ]
+   }
+  },
+  {
+   "id": "words",
+   "recap": {
+    "words": [
+     {
+      "text": "{鍵|かぎ}",
+      "gloss": "key",
+      "prop": "key"
+     },
+     {
+      "text": "スリッパ",
+      "gloss": "slippers",
+      "prop": "slippers"
+     },
+     {
+      "text": "パスポート",
+      "gloss": "passport",
+      "prop": "passport"
+     }
+    ]
+   }
+  }
+ ]
+}

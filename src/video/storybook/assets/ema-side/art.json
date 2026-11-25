@@ -1,0 +1,546 @@
+{
+ "art": {
+  "id": "ema-side",
+  "images": {
+   "arm-b": {
+    "src": "arm-b.webp",
+    "width": 532,
+    "height": 579
+   },
+   "hand-b-easy": {
+    "src": "hand-b-easy.webp",
+    "width": 702,
+    "height": 702
+   },
+   "foot-b": {
+    "src": "foot-b.webp",
+    "width": 433,
+    "height": 416
+   },
+   "leg-b": {
+    "src": "leg-b.webp",
+    "width": 689,
+    "height": 1147
+   },
+   "head": {
+    "src": "head.webp",
+    "width": 444,
+    "height": 462
+   },
+   "foot-f": {
+    "src": "foot-f.webp",
+    "width": 433,
+    "height": 416
+   },
+   "leg-f": {
+    "src": "leg-f.webp",
+    "width": 693,
+    "height": 1169
+   },
+   "hips": {
+    "src": "hips.webp",
+    "width": 398,
+    "height": 362
+   },
+   "torso": {
+    "src": "torso.webp",
+    "width": 654,
+    "height": 725
+   },
+   "arm-f": {
+    "src": "arm-f.webp",
+    "width": 541,
+    "height": 587
+   },
+   "hand-f-easy": {
+    "src": "hand-f-easy.webp",
+    "width": 702,
+    "height": 702
+   }
+  },
+  "layers": [
+   {
+    "id": "arm-b",
+    "z": 3,
+    "bind": {
+     "kind": "limb",
+     "upper": "arm-b",
+     "lower": "fore-b",
+     "soft": 5.12,
+     "root": {
+      "bone": "torso",
+      "soft": 4.876
+     }
+    },
+    "image": "arm-b",
+    "x": -2.438,
+    "y": -123.847,
+    "width": 38.0,
+    "height": 41.357,
+    "grid": [
+     8,
+     26
+    ],
+    "tint": [
+     0.92,
+     0.87,
+     0.84
+    ]
+   },
+   {
+    "id": "hand-b",
+    "z": 2.5,
+    "bind": {
+     "kind": "rigid",
+     "bone": "hand-b"
+    },
+    "grid": [
+     5,
+     5
+    ],
+    "tint": [
+     0.92,
+     0.87,
+     0.84
+    ],
+    "variants": {
+     "easy": {
+      "image": "hand-b-easy",
+      "x": -13.0,
+      "y": -5.0,
+      "width": 27.0,
+      "height": 27.0,
+      "wrist": 1.41
+     }
+    },
+    "image": "hand-b-easy",
+    "x": -13.0,
+    "y": -5.0,
+    "width": 27.0,
+    "height": 27.0,
+    "wrist": 1.41,
+    "space": "bone"
+   },
+   {
+    "id": "foot-b",
+    "z": 4,
+    "bind": {
+     "kind": "rigid",
+     "bone": "foot-b"
+    },
+    "image": "foot-b",
+    "x": 15.847,
+    "y": -21.941,
+    "width": 30.929,
+    "height": 29.714,
+    "tint": [
+     0.9,
+     0.88,
+     0.9
+    ]
+   },
+   {
+    "id": "leg-b",
+    "z": 5,
+    "bind": {
+     "kind": "limb",
+     "upper": "thigh-b",
+     "lower": "shin-b",
+     "soft": 8.533,
+     "root": {
+      "bone": "pelvis",
+      "soft": 9.752
+     }
+    },
+    "image": "leg-b",
+    "x": -13.287,
+    "y": -91.178,
+    "width": 49.214,
+    "height": 81.929,
+    "grid": [
+     8,
+     28
+    ],
+    "tint": [
+     0.86,
+     0.85,
+     0.88
+    ]
+   },
+   {
+    "id": "head",
+    "z": 11,
+    "bind": {
+     "kind": "skin",
+     "bone": "head",
+     "pulls": [
+      {
+       "bone": "bun",
+       "from": [
+        -5.242,
+        -146.275
+       ],
+       "to": [
+        -9.752,
+        -145.056
+       ],
+       "within": {
+        "at": [
+         -11.336,
+         -145.056
+        ],
+        "radius": 8.533
+       }
+      }
+     ]
+    },
+    "image": "head",
+    "x": -17.431,
+    "y": -162.488,
+    "width": 31.714,
+    "height": 33.0,
+    "grid": [
+     8,
+     8
+    ]
+   },
+   {
+    "id": "foot-f",
+    "z": 7,
+    "bind": {
+     "kind": "rigid",
+     "bone": "foot-f"
+    },
+    "image": "foot-f",
+    "x": 14.628,
+    "y": -21.941,
+    "width": 30.929,
+    "height": 29.714
+   },
+   {
+    "id": "leg-f",
+    "z": 8,
+    "bind": {
+     "kind": "limb",
+     "upper": "thigh-f",
+     "lower": "shin-f",
+     "soft": 8.533,
+     "root": {
+      "bone": "pelvis",
+      "soft": 9.752
+     }
+    },
+    "image": "leg-f",
+    "x": -14.628,
+    "y": -92.397,
+    "width": 49.5,
+    "height": 83.5,
+    "grid": [
+     8,
+     28
+    ]
+   },
+   {
+    "id": "hips",
+    "z": 10,
+    "bind": {
+     "kind": "rigid",
+     "bone": "pelvis"
+    },
+    "image": "hips",
+    "x": -14.628,
+    "y": -99.711,
+    "width": 28.429,
+    "height": 25.857
+   },
+   {
+    "id": "torso",
+    "z": 12,
+    "bind": {
+     "kind": "skin",
+     "bone": "torso",
+     "pulls": [
+      {
+       "bone": "pelvis",
+       "from": [
+        0.609,
+        -109.097
+       ],
+       "to": [
+        0.609,
+        -95.445
+       ]
+      },
+      {
+       "bone": "bag",
+       "from": [
+        -10.361,
+        -109.097
+       ],
+       "to": [
+        -15.237,
+        -106.659
+       ],
+       "within": {
+        "at": [
+         -21.941,
+         -101.783
+        ],
+        "radius": 18.284
+       }
+      },
+      {
+       "bone": "scarf",
+       "from": [
+        11.093,
+        -122.262
+       ],
+       "to": [
+        12.799,
+        -116.411
+       ],
+       "within": {
+        "at": [
+         13.409,
+         -115.192
+        ],
+        "radius": 9.752
+       }
+      }
+     ]
+    },
+    "image": "torso",
+    "x": -29.255,
+    "y": -136.402,
+    "width": 46.714,
+    "height": 51.786,
+    "grid": [
+     12,
+     16
+    ]
+   },
+   {
+    "id": "arm-f",
+    "z": 17,
+    "bind": {
+     "kind": "limb",
+     "upper": "arm-f",
+     "lower": "fore-f",
+     "soft": 5.12,
+     "root": {
+      "bone": "torso",
+      "soft": 4.876
+     }
+    },
+    "image": "arm-f",
+    "x": -3.535,
+    "y": -124.212,
+    "width": 38.643,
+    "height": 41.929,
+    "grid": [
+     8,
+     26
+    ]
+   },
+   {
+    "id": "hand-f",
+    "z": 16.5,
+    "bind": {
+     "kind": "rigid",
+     "bone": "hand-f"
+    },
+    "grid": [
+     5,
+     5
+    ],
+    "variants": {
+     "easy": {
+      "image": "hand-f-easy",
+      "x": -13.0,
+      "y": -5.0,
+      "width": 27.0,
+      "height": 27.0,
+      "wrist": 1.41
+     }
+    },
+    "image": "hand-f-easy",
+    "x": -13.0,
+    "y": -5.0,
+    "width": 27.0,
+    "height": 27.0,
+    "wrist": 1.41,
+    "space": "bone"
+   }
+  ]
+ },
+ "joints": {
+  "pelvis": [
+   -0.366,
+   -85.937
+  ],
+  "neck": [
+   -1.219,
+   -129.819
+  ],
+  "head": [
+   0.366,
+   -138.108
+  ],
+  "crown": [
+   1.219,
+   -162.0
+  ],
+  "armF": {
+   "top": [
+    1.585,
+    -121.043
+   ],
+   "mid": [
+    15.237,
+    -101.54
+   ],
+   "end": [
+    31.815,
+    -85.937
+   ],
+   "tip": [
+    44.492,
+    -74.966
+   ]
+  },
+  "armB": {
+   "top": [
+    2.316,
+    -121.043
+   ],
+   "mid": [
+    15.968,
+    -101.54
+   ],
+   "end": [
+    32.546,
+    -85.937
+   ],
+   "tip": [
+    45.223,
+    -74.966
+   ]
+  },
+  "legF": {
+   "top": [
+    -0.853,
+    -84.23
+   ],
+   "mid": [
+    12.799,
+    -46.93
+   ],
+   "end": [
+    25.233,
+    -12.555
+   ],
+   "tip": [
+    42.786,
+    -5.485
+   ],
+   "sole": [
+    25.233,
+    -4.51
+   ]
+  },
+  "legB": {
+   "top": [
+    0.366,
+    -84.23
+   ],
+   "mid": [
+    14.018,
+    -46.93
+   ],
+   "end": [
+    26.451,
+    -12.555
+   ],
+   "tip": [
+    44.005,
+    -5.485
+   ],
+   "sole": [
+    26.451,
+    -4.51
+   ]
+  },
+  "ground": 0,
+  "over": 0
+ },
+ "extra": [
+  {
+   "id": "bag",
+   "parent": "torso",
+   "at": [
+    -10.971,
+    -120.068
+   ],
+   "to": [
+    -21.332,
+    -89.594
+   ]
+  },
+  {
+   "id": "scarf",
+   "parent": "torso",
+   "at": [
+    10.361,
+    -122.993
+   ],
+   "to": [
+    14.018,
+    -111.535
+   ]
+  },
+  {
+   "id": "bun",
+   "parent": "head",
+   "at": [
+    -5.242,
+    -146.885
+   ],
+   "to": [
+    -11.58,
+    -143.837
+   ],
+   "sway": {
+    "gain": 0.25,
+    "lag": 0.14,
+    "limit": 3
+   }
+  }
+ ],
+ "body": {
+  "stance": {
+   "arm-f": 4,
+   "fore-f": -15,
+   "hand-f": -4,
+   "arm-b": 4,
+   "fore-b": -15,
+   "hand-b": -4
+  },
+  "limits": {
+   "fore-f": [
+    -150,
+    -2
+   ],
+   "fore-b": [
+    -150,
+    -2
+   ]
+  }
+ },
+ "walk": {
+  "stride": 1.3,
+  "arms": 20,
+  "lift": 0.085,
+  "bob": 0.026
+ },
+ "provenance": "Reconstructed from the owner's character sheet with FLUX.2 Klein 4B (Apache-2.0), run locally; cut by scripts/storybook-art.py."
+}

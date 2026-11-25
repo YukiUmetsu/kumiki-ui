@@ -1,0 +1,337 @@
+{
+ "pieces": {
+  "street": {
+   "image": {
+    "src": "street.webp",
+    "width": 2924,
+    "height": 1644
+   },
+   "x": -348.095,
+   "y": -377.619,
+   "width": 696.19,
+   "height": 391.429
+  },
+  "shop": {
+   "image": {
+    "src": "shop.webp",
+    "width": 2926,
+    "height": 1619
+   },
+   "x": -273.302,
+   "y": -285.53,
+   "width": 495.932,
+   "height": 274.407
+  },
+  "shop-counter": {
+   "image": {
+    "src": "shop-counter.webp",
+    "width": 2814,
+    "height": 854
+   },
+   "x": -273.641,
+   "y": -155.435,
+   "width": 476.949,
+   "height": 144.746
+  },
+  "till": {
+   "image": {
+    "src": "till.webp",
+    "width": 2801,
+    "height": 1581
+   },
+   "x": -210.781,
+   "y": -228.415,
+   "width": 341.585,
+   "height": 192.805
+  },
+  "till-counter": {
+   "image": {
+    "src": "till-counter.webp",
+    "width": 2804,
+    "height": 979
+   },
+   "x": -211.013,
+   "y": -154.763,
+   "width": 341.951,
+   "height": 119.39
+  },
+  "screen-price": {
+   "image": {
+    "src": "screen-price.webp",
+    "width": 329,
+    "height": 504
+   },
+   "x": 10.177,
+   "y": -151.975,
+   "width": 23.5,
+   "height": 36.0,
+   "foot": [
+    0.4993,
+    0.981
+   ]
+  },
+  "noren": {
+   "image": {
+    "src": "noren.webp",
+    "width": 779,
+    "height": 453
+   },
+   "x": -91.357,
+   "y": -190.544,
+   "width": 95.0,
+   "height": 55.244
+  },
+  "picture": {
+   "image": {
+    "src": "picture.webp",
+    "width": 330,
+    "height": 400
+   },
+   "x": -195.678,
+   "y": -215.637,
+   "width": 40.244,
+   "height": 48.78
+  },
+  "cash": {
+   "image": {
+    "src": "cash.webp",
+    "width": 2310,
+    "height": 1304
+   },
+   "x": -50.786,
+   "y": -29.286,
+   "width": 105.0,
+   "height": 59.273
+  },
+  "cash-lip": {
+   "image": {
+    "src": "cash-lip.webp",
+    "width": 225,
+    "height": 124
+   },
+   "x": -5.357,
+   "y": 1.0,
+   "width": 10.227,
+   "height": 5.636
+  },
+  "aisle": {
+   "image": {
+    "src": "aisle.webp",
+    "width": 2784,
+    "height": 1564
+   },
+   "x": -347.5,
+   "y": -388.0,
+   "width": 696.0,
+   "height": 391.0
+  },
+  "onigiri": {
+   "image": {
+    "src": "onigiri.webp",
+    "width": 637,
+    "height": 588
+   },
+   "x": 0.766,
+   "y": 1.172,
+   "width": 10.617,
+   "height": 9.8,
+   "grip": [
+    0.5048,
+    0.7733
+   ],
+   "foot": [
+    0.5019,
+    0.9805
+   ]
+  },
+  "beep": {
+   "image": {
+    "src": "beep.webp",
+    "width": 332,
+    "height": 240
+   },
+   "x": 13.475,
+   "y": 0.65,
+   "width": 5.533,
+   "height": 4.0,
+   "grip": [
+    0.2304,
+    2.9625
+   ]
+  },
+  "beam": {
+   "image": {
+    "src": "beam.webp",
+    "width": 296,
+    "height": 58
+   },
+   "x": 0.375,
+   "y": 2.075,
+   "width": 4.933,
+   "height": 0.967,
+   "grip": [
+    0.6588,
+    2.3793
+   ]
+  },
+  "coin-100-a": {
+   "image": {
+    "src": "coin-100-a.webp",
+    "width": 250,
+    "height": 250
+   },
+   "x": 0.083,
+   "y": 0.083,
+   "width": 2.273,
+   "height": 2.273,
+   "grip": [
+    0.5002,
+    0.5002
+   ],
+   "foot": [
+    0.5002,
+    0.9979
+   ]
+  },
+  "coin-100-b": {
+   "image": {
+    "src": "coin-100-b.webp",
+    "width": 250,
+    "height": 250
+   },
+   "x": 0.083,
+   "y": 0.083,
+   "width": 2.273,
+   "height": 2.273,
+   "grip": [
+    0.5002,
+    0.5002
+   ],
+   "foot": [
+    0.5002,
+    0.9979
+   ]
+  },
+  "coin-50-a": {
+   "image": {
+    "src": "coin-50-a.webp",
+    "width": 232,
+    "height": 232
+   },
+   "x": 0.077,
+   "y": 0.077,
+   "width": 2.109,
+   "height": 2.109,
+   "grip": [
+    0.5003,
+    0.5003
+   ],
+   "foot": [
+    0.5003,
+    0.998
+   ]
+  },
+  "coin-50-b": {
+   "image": {
+    "src": "coin-50-b.webp",
+    "width": 232,
+    "height": 232
+   },
+   "x": 0.077,
+   "y": 0.077,
+   "width": 2.109,
+   "height": 2.109,
+   "grip": [
+    0.5003,
+    0.5003
+   ],
+   "foot": [
+    0.5003,
+    0.998
+   ]
+  },
+  "bag": {
+   "image": {
+    "src": "bag.webp",
+    "width": 632,
+    "height": 757
+   },
+   "x": 4.682,
+   "y": 2.227,
+   "width": 26.333,
+   "height": 31.542,
+   "grip": [
+    0.5644,
+    0.0735
+   ],
+   "foot": [
+    0.5127,
+    0.9382
+   ]
+  },
+  "bag-empty": {
+   "image": {
+    "src": "bag-empty.webp",
+    "width": 444,
+    "height": 925
+   },
+   "x": 13.14,
+   "y": 3.14,
+   "width": 18.5,
+   "height": 38.542,
+   "grip": [
+    0.506,
+    0.0573
+   ],
+   "foot": [
+    0.5154,
+    0.9926
+   ]
+  },
+  "branch": {
+   "image": {
+    "src": "branch.webp",
+    "width": 757,
+    "height": 501
+   },
+   "x": -0.294,
+   "y": -0.294,
+   "width": 111.324,
+   "height": 73.676
+  },
+  "petal-a": {
+   "image": {
+    "src": "petal-a.webp",
+    "width": 90,
+    "height": 86
+   },
+   "x": 53.382,
+   "y": 42.647,
+   "width": 13.235,
+   "height": 12.647
+  },
+  "petal-b": {
+   "image": {
+    "src": "petal-b.webp",
+    "width": 87,
+    "height": 95
+   },
+   "x": 48.676,
+   "y": 55.441,
+   "width": 12.794,
+   "height": 13.971
+  },
+  "petal-c": {
+   "image": {
+    "src": "petal-c.webp",
+    "width": 87,
+    "height": 72
+   },
+   "x": 36.471,
+   "y": 47.5,
+   "width": 12.794,
+   "height": 10.588
+  }
+ },
+ "provenance": "Painted with FLUX.2 Klein 4B (Apache-2.0), run locally, from camera-true layouts of a real Kyoto store front and checkout (sources in the docs) and the owner's sheets; signs, labels and prices lettered by this recipe. Coins: drawn from public-domain photographs on Wikimedia Commons."
+}

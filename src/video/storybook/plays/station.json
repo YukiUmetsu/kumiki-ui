@@ -1,0 +1,39 @@
+{ "id": "station", "title": "{駅|えき}で — At the station",
+  "lines": [
+    {"id": "arrived", "speaker": "sophie", "ja": "{京都|きょうと}に {着|つ}きました！", "en": "We’ve arrived in Kyoto!"},
+    {"id": "sakura", "speaker": "leo", "ja": "わあ、 {桜|さくら}が きれい！", "en": "Wow, the cherry blossoms are pretty!"},
+    {"id": "where", "speaker": "ema", "ja": "{出口|でぐち}[は|わ] どこですか。", "en": "Where is the exit?"},
+    {"id": "ask", "speaker": "daniel", "ja": "わかりません。 {駅員|えきいん}さんに {聞|き}きましょう。", "en": "I don’t know. Let’s ask the station attendant."},
+    {"id": "excuse", "speaker": "daniel", "ja": "すみません。 {出口|でぐち}[は|わ] どこですか。", "en": "Excuse me. Where is the exit?"},
+    {"id": "there", "speaker": "takahashi", "ja": "{出口|でぐち}[は|わ] あちらです。 まっすぐ {行|い}って、 {右|みぎ}です。", "en": "The exit is over there. Go straight, then right.", "speak": "出口は、あちらです。まっすぐ行って、右です。"},
+    {"id": "straight", "speaker": "ema", "ja": "まっすぐ、 {右|みぎ}ですね。", "en": "Straight, then right."},
+    {"id": "yes", "speaker": "takahashi", "ja": "はい、 そうです。", "en": "Yes, that’s right."},
+    {"id": "ticket", "speaker": "sophie", "ja": "{切符|きっぷ}[は|わ] どこに {入|い}れますか。", "en": "Where do I put the ticket?", "speak": "切符は、どこに入れますか？"},
+    {"id": "here", "speaker": "takahashi", "ja": "ここに {入|い}れてください。", "en": "Please put it in here.", "speak": "ここに、いれてください。"},
+    {"id": "thanks", "speaker": "leo", "ja": "ありがとうございます！", "en": "Thank you!"},
+    {"id": "trip", "speaker": "takahashi", "ja": "よい {旅|たび}を！", "en": "Have a good trip!", "speak": "よい旅を！"}
+  ],
+  "scenes": [
+    {"id": "arrive", "stage": "platform", "cast": {"daniel": "door-1", "ema": "door-2", "sophie": "door-3", "leo": "door-4"}, "bed": [{"sound": "kalimba-1", "at": 0.3, "for": 11.2}], "beats": [
+      {"shot": {"id": "train", "size": "wide", "move": {"frame": {"at": [10, -146], "tall": 396}}, "without": ["daniel", "ema", "sophie", "leo"], "about": "A train comes into Kyoto station under cherry trees.", "slides": {"train": [{"t": 0, "x": -640}, {"t": 3.2, "x": 0, "ease": "ease-out-cubic"}]}}, "seconds": 3.9, "words": [{"text": "{駅|えき}で", "gloss": "At the station", "tone": "title", "at": 1.1}], "after": 0},
+      {"shot": {"id": "walk", "on": ["daniel", "ema", "sophie", "leo"], "size": "full", "move": "follow", "join": "dissolve"}, "go": {"daniel": "front-1", "ema": "front-2", "sophie": "front-3", "leo": "front-4"}, "in": 4.4},
+      {"say": "arrived", "to": "ema", "mood": "happy", "react": {"ema": "happy", "leo": "happy"}, "do": [{"who": "sophie", "act": "hop", "at": 0.1}]},
+      {"shot": {"on": ["sophie", "leo"], "size": "waist"}, "say": "sakura", "to": "sophie", "mood": "amazed", "do": [{"who": "leo", "act": "point", "to": [300, -130], "at": 0.2, "for": 2}], "look": {"leo": [300, -210], "sophie": [300, -210]}},
+      {"shot": {"on": ["daniel", "ema"], "size": "waist"}, "say": "where", "to": "daniel", "do": [{"who": "ema", "act": "look-around", "for": 1.1}]},
+      {"say": "ask", "to": "ema", "do": [{"who": "daniel", "act": "shrug", "at": 0.1, "for": 1.3}]} ] },
+    {"id": "ask", "stage": "hall", "join": "brush", "cast": {"takahashi": "desk", "daniel": "ask-1", "ema": "ask-2", "sophie": "ask-3", "leo": "ask-4"}, "beats": [
+      {"shot": {"on": ["takahashi", "daniel", "ema"], "size": "knee"}, "say": "excuse", "to": "takahashi", "do": [{"who": "daniel", "act": "nod", "at": 0.1}]},
+      {"shot": {"on": "takahashi", "size": "waist", "past": "daniel", "side": "right"}, "say": "there", "to": "daniel", "do": [{"who": "takahashi", "act": "point", "to": "exit", "grip": "guide", "at": 0.5, "for": 2.4}]},
+      {"shot": {"on": ["daniel", "ema"], "size": "waist"}, "say": "straight", "to": "takahashi", "do": [{"who": "ema", "act": "explain", "at": 0.2}]},
+      {"shot": {"on": "takahashi", "size": "chest"}, "say": "yes", "to": "ema", "mood": "happy", "do": [{"who": "takahashi", "act": "nod", "at": 0.1}]} ] },
+    {"id": "gate", "stage": "hall", "join": "dissolve", "cast": {"takahashi": "by-gate", "sophie": "slot-side", "ema": "wait-1", "daniel": "wait-2", "leo": "wait-3"}, "props": [{"prop": "ticket", "to": "sophie:card-f"}], "beats": [
+      {"shot": {"on": ["takahashi", "sophie", "ema", "daniel", "leo"], "size": "full"}, "pose": {"sophie": [{"act": "carry", "hand": "f", "grip": "card"}]}, "say": "ticket", "to": "takahashi"},
+      {"shot": {"on": ["takahashi", "sophie"], "size": "waist"}, "say": "here", "to": "sophie", "do": [{"who": "takahashi", "act": "point", "to": "slot", "at": 0.3, "for": 1.6}], "look": {"sophie": "slot"}},
+      {"shot": {"on": ["takahashi", "sophie"], "size": "knee"}, "seconds": 2.2, "pose": {"sophie": []}, "do": [{"who": "sophie", "act": "place", "hand": "f", "to": "slot", "grip": "card", "release": 0.5, "in": 0.7, "away": 0.7}], "look": {"sophie": "slot", "takahashi": "slot"}, "give": [{"prop": "ticket", "to": "slot", "at": 0.86, "hidden": true}], "sounds": [{"sound": "beep", "at": 1.15}]},
+      {"shot": {"on": ["takahashi", "sophie", "ema", "daniel", "leo"], "size": "full"}, "say": "thanks", "to": "takahashi", "mood": "happy", "do": [{"who": "leo", "act": "bow", "at": 0.1}], "react": {"takahashi": "happy"}},
+      {"shot": {"on": "takahashi", "size": "waist"}, "say": "trip", "to": "leo", "mood": "happy", "do": [{"who": "takahashi", "act": "bow", "at": 1.0}], "after": 1.5} ] },
+    {"id": "out", "stage": "passage", "join": "wash", "cast": {"daniel": "here-1", "ema": "here-2", "sophie": "here-3", "leo": "here-4"}, "beats": [
+      {"shot": {"size": "wide", "move": {"frame": {"at": [6, -140], "tall": 290}}, "about": "The family walks straight to the exit. The taxis are on the right."}, "go": {"daniel": "there-1", "ema": "there-2", "sophie": "there-3", "leo": "there-4"}, "in": 5.6, "words": [{"text": "まっすぐ", "gloss": "straight", "at": 0.4, "for": 2.3}, {"text": "{右|みぎ}", "gloss": "right", "at": 3, "for": 2.4}]} ] },
+    {"id": "say", "practice": {"lines": ["excuse", "ticket"]}},
+    {"id": "words", "recap": {"words": [{"text": "{駅|えき}", "gloss": "station", "prop": "shinkansen"}, {"text": "{出口|でぐち}", "gloss": "exit", "prop": "exit-sign"}, {"text": "{切符|きっぷ}", "gloss": "ticket", "prop": "ticket"}, {"text": "まっすぐ", "gloss": "straight", "prop": "arrow-up"}, {"text": "{右|みぎ}", "gloss": "right", "prop": "arrow-right"}]}}
+  ] }

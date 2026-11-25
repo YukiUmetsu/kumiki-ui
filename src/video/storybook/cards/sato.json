@@ -1,0 +1,79 @@
+{
+ "id": "sato-front",
+ "height": 170,
+ "painting": "cast/sato_full_body.png",
+ "sharp": "flat/sato@2.png",
+ "head": {
+  "box": [
+   353,
+   -5,
+   296
+  ],
+  "sharp": "heads/sato.png"
+ },
+ "shows": "narrow",
+ "faces": {
+  "rest": "faces/sato_rest.png",
+  "a": "faces/sato_a.png",
+  "blink": "faces/sato_blink.png",
+  "joy": "faces/sato_happy.png"
+ },
+ "provenance": "The owner's full-body painting, cut; the face paintings were made from it with FLUX.2 Klein 4B (Apache-2.0), run locally.",
+ "kit": "kit-hands.json",
+ "fix": {
+  "hole": {
+   "f": {
+    "seam": [
+     [
+      360,
+      300
+     ],
+     [
+      366,
+      345
+     ],
+     [
+      370,
+      400
+     ],
+     [
+      368,
+      440
+     ]
+    ],
+    "side": [
+     [
+      365,
+      480
+     ]
+    ]
+   },
+   "b": {
+    "seam": [
+     [
+      649,
+      300
+     ],
+     [
+      643,
+      345
+     ],
+     [
+      641,
+      390
+     ],
+     [
+      643,
+      440
+     ]
+    ],
+    "side": [
+     [
+      647,
+      480
+     ]
+    ]
+   }
+  }
+ }
+}

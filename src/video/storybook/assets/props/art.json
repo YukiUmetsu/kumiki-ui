@@ -1,0 +1,375 @@
+{
+ "pieces": {
+  "phone": {
+   "image": {
+    "src": "phone.webp",
+    "width": 127,
+    "height": 196
+   },
+   "x": 1.462,
+   "y": 8.538,
+   "width": 10.583,
+   "height": 16.333,
+   "grip": [
+    0.5306,
+    0.5981
+   ]
+  },
+  "suitcase": {
+   "image": {
+    "src": "suitcase.webp",
+    "width": 700,
+    "height": 1165
+   },
+   "x": 322.083,
+   "y": 39.167,
+   "width": 58.333,
+   "height": 97.083,
+   "foot": [
+    0.5214,
+    0.9742
+   ]
+  },
+  "map": {
+   "image": {
+    "src": "map.webp",
+    "width": 591,
+    "height": 419
+   },
+   "x": 220.588,
+   "y": 26.863,
+   "width": 49.25,
+   "height": 34.917,
+   "grip": [
+    0.4977,
+    0.7581
+   ]
+  },
+  "camera": {
+   "image": {
+    "src": "camera.webp",
+    "width": 176,
+    "height": 111
+   },
+   "x": 0.438,
+   "y": 23.812,
+   "width": 14.667,
+   "height": 9.25,
+   "grip": [
+    0.4986,
+    0.5743
+   ]
+  },
+  "key": {
+   "image": {
+    "src": "key.webp",
+    "width": 151,
+    "height": 135
+   },
+   "x": 16.923,
+   "y": 45.615,
+   "width": 12.583,
+   "height": 11.25,
+   "grip": [
+    0.5013,
+    0.1368
+   ]
+  },
+  "slippers": {
+   "image": {
+    "src": "slippers.webp",
+    "width": 356,
+    "height": 249
+   },
+   "x": 61.719,
+   "y": 94.219,
+   "width": 29.667,
+   "height": 20.75,
+   "foot": [
+    0.4898,
+    0.9563
+   ]
+  },
+  "fan": {
+   "image": {
+    "src": "fan.webp",
+    "width": 441,
+    "height": 271
+   },
+   "x": 129.846,
+   "y": 90.923,
+   "width": 36.75,
+   "height": 22.583,
+   "grip": [
+    0.4731,
+    0.8924
+   ]
+  },
+  "fan-half": {
+   "image": {
+    "src": "fan-half.webp",
+    "width": 292,
+    "height": 294
+   },
+   "x": 136.462,
+   "y": 88.769,
+   "width": 24.333,
+   "height": 24.5,
+   "grip": [
+    0.4426,
+    0.9105
+   ]
+  },
+  "fan-narrow": {
+   "image": {
+    "src": "fan-narrow.webp",
+    "width": 148,
+    "height": 294
+   },
+   "x": 142.462,
+   "y": 88.308,
+   "width": 12.333,
+   "height": 24.5,
+   "grip": [
+    0.3867,
+    0.9294
+   ]
+  },
+  "fan-closed": {
+   "image": {
+    "src": "fan-closed.webp",
+    "width": 49,
+    "height": 508
+   },
+   "x": 4.015,
+   "y": 1.921,
+   "width": 2.042,
+   "height": 21.167,
+   "grip": [
+    0.5791,
+    0.974
+   ],
+   "foot": [
+    0.5791,
+    0.9961
+   ]
+  },
+  "gift": {
+   "image": {
+    "src": "gift.webp",
+    "width": 294,
+    "height": 181
+   },
+   "x": 114.574,
+   "y": 63.723,
+   "width": 24.5,
+   "height": 15.083,
+   "grip": [
+    0.5037,
+    0.5713
+   ],
+   "foot": [
+    0.5037,
+    0.9381
+   ]
+  },
+  "paper-bag": {
+   "image": {
+    "src": "paper-bag.webp",
+    "width": 356,
+    "height": 318
+   },
+   "x": 200.606,
+   "y": 86.061,
+   "width": 29.667,
+   "height": 26.5,
+   "grip": [
+    0.4903,
+    0.0172
+   ],
+   "foot": [
+    0.4903,
+    0.9605
+   ]
+  },
+  "lantern": {
+   "image": {
+    "src": "lantern.webp",
+    "width": 372,
+    "height": 455
+   },
+   "x": 60.0,
+   "y": 163.958,
+   "width": 31.0,
+   "height": 37.917,
+   "grip": [
+    0.504,
+    0.0165
+   ]
+  },
+  "takoyaki": {
+   "image": {
+    "src": "takoyaki.webp",
+    "width": 229,
+    "height": 129
+   },
+   "x": 74.2,
+   "y": 53.333,
+   "width": 19.083,
+   "height": 10.75,
+   "grip": [
+    0.5031,
+    0.7814
+   ],
+   "foot": [
+    0.5031,
+    0.9302
+   ]
+  },
+  "ticket": {
+   "image": {
+    "src": "ticket.webp",
+    "width": 108,
+    "height": 84
+   },
+   "x": 8.091,
+   "y": 6.909,
+   "width": 9.0,
+   "height": 7.0,
+   "grip": [
+    0.8182,
+    0.7143
+   ]
+  },
+  "passport": {
+   "image": {
+    "src": "passport.webp",
+    "width": 111,
+    "height": 160
+   },
+   "x": 39.667,
+   "y": 7.933,
+   "width": 9.25,
+   "height": 13.333,
+   "grip": [
+    0.4973,
+    0.855
+   ]
+  },
+  "card": {
+   "image": {
+    "src": "card.webp",
+    "width": 109,
+    "height": 77
+   },
+   "x": 1.05,
+   "y": 29.8,
+   "width": 9.083,
+   "height": 6.417,
+   "grip": [
+    0.8202,
+    0.7325
+   ]
+  },
+  "arrow-right": {
+   "image": {
+    "src": "arrow-right.webp",
+    "width": 393,
+    "height": 292
+   },
+   "x": 15.25,
+   "y": 19.375,
+   "width": 32.75,
+   "height": 24.333
+  },
+  "arrow-up": {
+   "image": {
+    "src": "arrow-up.webp",
+    "width": 292,
+    "height": 390
+   },
+   "x": 19.375,
+   "y": 14.875,
+   "width": 24.333,
+   "height": 32.5
+  },
+  "shinkansen": {
+   "image": {
+    "src": "shinkansen.webp",
+    "width": 738,
+    "height": 420
+   },
+   "x": 398.846,
+   "y": 145.385,
+   "width": 61.5,
+   "height": 35.0
+  },
+  "taxi": {
+   "image": {
+    "src": "taxi.webp",
+    "width": 812,
+    "height": 503
+   },
+   "x": 461.154,
+   "y": 141.538,
+   "width": 67.667,
+   "height": 41.917
+  },
+  "pagoda": {
+   "image": {
+    "src": "pagoda.webp",
+    "width": 678,
+    "height": 771
+   },
+   "x": 529.615,
+   "y": 128.846,
+   "width": 56.5,
+   "height": 64.25
+  },
+  "torii": {
+   "image": {
+    "src": "torii.webp",
+    "width": 711,
+    "height": 688
+   },
+   "x": 341.923,
+   "y": 221.538,
+   "width": 59.25,
+   "height": 57.333
+  },
+  "omamori": {
+   "image": {
+    "src": "omamori.webp",
+    "width": 79,
+    "height": 126
+   },
+   "x": 57.625,
+   "y": 46.938,
+   "width": 6.583,
+   "height": 10.5
+  },
+  "ribbon": {
+   "image": {
+    "src": "ribbon.webp",
+    "width": 1812,
+    "height": 207
+   },
+   "x": 22.75,
+   "y": 4.0,
+   "width": 151.0,
+   "height": 17.25
+  },
+  "blossom": {
+   "image": {
+    "src": "blossom.webp",
+    "width": 800,
+    "height": 668
+   },
+   "x": 31.029,
+   "y": 6.618,
+   "width": 80.0,
+   "height": 66.8
+  }
+ },
+ "provenance": "Cut from the owner's prop sheet (travel story)."
+}
