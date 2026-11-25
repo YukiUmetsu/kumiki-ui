@@ -2,9 +2,9 @@
 import type { StoryActor } from "../../../registry/video/storybook/storybook-film";
 import { figure, figureIds } from "./art";
 
-interface Person { name: string; /** Ruby markup. */ label: string; color: string; seed: number; /** The view when a role names none. */ first?: string }
+interface Person { name: string; /** Ruby markup. */ label: string; color: string; seed: number; /** The view when a role names none. */ first?: string; /** Views in other clothes: only the films that name them have them. */ apart?: readonly string[] }
 export const PEOPLE = {
-  ema: { name: "Emma", label: "エマ", color: "#4E66A8", seed: 3, first: "three-quarter" },
+  ema: { name: "Emma", label: "エマ", color: "#4E66A8", seed: 3, first: "three-quarter", apart: ["three-quarter", "side"] },
   daniel: { name: "Daniel", label: "ダニエル", color: "#2F6B7A", seed: 12 },
   sophie: { name: "Sophie", label: "ソフィー", color: "#B5524A", seed: 21 },
   leo: { name: "Leo", label: "レオ", color: "#B07A1E", seed: 34 },
@@ -22,10 +22,13 @@ export function viewsOf(id: string): string[] {
   const first = (PEOPLE as Record<string, Person>)[id]?.first ?? "front", views = figureIds().filter(f => f.startsWith(`${id}-`)).map(f => f.slice(id.length + 1));
   return [...views.filter(v => v === first), ...views.filter(v => v !== first)];
 }
-/** A cast of some of them, or of one figure by its own name. */
-export function castOf(...ids: readonly string[]): Record<string, StoryActor> {
-  return Object.fromEntries(ids.map(id => {
-    const { name, label, color, seed } = (PEOPLE as Record<string, Person>)[id] ?? { name: id, label: id, color: "#5C5044", seed: 7 };
-    return [id, { name, label, color, seed, figures: Object.fromEntries(viewsOf(id).map(v => [v, figure(`${id}-${v}`)])) }];
-  }));
+const actor = (id: string, views: readonly string[]): StoryActor => {
+  const { name, label, color, seed } = (PEOPLE as Record<string, Person>)[id] ?? { name: id, label: id, color: "#5C5044", seed: 7 };
+  return { name, label, color, seed, figures: Object.fromEntries(views.map(v => [v, figure(`${id}-${v}`)])) };
+};
+/** A cast of some of them, or of one figure by its own name, with all the views. */
+export function castOf(...ids: readonly string[]): Record<string, StoryActor> { return Object.fromEntries(ids.map(id => [id, actor(id, viewsOf(id))])); }
+/** Everyone, in one set of clothes each. */
+export function everyone(): Record<string, StoryActor> {
+  return Object.fromEntries(Object.entries<Person>(PEOPLE).map(([id, { apart = [] }]) => [id, actor(id, viewsOf(id).filter(v => !apart.includes(v)))]));
 }

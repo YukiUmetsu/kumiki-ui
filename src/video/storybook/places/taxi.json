@@ -1,16 +1,17 @@
 {
   "sets": {
     "taxi-stand": { "home": { "at": [0, -185], "tall": 440 }, "ground": { "horizon": [0, -279], "distance": 900 }, "layers": [
-      { "piece": "taxi/stand", "z": -100 }, { "piece": "taxi/car", "stands": -47.5 }, { "piece": "taxi/tyre-1", "stands": -47.5, "with": "car", "rolls": 28.7 }, { "piece": "taxi/tyre-2", "stands": -47.5, "with": "car", "rolls": 28.7 } ] },
-    "cabin": { "home": { "at": [-8, -62], "tall": 160 }, "marks": { "mirror": [1, -130], "wheel": [-90, -20], "window": [-150, -92] }, "layers": [
-      { "piece": "taxi/behind", "z": -120, "blur": 0.35, "flow": { "into": { "at": [-15, -76], "by": 1.1, "seconds": 1.7 } } },
+      { "piece": "taxi/stand", "z": -100 }, { "piece": "taxi/driver", "x": -68, "y": -182, "stands": -47.5, "with": "car" }, { "piece": "taxi/car", "stands": -47.5 }, { "piece": "taxi/tyre-1", "stands": -47.5, "with": "car", "rolls": 28.7 }, { "piece": "taxi/tyre-2", "stands": -47.5, "with": "car", "rolls": 28.7 },
+      { "piece": "taxi/door-in", "stands": -47.5, "with": "car" }, { "piece": "taxi/door", "stands": -47.5, "with": "car" } ] },
+    "cabin": { "home": { "at": [-8, -62], "tall": 160 }, "marks": { "mirror": [1, -130], "wheel": [-90, -20], "window": [124, -98], "reader": [0, -27, 4] }, "layers": [
+      { "piece": "taxi/behind", "z": -120, "blur": 0.35, "flow": { "into": { "at": [-15, -76], "by": 1.24, "seconds": 1.5 } } },
       { "piece": "taxi/street", "id": "street-left", "z": -118, "blur": 0.3, "flow": { "speed": 88, "round": 459, "within": [-164, -78] } }, { "piece": "taxi/street", "id": "street-right", "z": -118, "blur": 0.3, "flow": { "speed": -88, "round": 459, "within": [80, 166] } },
-      { "piece": "taxi/cabin", "z": -100 }, { "piece": "taxi/seat", "z": 5 }, { "piece": "taxi/wheel", "z": 20, "hands": true } ] },
+      { "piece": "taxi/cabin", "z": -100 }, { "piece": "taxi/seat", "z": 5 }, { "piece": "taxi/console", "z": 3 }, { "piece": "taxi/wheel", "z": 20, "hands": true }, { "piece": "taxi/dash", "z": 30 } ] },
     "lane": { "home": { "at": [0, -160], "tall": 320 }, "ground": { "horizon": [-281, -84], "distance": 600 }, "layers": [{ "piece": "taxi/lane", "z": -100 }] }
   },
   "stages": {
     "taxi-stand": { "set": "taxi-stand", "about": "A street with cherry trees, where taxis stop.", "soft": 1.4, "bounds": [-588, -618, 594, 44], "steps": { "takes": ["stone-1", "stone-2", "stone-3", "stone-4"], "gain": -24 }, "bed": [{ "sound": "birds" }], "drifts": ["petals"], "spots": {
-      "kerb": { "at": [-64, 4], "toward": [300, -90] } } },
+      "kerb": { "at": [-64, 4], "view": "rear", "toward": [300, -90] } } },
     "cabin": { "set": "cabin", "about": "Inside a taxi.", "bounds": [-156, -146, 156, 24], "bed": [{ "sound": "birds", "gain": -26 }],
       "frames": { "both": { "at": [-8, -60], "tall": 158 } }, "spots": {
       "driver": { "at": [-90, 140], "stays": true, "scale": 1.4, "z": 10, "hidden": ["leg-f", "leg-b", "foot-f", "foot-b"], "raise": [{ "layers": ["hand-f", "hand-b"], "z": 21 }], "pose": [{ "act": "steer", "to": "wheel" }], "toward": "mirror" },

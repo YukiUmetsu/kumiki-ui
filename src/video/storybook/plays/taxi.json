@@ -130,13 +130,29 @@
         },
         {
          "t": 4,
-         "x": -96,
+         "x": -150,
          "ease": "ease-out-cubic"
+        }
+       ],
+       "door": [
+        {
+         "t": 0,
+         "x": 0
+        },
+        {
+         "t": 4.3,
+         "x": 0
+        },
+        {
+         "t": 5.3,
+         "x": 0,
+         "swing": 64,
+         "ease": "ease-in-out-cubic"
         }
        ]
       }
      },
-     "seconds": 4.9,
+     "seconds": 5.2,
      "do": [
       {
        "who": "daniel",
@@ -164,7 +180,7 @@
     {
      "go": {
       "daniel": [
-       -74,
+       -84,
        -36
       ]
      },
@@ -209,10 +225,10 @@
        "act": "place",
        "hand": "f",
        "to": [
-        10,
-        -42
+        16,
+        -52
        ],
-       "grip": "card",
+       "grip": "hold",
        "release": 1,
        "in": 0.9,
        "away": 0.7,
@@ -223,7 +239,9 @@
      "give": [
       {
        "prop": "phone",
-       "to": "daniel:card-f"
+       "to": "daniel:palm-f",
+       "view": "inn",
+       "angle": 196
       }
      ]
     },
@@ -270,7 +288,7 @@
      "give": [
       {
        "prop": "phone",
-       "to": "daniel:card-f",
+       "to": "daniel:palm-f",
        "hidden": true
       }
      ],
@@ -309,13 +327,13 @@
       {
        "who": "daniel",
        "act": "point",
-       "hand": "f",
+       "hand": "b",
        "to": [
-        -30,
-        -92
+        134,
+        -74
        ],
        "at": 0.1,
-       "for": 2
+       "for": 2.4
       }
      ],
      "look": {
@@ -391,7 +409,29 @@
       ]
      },
      "say": "stop",
-     "to": "sato"
+     "to": "sato",
+     "pose": {
+      "sato": [
+       {
+        "act": "rest",
+        "to": [
+         -112,
+         8
+        ],
+        "hand": "f",
+        "lean": 0
+       },
+       {
+        "act": "rest",
+        "to": [
+         -62,
+         8
+        ],
+        "hand": "b",
+        "lean": 0
+       }
+      ]
+     }
     },
     {
      "shot": {
@@ -406,7 +446,15 @@
        -20,
        -70
       ]
-     }
+     },
+     "do": [
+      {
+       "who": "sato",
+       "act": "explain",
+       "hand": "b",
+       "at": 0.1
+      }
+     ]
     },
     {
      "shot": {
@@ -422,14 +470,14 @@
        "act": "place",
        "hand": "f",
        "to": [
-        4,
-        -30
+        1,
+        -31
        ],
        "grip": "card",
        "release": 1,
        "in": 0.9,
        "away": 0.5,
-       "at": 0.1,
+       "at": 0.5,
        "for": 2.9
       }
      ],
@@ -437,6 +485,12 @@
       {
        "prop": "card",
        "to": "daniel:card-f"
+      }
+     ],
+     "sounds": [
+      {
+       "sound": "beep",
+       "at": 1.7
       }
      ]
     },
@@ -459,12 +513,6 @@
      "look": {
       "sato": "mirror"
      },
-     "sounds": [
-      {
-       "sound": "beep",
-       "at": 0.0
-      }
-     ],
      "react": {
       "daniel": "happy"
      },

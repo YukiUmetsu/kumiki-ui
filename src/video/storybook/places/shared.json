@@ -152,8 +152,7 @@
   },
   "phone": {
    "name": "電話",
-   "piece": "props/phone"
-  },
+   "piece": "props/phone", "views": { "inn": "props/phone-inn" } },
   "map": {
    "name": "地図",
    "piece": "props/map"

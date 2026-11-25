@@ -369,6 +369,21 @@
    "y": 6.618,
    "width": 80.0,
    "height": 66.8
+  },
+  "phone-inn": {
+   "image": {
+    "src": "phone-inn.webp",
+    "width": 127,
+    "height": 196
+   },
+   "x": 1.462,
+   "y": 8.538,
+   "width": 10.583,
+   "height": 16.333,
+   "grip": [
+    0.5306,
+    0.5981
+   ]
   }
  },
  "provenance": "Cut from the owner's prop sheet (travel story)."

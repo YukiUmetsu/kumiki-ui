@@ -42,7 +42,7 @@ export interface StorySetLayer {
   /** Parallax: 1 moves with the figures, less is further away, more is closer. */ depth?: number;
   /** Order with roles and props. Default −100. */ z?: number; /** Or the y of the floor that it stands on: it is in front of who is further away. */ stands?: number; blur?: number; opacity?: number; tint?: readonly [number, number, number]; mirror?: boolean;
   /** It swings a little (a branch, a lantern, a curtain). `pivot` is 0–1 of the painting. */ sway?: { pivot: Pt; degrees: number; period: number; phase?: number };
-  /** It moves along: how far, in centimetres, at times of the shot (a door). */ slide?: readonly { t: number; x: number; y?: number; ease?: EasingSpec }[];
+  /** It moves along: how far, in centimetres, at times of the shot (a door). `swing` turns it about its `hinge`, degrees toward the viewer (a car door). */ slide?: readonly { t: number; x: number; y?: number; swing?: number; ease?: EasingSpec }[]; /** The upright that it swings about, 0–1 of its width. Default 0. */ hinge?: number;
   /** It goes by without an end (a street behind a window, clouds): centimetres a second to the right. Its edges have to fit, `round` apart (its width). It shows only `within` (from x to x). With `into` it goes away to a place instead, or comes from there: it is `by` times as large at one end, `seconds` for that, with the pace at 1. */ flow?: { speed?: number; round?: number; within?: Pt; into?: { at: Pt; by: number; seconds: number } };
   /** It goes along with another layer (a wheel with its car), and turns as far as it rolls. */ with?: string; /** Radius of a wheel, centimetres. */ rolls?: number;
   /** Who has both hands on it turns it (a steering wheel): it goes round with them. */ hands?: boolean;
@@ -224,7 +224,7 @@ function attention(film: StorybookFilm, shot: StoryShot, role: StoryRole, t: num
   return { gaze: [Math.max(-1, Math.min(1, (follow(w => w.yaw, EYES) - head) / 46)), Math.max(-0.9, Math.min(0.9, (follow(w => w.pitch, EYES) - tip) / 30))], turn: [head, tip], trunk: chest };
 }
 /** A look that goes far comes with a blink. */
-const blinksOf = (role: StoryRole): number[] => (role.attend ?? []).slice(1).filter((_, i) => i % 2 === 0).map(k => k.t + 0.02);
+const blinksOf = (role: StoryRole, seed: number): number[] => (role.attend ?? []).slice(1).filter((_, i) => (i + seed) % 2 === 0).map(k => k.t + ((seed * 0.618034) % 1) * 0.3);
 
 /** Where a place is, scene centimetres. */
 export function storyPlace(film: StorybookFilm, shot: StoryShot, place: StoryPlace, t = 0): Pt {
@@ -265,7 +265,7 @@ function poseRole(film: StorybookFilm, shot: StoryShot, role: StoryRole, t: numb
   const root: RigRootKey[] = path.map(k => ({ frame: way.floor ? k.t * film.fps : Math.round(k.t * film.fps), x: k.x, y: k.y, facing, scale: k.scale, ...(thin ? { yaw: thin } : {}), ease: k.ease })), legs = way.floor && way.runs.length ? (time: number) => legsOf(film, shot, role, time) : undefined, moves = path.length > 1 && path.some(k => k.x !== path[0].x) && !(way.floor && Math.abs(Math.sin(((body.facing ?? 45) * Math.PI) / 180)) >= 0.8), drivers: RigDriver[] = [];
   if (moves && figure.person) drivers.push(walkDriver(figure.person, { start: root[0].frame - 100, end: root[root.length - 1].frame + 6, ramp: 6, ...figure.walk }));
   const spec: RigSpec = moves ? { ...body.spec, drivers: (body.spec.drivers ?? []).filter(d => d.type !== "reach") } : body.spec;
-  return { actor, figure, says, acted: actFrame({ ...body, spec }, kept.acts, t, { root, fps: film.fps, drivers, voice, seed: (actor.seed ?? 1) * 3 + shot.id.length, blinks: blinksOf(role), look: role.look, library: libraryOf(film), still, legs }) };
+  return { actor, figure, says, acted: actFrame({ ...body, spec }, kept.acts, t, { root, fps: film.fps, drivers, voice, seed: (actor.seed ?? 1) * 3 + shot.id.length, blinks: blinksOf(role, actor.seed ?? 1), look: role.look, library: libraryOf(film), still, legs }) };
 }
 /** The drawing that a figure has of a hand. */
 function handFor(art: PaintedArt, layer: string, name: string): string { const has = art.layers.find(l => l.id === layer)?.variants; return !has || has[name] ? name : (GRIP_FOR[name]?.find(g => has[g]) ?? name); }
@@ -331,6 +331,13 @@ function quad(image: string, x: number, y: number, w: number, h: number, put: Pu
   return { image, positions, uvs: o.room ? new Float32Array([-rx, -ry, 1 + rx, -ry, -rx, 1 + ry, 1 + rx, 1 + ry]) : o.mirror ? UV_MIRROR : UV, indices: QUAD };
 }
 
+/** What hangs on an upright hinge, swung toward the viewer: narrower, and what is nearer is larger. */
+function swung(set: StorySet, hinge: number, degrees: number): (x: number, y: number) => [number, number] {
+  if (!degrees) return (x, y) => [x, y];
+  const a = (degrees * Math.PI) / 180, { horizon: [cx, cy], distance } = set.ground ?? { horizon: set.home.at, distance: 4 * set.home.tall };
+  return (x, y) => { const near = distance / (distance - Math.abs(x - hinge) * Math.sin(a)); return [cx + (hinge + (x - hinge) * Math.cos(a) - cx) * near, cy + (y - cy) * near]; };
+}
+
 const drifts = new WeakMap<StoryDrift, RigSpec>();
 function driftSpec(d: StoryDrift): RigSpec {
   let s = drifts.get(d);
@@ -383,8 +390,9 @@ function turnedBy(p: StoryPlayed, at: Pt, radius: number): number {
 export function storySheet(film: StorybookFilm, shot: StoryShot, t: number, still = false): { sheet: PaintSheet; played: readonly StoryPlayed[]; view: StoryView } {
   const view = storyView(film, shot, still ? 0 : t), set = film.sets[shot.set], out: Ordered[] = [], played = (shot.roles ?? []).map(r => playRole(film, shot, r, t, still));
   for (const l of set.layers) {
-    const k = l.depth ?? 1, lead = l.with ? set.layers.find(q => q.id === l.with) : l, slide = shot.slides?.[l.id] ?? l.slide ?? (lead && (shot.slides?.[lead.id] ?? lead.slide)), [sx, sy] = slide ? keyed(slide, t, q => [q.x, q.y ?? 0]) : [0, 0], x = l.x + sx, y = l.y + sy, sway = l.sway && !still ? l.sway.degrees * (Math.sin((2 * Math.PI * t) / l.sway.period + (l.sway.phase ?? 0)) * 0.7 + Math.sin((2 * Math.PI * t) / (l.sway.period * 0.37) + 1.3) * 0.3) : 0;
-    const m = quad(l.image.src, x, y, l.width, l.height, (px, py) => view.put(px, py, k), { mirror: l.mirror, angle: sway + (l.rolls ? (sx / l.rolls) * (180 / Math.PI) : 0) + (l.hands ? played.reduce((sum, p) => sum + turnedBy(p, [x + l.width / 2, y + l.height / 2], l.width / 2), 0) : 0), about: l.sway ? [x + l.sway.pivot[0] * l.width, y + l.sway.pivot[1] * l.height] : undefined });
+    const k = l.depth ?? 1, slid = (q: StorySetLayer | undefined) => { const keys = q && (shot.slides?.[q.id] ?? q.slide); return keys ? keyed(keys, t, v => [v.x, v.y ?? 0, v.swing ?? 0]) : [0, 0, 0]; };
+    const own = slid(l), [lx, ly] = slid(l.with ? set.layers.find(q => q.id === l.with) : undefined), sx = own[0] + lx, sy = own[1] + ly, x = l.x + sx, y = l.y + sy, hung = swung(set, x + (l.hinge ?? 0) * l.width, own[2]), sway = l.sway && !still ? l.sway.degrees * (Math.sin((2 * Math.PI * t) / l.sway.period + (l.sway.phase ?? 0)) * 0.7 + Math.sin((2 * Math.PI * t) / (l.sway.period * 0.37) + 1.3) * 0.3) : 0;
+    const m = quad(l.image.src, x, y, l.width, l.height, (px, py) => view.put(...hung(px, py), k), { mirror: l.mirror, angle: sway + (l.rolls ? (sx / l.rolls) * (180 / Math.PI) : 0) + (l.hands ? played.reduce((sum, p) => sum + turnedBy(p, [x + l.width / 2, y + l.height / 2], l.width / 2), 0) : 0), about: l.sway ? [x + l.sway.pivot[0] * l.width, y + l.sway.pivot[1] * l.height] : undefined });
     const mesh: PaintMesh = { ...m, opacity: l.opacity, tint: l.tint, blur: l.blur ? l.blur * (view.scale(k) / (view.rect.height / set.home.tall)) : undefined, steady: true }, z = l.z ?? (l.stands === undefined ? -100 : depthZ(set, l.stands));
     if (!l.flow) { out.push({ z, mesh }); continue; }
     const flow = l.flow, rate = flowed(shot.pace, t);

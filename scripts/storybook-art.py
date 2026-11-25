@@ -16,6 +16,7 @@ Recipe (all points are pixels of the painting they belong to; "base" is the pain
   layers[]             { id, source, poly, z, bind, soft?, steps?: [...], density?, grid?, turns?, tint?, keepReading?, skip?: [polygons] }
                        steps, before the cut:  { clone: poly, by: [dx,dy], soft? } { inpaint: poly } { paint: poly, rgb, soft? }
                          { ink: polyline, width, rgb? } { text, at, size, font: a font file, face?: number in it, vertical?, lead?, rough?: px, rotate? or quad: [corners of the panel] with panel: [w, h] for at and size } { wash: poly, by, soft? } { glaze: poly, by: [r, g, b] times what is there, soft? } { lean: poly, from: y, to: y, by: px } { take: file, poly, soft? }
+                         { picture: another painting, of: [x0, y0, x1, y1] of it, into: [its four corners here], soft? }: a photograph on a phone, a poster
                          { fold: [x, y] it turns about, from: [a, b], to: [a, b] degrees from straight up, clockwise: what is between two angles comes between two others, what is outside turns with its side (a fan that is half shut), past?: px from the point, of?: poly, the only paint that stays }
                        bind uses base pixels too and is written out in centimetres
   hands.<layer>.<name> { source, poly?, wrist: [x,y], knuckle: [x,y], length?: cm from wrist to knuckle (else its own size), front?: poly, over?: how far it comes in front of its own cuff, mirror?, cuff?: degrees that the forearm is turned from the hand in a drawing of a hand alone (0) }
@@ -213,6 +214,11 @@ def steps(src, layer):
             rgb = rgb * (1 - m[..., None]) + np.array(st.get("rgb", [44, 34, 34]), np.float32) * m[..., None]; a = np.maximum(a, m)
         elif "text" in st:
             m = lettering(st, a.shape, k, src.root)[..., None]; rgb = rgb * (1 - m) + np.array(st.get("rgb", [44, 34, 34]), np.float32) * m
+        elif "picture" in st:
+            x0, y0, x1, y1 = st["of"]; to = np.float32(st["into"]) * k; pic = load(src.root / st["picture"])[y0:y1, x0:x1].astype(np.float32); f = np.hypot(*(to[1] - to[0])) / pic.shape[1]
+            if f < 1: pic = cv2.resize(pic, (max(1, round(pic.shape[1] * f)), max(1, round(pic.shape[0] * f))), interpolation=cv2.INTER_AREA)
+            h, w = pic.shape[:2]; m = polygon(a.shape, st["into"], k, st.get("soft", 1))[..., None]
+            rgb = rgb * (1 - m) + cv2.warpPerspective(pic, cv2.getPerspectiveTransform(np.float32([[0, 0], [w, 0], [w, h], [0, h]]), to), (a.shape[1], a.shape[0]), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE) * m
         elif "glaze" in st:
             # a thin colour over the paint: ink and texture stay
             m = polygon(a.shape, st["glaze"], k, st.get("soft", 4))[..., None]; rgb = np.clip(rgb * (1 + m * (np.array(st["by"], np.float32) - 1)), 0, 255)

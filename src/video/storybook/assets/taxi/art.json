@@ -109,6 +109,61 @@
    "y": -108.696,
    "width": 56.8,
    "height": 60.2
+  },
+  "driver": {
+   "image": {
+    "src": "driver.webp",
+    "width": 745,
+    "height": 563
+   },
+   "x": 23.961,
+   "y": 6.623,
+   "width": 62.083,
+   "height": 46.917
+  },
+  "door": {
+   "image": {
+    "src": "door.webp",
+    "width": 458,
+    "height": 593
+   },
+   "x": 2.609,
+   "y": -194.493,
+   "width": 91.6,
+   "height": 118.6
+  },
+  "door-in": {
+   "image": {
+    "src": "door-in.webp",
+    "width": 458,
+    "height": 593
+   },
+   "x": 2.609,
+   "y": -194.493,
+   "width": 91.6,
+   "height": 118.6
+  },
+  "dash": {
+   "image": {
+    "src": "dash.webp",
+    "width": 1917,
+    "height": 322
+   },
+   "x": -159.783,
+   "y": -23.913,
+   "width": 319.5,
+   "height": 53.667
+  },
+  "console": {
+   "image": {
+    "src": "console.webp",
+    "width": 231,
+    "height": 267
+   },
+   "x": -19.13,
+   "y": -29.783,
+   "width": 38.5,
+   "height": 44.5
   }
  },
  "provenance": "Painted with FLUX.2 Klein 4B (Apache-2.0), run locally, in the look of the owner's sheets. Taxis and streets studied from photographs on Wikimedia Commons and the sources in the docs."

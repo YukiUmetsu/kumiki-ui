@@ -8,7 +8,7 @@ import { composeStory, joinStories } from "../../../registry/video/storybook/sto
 import type { PlayLibrary, StoryPlay, StoryStage, TeachStage } from "../../../registry/video/storybook/story-play";
 import type { StoryBurst, StoryDrift, StoryProp, StorySet, StorySetLayer, StorySound, StorybookFilm } from "../../../registry/video/storybook/storybook-film";
 import { propView, setLayer, spokenLines, sprite } from "./art";
-import { castOf, PEOPLE } from "./cast";
+import { everyone } from "./cast";
 
 /** "<folder>/<piece>" */
 type PieceName = string;
@@ -32,7 +32,7 @@ let shared: Omit<PlayLibrary, "lines"> | null = null;
 /** All that plays have in common. */
 export function storyLibrary(): Omit<PlayLibrary, "lines"> {
   return (shared ??= {
-    cast: castOf(...Object.keys(PEOPLE)), size: { width: 1920, height: 1080 }, frame: { x: 48, y: 40, width: 1824, height: 810 }, fps: 24, paper: "#fbf3e1",
+    cast: everyone(), size: { width: 1920, height: 1080 }, frame: { x: 48, y: 40, width: 1824, height: 810 }, fps: 24, paper: "#fbf3e1",
     sets: map(merged(p => p.sets), s => ({ ...s, layers: s.layers.map(({ piece, ...over }) => setLayer(...two(piece), over)) })),
     stages: merged(p => p.stages),
     props: map(merged(p => p.props), ({ piece, views, ...p }): StoryProp => ({ ...p, ...propView(...two(piece)), ...(views ? { views: map(views, v => propView(...two(v))) } : {}) })),
