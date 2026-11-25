@@ -15,6 +15,7 @@ import { inspectStorybook, planStorybook, storybookFrame } from "../registry/vid
 import { checkStory } from "../registry/video/storybook/story-check";
 import { StorybookFilmPlayer, StorybookFilmStage } from "../registry/video/storybook/storybook-film-react";
 import { figure, figureIds } from "../src/video/storybook/art";
+import { castOf, PEOPLE } from "../src/video/storybook/cast";
 import { filmNames, filmOf } from "../src/video/storybook/films";
 import { KONBINI_FILM, KONBINI_LINES } from "../src/video/storybook/konbini-film";
 import { armBench, walkBench } from "../src/video/storybook/story-benches";
@@ -169,5 +170,14 @@ describe("translations", () => {
   it("have a switch that is off, and none in a film without translations", () => {
     const player = (film: typeof KONBINI_FILM) => renderToStaticMarkup(createElement(StorybookFilmPlayer, { film })), japanese = { ...KONBINI_FILM, lines: Object.fromEntries(Object.entries(KONBINI_FILM.lines).map(([id, l]) => [id, { ...l, en: undefined }])), shots: KONBINI_FILM.shots.map(s => ({ ...s, words: s.words?.map(w => ({ ...w, gloss: undefined })) })) };
     expect(player(KONBINI_FILM)).toMatch(/<input type="checkbox"\/>English/); expect(player(japanese)).not.toContain("English"); expect(inspectStorybook(japanese)).toEqual([]);
+  });
+});
+
+describe("people", () => {
+  it("are data: each file is a person with a voice, and a cast is made from it", () => {
+    expect(Object.keys(PEOPLE)).toHaveLength(10);
+    for (const [id, p] of Object.entries(PEOPLE)) {
+      expect(castOf(id)[id].name, id).toBe(p.name); expect(p.voice.fish, id).toMatch(/^[0-9a-f]{32}$/); expect(p.height, id).toBeGreaterThan(80);
+    }
   });
 });

@@ -1,0 +1,12 @@
+{
+ "name": "Takahashi",
+ "label": "{高橋|たかはし}さん",
+ "color": "#3C5577",
+ "seed": 41,
+ "height": 172,
+ "voice": {
+  "fish": "59a78821a8924989b70d2a63d588e8eb",
+  "speed": 0.75,
+  "pace": 5.6
+ }
+}

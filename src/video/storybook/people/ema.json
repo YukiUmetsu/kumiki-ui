@@ -1,0 +1,18 @@
+{
+ "name": "Emma",
+ "label": "エマ",
+ "color": "#4E66A8",
+ "seed": 3,
+ "first": "three-quarter",
+ "apart": [
+  "three-quarter",
+  "side"
+ ],
+ "height": 163,
+ "voice": {
+  "fish": "5da7f24e9e274f91b2b677669c818ce9",
+  "speed": 0.7,
+  "pace": 5.6
+ },
+ "looks": "wavy blonde hair in a low messy bun with sunglasses on top, blue floral scarf, cream cable-knit sweater, brown leather backpack, wide blue jeans, white sneakers"
+}

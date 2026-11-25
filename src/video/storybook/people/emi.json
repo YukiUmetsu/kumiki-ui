@@ -1,0 +1,12 @@
+{
+ "name": "Emi",
+ "label": "{恵美|えみ}さん",
+ "color": "#A2556B",
+ "seed": 63,
+ "height": 158,
+ "voice": {
+  "fish": "b2d9d8db057042688a5e318b8f405bc2",
+  "speed": 0.75,
+  "pace": 5.6
+ }
+}

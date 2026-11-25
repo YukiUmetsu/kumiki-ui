@@ -1,0 +1,12 @@
+{
+ "name": "Sato",
+ "label": "{佐藤|さとう}さん",
+ "color": "#5C5044",
+ "seed": 52,
+ "height": 170,
+ "voice": {
+  "fish": "d738c70d206149e69f8e3b6fc8af9d96",
+  "speed": 0.75,
+  "pace": 5.6
+ }
+}

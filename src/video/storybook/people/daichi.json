@@ -1,0 +1,12 @@
+{
+ "name": "Daichi",
+ "label": "{大地|だいち}さん",
+ "color": "#8B4A2B",
+ "seed": 85,
+ "height": 178,
+ "voice": {
+  "fish": "c496c7d0e93640a59a0befd78b47f39e",
+  "speed": 0.78,
+  "pace": 5.8
+ }
+}

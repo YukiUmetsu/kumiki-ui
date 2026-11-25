@@ -1,0 +1,13 @@
+{
+ "name": "Leo",
+ "label": "レオ",
+ "color": "#B07A1E",
+ "seed": 34,
+ "height": 115,
+ "voice": {
+  "fish": "2990ec78844b4ee199a89e6476130d41",
+  "speed": 0.75,
+  "pace": 5.8
+ },
+ "looks": "blue baseball cap, curly brown hair, yellow hood, blue denim jacket, green backpack with a small red and white train charm, khaki cargo shorts, white socks with blue stripes, blue sneakers"
+}
