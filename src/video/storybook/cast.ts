@@ -8,7 +8,7 @@ export interface Person {
   /** Views in other clothes: only the films that name them have them. */ apart?: readonly string[];
   /** Centimetres, top of the hair or hat to the sole. */ height: number; age?: number;
   /** Fish Audio voice; `pace` is morae a second. */ voice: { fish: string; speed: number; pace: number };
-  /** Hair, face and clothes in a few words, for the templates of `storybook-paint.py`. */ looks?: string; /** The owner's character sheet. */ sheet?: string;
+  /** Hair, face and clothes in a few words, for the templates of `storybook-paint.py`. */ looks?: string; /** What the face paintings keep besides hair and clothes, for example "thin glasses". */ keep?: string; /** The owner's character sheet. */ sheet?: string;
 }
 const FILES = import.meta.glob("./people/*.json", { eager: true, import: "default" }) as Record<string, Person>;
 export const PEOPLE: Readonly<Record<string, Person>> = Object.fromEntries(Object.entries(FILES).map(([path, p]) => [path.slice(9, -5), p]));
