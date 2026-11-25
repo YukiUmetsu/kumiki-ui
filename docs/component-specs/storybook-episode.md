@@ -11,7 +11,7 @@ How a scene or an episode of a painted storybook film is made from data. A new s
 | A figure | `cards/<name>.json` → `assets/<name>-front/` | `scripts/storybook-rig.py` |
 | An episode: plays, or scenes of plays, one after another | `episodes/<name>.json` | hand |
 
-The paintings, the raw voices and the landmark models are in `local-assets/storybook` (git ignores it): `--src local-assets/storybook/paintings` for figures and the convenience store, `--src local-assets/storybook/paintings/sets` for other places and props, `--models local-assets/storybook/models`. Keep a copy: without them nothing can be cut again.
+The paintings, the raw voices and the landmark models are in `local-assets/storybook` (git ignores it): `--src local-assets/storybook/paintings` for figures and the convenience store, `--src local-assets/storybook/paintings/sets` for other places and props, `--models local-assets/storybook/models`. The Python environment, the painting model, the aligner and the phone model are there too (`py/`, `models/`): see [Tools](storybook-character.md#tools). Keep a copy: without them nothing can be cut again.
 
 `src/video/storybook/library.ts` gathers all of them by folder. Nothing is registered by hand, except a new family of sound files, which the list in that file names.
 
@@ -25,7 +25,7 @@ npm run -s story:make -- tea --out dir --port 6016 [--voice]                    
 `--new` writes people at their spots, a picture for each line, and the pages that teach. Change its lines and beats. The second command does steps 2 and 5 to 8 below, speaks only the lines that are new (`--voice`), and stops at the first fault. Lines that nobody has spoken are silent. Film a draft first, and record it when its text is final.
 
 1. `npm run -s story:plan -- --library people|stages|props|sounds|acts [name]` shows what exists: views, looks, hands, sockets, spots, frames, marks. Use it before you write. Do not read the JSON of other scenes.
-2. Write the lines. Keep N5 and N4 words, one new pattern in a line, and 4 to 5 morae a second. Speak them: `npm run -s story:speech -- <play>`, with `--hear` and `--ear` so that a wrong reading is found.
+2. Write the lines. Keep N5 and N4 words, one new pattern in a line, and 4 to 5 morae a second. Speak them: `npm run -s story:speech -- <play> --hear`, so that a wrong reading is found.
 3. **Find photographs of each action that the scene needs, before a joint is set.** A hand on a wheel, a fan, a pick and a purse each failed when they came from imagination. Use the owner's action panels first, then photographs. An act that has an entry in `ACT_STUDIES` is done: use it. Photographs that are not free are for observation only.
 4. Find the real place. Measure it. Paint it, cut it with a recipe, and write its stage.
 5. Write the scenes. `npm run -s story:plan -- <play>` prints shots, times and faults. It takes a second and opens no browser.
