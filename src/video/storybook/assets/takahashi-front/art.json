@@ -607,7 +607,7 @@
        "width": 10.0,
        "height": 13.0
       },
-      "shows": "palm"
+      "shows": "thumb"
      },
      "grip": {
       "image": "hand-b-grip",
@@ -639,7 +639,7 @@
        "width": 10.0,
        "height": 14.0
       },
-      "shows": "palm"
+      "shows": "thumb"
      },
      "point": {
       "image": "hand-b-point",
@@ -666,7 +666,7 @@
       "width": 19.0,
       "height": 21.0,
       "wrist": 0,
-      "shows": "palm"
+      "shows": "thumb"
      },
      "fist": {
       "image": "hand-b-fist",
@@ -929,7 +929,7 @@
        "width": 10.0,
        "height": 13.0
       },
-      "shows": "palm"
+      "shows": "thumb"
      },
      "grip": {
       "image": "hand-f-grip",
@@ -961,7 +961,7 @@
        "width": 10.0,
        "height": 14.0
       },
-      "shows": "palm"
+      "shows": "thumb"
      },
      "point": {
       "image": "hand-f-point",
@@ -988,7 +988,7 @@
       "width": 19.0,
       "height": 21.0,
       "wrist": 0,
-      "shows": "palm"
+      "shows": "thumb"
      },
      "fist": {
       "image": "hand-f-fist",

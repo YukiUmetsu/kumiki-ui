@@ -386,7 +386,7 @@
      272
     ]
    ],
-   "shows": "palm"
+   "shows": "thumb"
   },
   "grip": {
    "source": "kit-grip",
@@ -825,7 +825,7 @@
      360
     ]
    ],
-   "shows": "palm"
+   "shows": "thumb"
   },
   "point": {
    "source": "kit-point",
@@ -924,7 +924,7 @@
      750
     ]
    ],
-   "shows": "palm"
+   "shows": "thumb"
   },
   "fist": {
    "source": "kit-fist",

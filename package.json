@@ -47,6 +47,7 @@
     "film:seek": "node scripts/film.mjs seek",
     "story:plan": "node scripts/storybook-plan.mjs",
     "story:look": "node scripts/storybook-look.mjs",
+    "story:check": "node scripts/storybook-check.mjs",
     "story:qa": "node scripts/storybook-qa.mjs",
     "story:speech": "node scripts/storybook-speech.mjs",
     "story:sound": "node scripts/storybook-sound.mjs",

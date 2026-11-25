@@ -58,7 +58,7 @@ export interface StoryRole {
   /** What it looks at from a time on: eyes first, then head, then chest. */ attend?: readonly StoryAttend[];
   facing?: 1 | -1; scale?: number; z?: number; acts?: readonly StoryAct[]; /** Expression when no act says otherwise. */ look?: string;
   /** Where the eyes rest, −1..1. */ gaze?: Pt; /** Turn of the head that stays. */ turn?: Pt; /** Hand drawings that stay: layer → drawing. */ hands?: Readonly<Record<string, string>>; /** What it wears: every part that has a drawing of this name ("sock"). */ wear?: readonly string[]; tint?: readonly [number, number, number]; hidden?: readonly string[];
-  /** Layers that come forward for a time (an arm over a counter). What of the own body is in front of them stays in front. */ raise?: readonly { layers: readonly string[]; z: number; from?: number; to?: number; /** Only while that hand is at a place. */ reach?: boolean }[];
+  /** Layers that come forward for a time (an arm over a counter). What of the own body is in front of them stays in front. */ raise?: readonly { layers: readonly string[]; z: number; from?: number; to?: number; /** Only while that hand is at a place. */ reach?: boolean; /** Height of the far edge of what they go over: a hand goes up before the body and changes sides while all of it is over the edge. */ edge?: number }[];
   /** It moves its head and hands when it speaks. Default true. */ speaks?: boolean;
   /** Recordings of single steps: one sounds when a foot comes down. */ steps?: { takes: readonly Omit<StorySound, "at" | "bed">[]; gain?: number };
 }
@@ -268,7 +268,8 @@ function poseRole(film: StorybookFilm, shot: StoryShot, role: StoryRole, t: numb
   const root: RigRootKey[] = path.map(k => ({ frame: way.floor ? k.t * film.fps : Math.round(k.t * film.fps), x: k.x, y: k.y, facing, scale: k.scale, ...(thin ? { yaw: thin } : {}), ease: k.ease })), legs = way.floor && way.runs.length ? (time: number) => legsOf(film, shot, role, time) : undefined, moves = path.length > 1 && path.some(k => k.x !== path[0].x) && !(way.floor && Math.abs(Math.sin(((body.facing ?? 45) * Math.PI) / 180)) >= 0.8), drivers: RigDriver[] = [];
   if (moves && figure.person) drivers.push(walkDriver(figure.person, { start: root[0].frame - 100, end: root[root.length - 1].frame + 6, ramp: 6, ...figure.walk }));
   const spec: RigSpec = moves ? { ...body.spec, drivers: (body.spec.drivers ?? []).filter(d => d.type !== "reach") } : body.spec;
-  return { actor, figure, says, acted: actFrame({ ...body, spec }, kept.acts, t, { root, fps: film.fps, drivers, voice, seed: (actor.seed ?? 1) * 3 + shot.id.length, blinks: blinksOf(role, actor.seed ?? 1), look: role.look ?? figure.art.face?.idle, library: libraryOf(film), still, legs }) };
+  const edge = (h: "f" | "b") => role.raise?.find(r => r.edge !== undefined && r.layers.includes(`hand-${h}`) && t >= (r.from ?? 0) && t <= (r.to ?? Infinity))?.edge, over = role.raise ? { f: edge("f"), b: edge("b") } : undefined;
+  return { actor, figure, says, acted: actFrame({ ...body, spec }, kept.acts, t, { root, over, fps: film.fps, drivers, voice, seed: (actor.seed ?? 1) * 3 + shot.id.length, blinks: blinksOf(role, actor.seed ?? 1), look: role.look ?? figure.art.face?.idle, library: libraryOf(film), still, legs }) };
 }
 /** The drawing that a figure has of a hand. */
 function handFor(art: PaintedArt, layer: string, name: string): string { const has = art.layers.find(l => l.id === layer)?.variants; return !has || has[name] ? name : (GRIP_FOR[name]?.find(g => has[g]) ?? name); }
@@ -288,7 +289,7 @@ export function playRole(film: StorybookFilm, shot: StoryShot, role: StoryRole, 
     trunk: p.trunk + a.trunk + turning.trunk, hands, lift, hidden: role.hidden, tint: role.tint,
     face: { look: p.look ?? undefined, from: p.lookFrom ?? undefined, mix: p.lookMix, blink: p.blink, gaze: [p.gaze[0] + (role.gaze?.[0] ?? 0) + a.gaze[0], p.gaze[1] + (role.gaze?.[1] ?? 0) + a.gaze[1]], brow: p.brow, turn, mouth: { ...mouth, weight: Math.max(0, speaking) } },
   });
-  const at = (h: "f" | "b") => p.reach[h].reduce((w, r) => (r.to ? Math.max(w, r.weight) : w), 0);
+  const at = (h: "f" | "b") => 1 - p.reach[h].reduce((w, r) => (r.to ? w * (1 - r.weight) : w), 1);
   return { role, actor, figure, spec: acted.spec, frame: acted.frame, meshes, turn, reaching: { f: at("f"), b: at("b") }, lift, arms: acted.arms, hands };
 }
 
@@ -306,7 +307,7 @@ function holdAt(film: StorybookFilm, shot: StoryShot, staged: StoryStagedProp, h
     const who = played.find(p => p.role.actor === hold.by), socket = who && paintedSocket(who.figure.art, who.frame, hold.socket);
     if (who && socket) {
       const mirrored = who.frame.root.facing < 0, deg = (mirrored ? 180 - socket.angle : socket.angle) + (hold.angle ?? 0) * (mirrored ? -1 : 1), hangs = film.props[staged.prop].hangs ?? false, angle = hangs !== false ? (hold.angle ?? 0) + (hangs ? swingOf(film, shot, who, hold.socket, t, Number(hangs)) : 0) : mirrored ? -deg : deg, a = (angle * Math.PI) / 180, grip = hold.grip ?? view.grip ?? [0.5, 0.5], gx = (0.5 - grip[0]) * view.width * k, gy = (0.5 - grip[1]) * view.height * k;
-      const layer = who.figure.art.layers.find(l => l.id === (who.figure.art.sockets?.[hold.socket]?.layer ?? "")), raised = layer && raisedAt(who, layer.id, t), order = (layer?.z ?? 50) + (who.lift[layer?.id ?? ""] ?? 0) + 0.03;
+      const layer = who.figure.art.layers.find(l => l.id === (who.figure.art.sockets?.[hold.socket]?.layer ?? "")), raised = layer && storyRaised(who, layer.id, t), order = (layer?.z ?? 50) + (who.lift[layer?.id ?? ""] ?? 0) + 0.03;
       return { view, at: [socket.at[0] + gx * Math.cos(a) - gy * Math.sin(a), socket.at[1] + gx * Math.sin(a) + gy * Math.cos(a)], angle, z: (raised?.z ?? zOf(film, shot, who.role, t)) + order * 0.01, hidden: !!hold.hidden, behind: raised && veilOf(who, layer!.id) > 0.5 ? { body: who.role.actor, near: order } : undefined };
     }
     return { view, at: [0, 0], angle: 0, z: 0, hidden: true };
@@ -355,7 +356,8 @@ function driftSpec(d: StoryDrift): RigSpec {
 
 interface Ordered { z: number; mesh: PaintMesh }
 const smooth = (t: number) => { const u = Math.min(1, Math.max(0, t)); return u * u * (3 - 2 * u); };
-const raisedAt = ({ role, reaching }: Pick<StoryPlayed, "role" | "reaching">, layer: string, t: number) => role.raise?.find(r => r.layers.includes(layer) && t >= (r.from ?? 0) && t <= (r.to ?? Infinity) && (!r.reach || reaching[layer.endsWith("-b") ? "b" : "f"] > 0.3));
+/** How a layer is raised at a time, if it is. */
+export const storyRaised = ({ role, reaching }: Pick<StoryPlayed, "role" | "reaching">, layer: string, t: number) => role.raise?.find(r => r.layers.includes(layer) && t >= (r.from ?? 0) && t <= (r.to ?? Infinity) && (!r.reach || reaching[layer.endsWith("-b") ? "b" : "f"] > (r.edge === undefined ? 0.3 : 0.5)));
 /** How far the own body is in front of a raised hand and forearm: all the way, until a far hand comes in front of its own chest. */
 function veilOf(p: StoryPlayed, layer: string): number {
   const side = layer.slice(-1), at = p.frame.bones.get(`hand-${side}`), from = p.frame.bones.get(`arm-${side}`);
@@ -413,7 +415,7 @@ export function storySheet(film: StorybookFilm, shot: StoryShot, t: number, stil
   const dark = set.shade ?? (set.ground ? 0.34 : 0);
   for (const p of played) { const z = zOf(film, shot, p.role, t); if (dark > 0) out.push(...shadeOf(p, dark, z, view)); for (const m of p.meshes) {
     const positions = new Float32Array(m.positions.length); for (let i = 0; i < positions.length; i += 2) { const [X, Y] = view.put(m.positions[i], m.positions[i + 1]); positions[i] = X; positions[i + 1] = Y; }
-    const id = m.id.split("/")[0], raised = raisedAt(p, id, t), least = Math.min(...p.meshes.filter(q => raisedAt(p, q.id.split("/")[0], t)).map(q => q.z)), bare = raised ? veilOf(p, id) : 1;
+    const id = m.id.split("/")[0], raised = storyRaised(p, id, t), least = Math.min(...p.meshes.filter(q => storyRaised(p, q.id.split("/")[0], t)).map(q => q.z)), bare = raised ? veilOf(p, id) : 1;
     const veil = !raised || bare >= 1 ? undefined : m.along ? m.along.map(s => 1 - (1 - bare) * smooth((s - 1.05) / 0.3)) : new Float32Array(m.positions.length / 2).fill(bare);
     out.push({ z: (raised?.z ?? z) + m.z * 0.01, mesh: { image: p.figure.art.images[m.image].src, positions, uvs: m.uvs, indices: m.indices, opacity: m.opacity, tint: m.tint, veil, behind: raised && { body: p.role.actor, near: m.z }, own: !raised && m.z > least ? { body: p.role.actor, near: m.z } : undefined } });
   } }

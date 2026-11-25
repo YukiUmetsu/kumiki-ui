@@ -65,7 +65,7 @@
      "words": [{"text": "たこ{焼|や}き", "gloss": "octopus dumplings", "at": 0.4, "for": 2.4}],
      "after": 0
     },
-    {"shot": {"id": "two", "on": ["daniel", "ema"], "size": "waist", "from": "door"}, "say": "two", "to": "daichi", "mood": "happy", "do": [{"who": "daniel", "act": "point", "to": "plate", "at": 0.2, "for": 1.6}]},
+    {"shot": {"id": "two", "on": ["daniel", "ema"], "size": "waist", "from": "door"}, "say": "two", "to": "daichi", "mood": "happy", "do": [{"who": "daniel", "act": "point", "to": "plate", "hand": "f", "at": 0.2, "for": 1.6}]},
     {"shot": {"id": "price", "frame": "cook", "without": ["daniel", "ema", "sophie", "leo"]}, "say": "price", "to": "daniel", "mood": "happy", "do": [{"who": "daichi", "act": "nod", "at": 0.1}]},
     {"shot": {"id": "hot", "on": "sophie", "size": "chest", "from": "door"}, "say": "hot", "to": "daichi"},
     {

@@ -18,7 +18,7 @@ type Pt = readonly [number, number];
 export interface PlaySpot {
   at: Pt; view?: string; facing?: 1 | -1; /** Default 1; a set with a ground has its own. */ scale?: number; z?: number; hidden?: readonly string[];
   /** Someone who sits: how much of the standing height is above the place, 0–1. */ low?: number; /** Is in each picture that shows the place (who sits in a car): the picture grows, and nobody is left out. */ stays?: true;
-  /** Parts that come over something: hands on a wheel, arms over a counter. */ raise?: readonly { layers: readonly string[]; z: number }[];
+  /** Parts that come over something: hands on a wheel, arms over a counter. */ raise?: readonly { layers: readonly string[]; z: number; /** Height of the far edge of the counter. */ edge?: number }[];
   /** What the hands and the body do as long as no beat says otherwise. */ pose?: readonly PlayAct[]; /** Looks here when nobody speaks. */ toward?: StoryPlace | "viewer" | "ahead"; tint?: readonly [number, number, number]; /** What people wear here, other than at the rest of the stage (socks on the wooden floor of a hall). */ wear?: readonly string[];
   /** 0–1: how far the head and the chest go along with the eyes here. Who drives looks at a passenger with the eyes: 0.2. Default 1. */ much?: number;
 }
@@ -307,7 +307,7 @@ function recapScene(id: string, o: PlayRecap, at: TeachStage, lib: PlayLibrary):
   const page = pageOf(at, lib, "full"), n = o.words.length, step = (lib.size.width * 0.86) / n, x = (i: number) => lib.size.width / 2 + (i - (n - 1) / 2) * step, wide = Math.min(at.show.width, (step / page.unit) * 0.86), low = 712;
   const props = o.words.flatMap((w, i): PlayGive[] => { const p = w.prop && lib.props[w.prop]; if (!p) return []; const v = (w.view && p.views?.[w.view]) || p, even = (0.74 * Math.sqrt(wide * at.show.height)) / Math.sqrt(v.width * v.height); return [{ prop: w.prop!, ...(w.view ? { view: w.view } : {}), to: page.cm([x(i), low]), scale: Math.min(even, wide / v.width, at.show.height / v.height), z: 5 }]; });
   const title = titled(at, lib, page, { text: o.title ?? "{今日|きょう}の ことば", gloss: o.gloss ?? "Today’s words", tone: "title", place: [960, 190], size: 72 }, 760);
-  return { id, stage: at.stage, layout: "full", cast: {}, props: [...title.give, ...props], cover: "none", beats: [{ shot: { id: "words", size: "wide", move: "hold", about: "The words of the story, with their readings." }, seconds: o.seconds ?? 2.2 + 1.3 * n, sounds: lib.sounds?.["page-turns"] ? [{ sound: "page-turns", at: 0.34 }] : [], words: [...title.words, ...o.words.map((w, i): PlayWords => ({ text: w.text, gloss: w.gloss, means: true, place: [x(i), low + 112], size: 64, at: 0.5 + 0.4 * i }))] }] };
+  return { id, stage: at.stage, layout: "full", cast: {}, props: [...title.give, ...props], cover: "none", beats: [{ shot: { id: "words", size: "wide", move: "hold", about: "The words of the story, with their readings." }, seconds: o.seconds ?? 2.2 + 1.3 * n, sounds: lib.sounds?.["page-turns"] ? [{ sound: "page-turns", at: 0.34 }] : [], words: [...title.words, ...o.words.map((w, i): PlayWords => ({ text: w.text, gloss: w.gloss, means: true, place: [x(i), low + 112], size: 72, at: 0.5 + 0.4 * i }))] }] };
 }
 
 /** Things to name: someone asks, the viewer has a moment, someone answers. */
