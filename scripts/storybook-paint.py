@@ -149,7 +149,7 @@ def main():
         r = check_rear(models, flat, mask, (lambda q: (q[0], q[1] > 0.5))(rig.paper(out))) if kind == "rear" else check_face(kind, models, rig.art.load(head), rig.art.load(out))
         print(json.dumps({"kind": kind, "file": o.check, **r}, ensure_ascii=False)); sys.exit(0 if r["kept"] else 1)
     up, paint, failed = None, Painter(models_dir / "klein6"), False
-    kinds = [k for kind in o.kinds.split(",") for k in ([f"face-{f}" for f in rig.FACE_FILES if f not in rig.OWN[rig.face_of(models, flat, mask)[2]]] if kind == "faces" else [kind])]
+    kinds = [k for kind in o.kinds.split(",") for k in ([f"face-{f}" for f in rig.FACE_FILES if f not in rig.OWN[rig.painted_face(models, flat, mask)[2]]] if kind == "faces" else [kind])]
     for kind in kinds:
         t0 = time.time()
         if kind == "prepare":

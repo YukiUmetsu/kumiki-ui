@@ -128,7 +128,7 @@ def shows_of(state):
     return "narrow" if state["eyes"] < 0.042 else "rest"
 
 
-def face_of(models, over, solid):
+def painted_face(models, over, solid):
     """The head box of a painting, the openings of its face and what the face shows."""
     box = head_box(models, over, solid); p = models.face(square(over, *box), 0.2)
     if p is None: raise SystemExit(f"MediaPipe (face_landmarker.task) found no face in the head box {box}.")
@@ -522,7 +522,7 @@ def propose(n, root, models, look):
     if not pf.exists(): raise SystemExit(f"There is no person {n}: write {pf.relative_to(REPO)} first.")
     person, painting = json.loads(pf.read_text()), f"cast/{n}_full_body.png"; over, a = paper(root / painting)
     try:
-        box, state, shows = face_of(models, over, a > 0.5); own = OWN[shows]
+        box, state, shows = painted_face(models, over, a > 0.5); own = OWN[shows]
         faces = {k: f"faces/{n}_{v}.png" for k, v in FACE_FILES.items() if k not in own and (root / "faces" / f"{n}_{v}.png").exists()}
         card = {"id": f"{n}-front", "height": person["height"], "painting": painting, "sharp": f"flat/{n}@2.png", "head": {"box": box, "sharp": f"heads/{n}.png"}, "shows": shows, "faces": faces, "provenance": PROVENANCE, "kit": "kit-hands.json"}
         if not (root / card["sharp"]).exists(): del card["sharp"]

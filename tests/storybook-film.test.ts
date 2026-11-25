@@ -174,10 +174,10 @@ describe("translations", () => {
 });
 
 describe("people", () => {
-  it("are data: each file is a person with a voice, and a cast is made from it", () => {
-    expect(Object.keys(PEOPLE)).toHaveLength(10);
+  it("are data: each file is a person, a cast is made from it, and a voice is a Fish Audio id when there is one", () => {
+    expect(Object.keys(PEOPLE)).toHaveLength(12);
     for (const [id, p] of Object.entries(PEOPLE)) {
-      expect(castOf(id)[id].name, id).toBe(p.name); expect(p.voice.fish, id).toMatch(/^[0-9a-f]{32}$/); expect(p.height, id).toBeGreaterThan(80);
+      expect(castOf(id)[id].name, id).toBe(p.name); if (p.voice) expect(p.voice.fish, id).toMatch(/^[0-9a-f]{32}$/); expect(p.height, id).toBeGreaterThan(80);
     }
   });
 });

@@ -1,0 +1,22 @@
+{
+ "id": "kento-front",
+ "height": 172,
+ "painting": "cast/kento_full_body.png",
+ "sharp": "flat/kento@2.png",
+ "head": {
+  "box": [
+   370,
+   -3,
+   264
+  ],
+  "sharp": "heads/kento.png"
+ },
+ "shows": "rest",
+ "faces": {
+  "a": "faces/kento_a.png",
+  "blink": "faces/kento_blink.png",
+  "joy": "faces/kento_happy.png"
+ },
+ "provenance": "The owner's full-body painting, cut; the face paintings were made from it with FLUX.2 Klein 4B (Apache-2.0), run locally.",
+ "kit": "kit-hands.json"
+}

@@ -5,7 +5,7 @@ description: Use when making, cutting, rigging, animating or reviewing painted s
 
 # Kumiki painted storybook films (STORY1)
 
-A new scene, figure or episode: read [storybook-episode](../../docs/component-specs/storybook-episode.md). The engine and the acts: [storybook-film](../../docs/component-specs/storybook-film.md). Packs: `painted-rig`, `storybook-film`.
+A new scene, figure or episode: read [storybook-episode](../../docs/component-specs/storybook-episode.md). A new person: [Add a person](../../docs/component-specs/storybook-character.md) (`story:person`, `story:voice`). The engine and the acts: [storybook-film](../../docs/component-specs/storybook-film.md). Packs: `painted-rig`, `storybook-film`.
 
 Start with `npm run -s story:make -- <play> --new --stage <stage> --cast a,b`: it writes a screenplay that plays. Then `story:make -- <play> --out dir` does all checks and draws two sheets. Before you write: `npm run -s story:plan -- --library people|stages|props|sounds|acts [name]`. Do not read the JSON of other scenes.
 

@@ -80,7 +80,7 @@ A range is no pose. A hand on a wheel can be inside all ranges and still hold it
 
 ## Add a figure
 
-A front or rear figure: write a card (see [storybook-episode](storybook-episode.md#a-figure)). A side or three-quarter figure, by hand:
+A new person, front view: follow [Add a person](storybook-character.md). One command paints the missing faces, proposes the card, cuts and checks the figure. A rear figure: write a card (see [storybook-episode](storybook-episode.md#a-figure)). A side or three-quarter figure, by hand:
 
 1. Get a front, three-quarter, side or rear painting of the figure on plain paper, and paintings of its hands and faces. Keep the paintings in `local-assets/`, which git ignores. The cut art goes into the host's assets.
 2. Write a recipe (the head of `storybook-art.py` gives each field): the joints in pixels, one polygon for each layer, steps that paint what lies hidden, hand drawings, face patches with marks on the lips, sockets.

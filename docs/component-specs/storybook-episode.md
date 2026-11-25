@@ -85,7 +85,7 @@ A set is layers of paintings with a place in centimetres. A stage is a set with 
 
 ## A figure
 
-A card of about 60 lines replaces a recipe cut by hand. `storybook-rig.py` finds joints, jaw, lips and cuffs from landmarks, cuts the painting, fills what a joint uncovers, sews the faces, and takes hands and feet from the kit of the cast in the size and the skin colour of the figure. It prints how like the painting the figure is at rest. Then look at the kit film of the figure (`npm run -s story:look -- kit-<figure> --n 4`) and measure it (`story:qa -- kit-<figure>`): standing, turning, each look, speech, both arms through the space in front, each act, a walk, sitting.
+A card of about 60 lines replaces a recipe cut by hand. For a new person, `story:person` proposes the card from the painting and runs all the steps below: see [Add a person](storybook-character.md). `storybook-rig.py` finds joints, jaw, lips and cuffs from landmarks, cuts the painting, fills what a joint uncovers, sews the faces, and takes hands and feet from the kit of the cast in the size and the skin colour of the figure. It prints how like the painting the figure is at rest. Then look at the kit film of the figure (`npm run -s story:look -- kit-<figure> --n 4`) and measure it (`story:qa -- kit-<figure>`): standing, turning, each look, speech, both arms through the space in front, each act, a walk, sitting.
 
 A wide sleeve (a kimono) needs `fix.sleeve` in the card: the line where it ends against the body. Its corner past the cuff then hangs on a bone of its own (`hang`), and the cloth on the inside of the elbow is drawn in as the elbow bends (`slack` of the bind). Under a skirt or a hem the legs stand straight, so that the cloth hangs as it is painted.
 
@@ -113,7 +113,7 @@ Measured on the demo scenes, in the order in which they were made. New pictures 
 | What the next scene needs | Work |
 |---|---|
 | people and a place that exist | 6 to 10 KB of JSON, voices, two sheets to look at. No code, no new picture. Checks of an 80 s film: 56 s |
-| a new person | paintings of one front view and the faces, a card of about 60 lines. Hands, feet, acts and joints are shared |
+| a new person | a person file, one front painting, `story:person` (it paints the missing faces, proposes the card and checks the figure), corrections of the card, a voice. Hands, feet, acts and joints are shared. See [Add a person](storybook-character.md) |
 | a new place | paintings, a recipe, a stage |
 | a new act | photographs, one entry in `ACT_STUDIES`, one entry in `ACTS`. All people and later scenes have it |
 

@@ -7,7 +7,7 @@ export interface Person {
   name: string; /** Ruby markup. */ label: string; color: string; seed: number; /** The view when a role names none. */ first?: string;
   /** Views in other clothes: only the films that name them have them. */ apart?: readonly string[];
   /** Centimetres, top of the hair or hat to the sole. */ height: number; age?: number;
-  /** Fish Audio voice; `pace` is morae a second. */ voice: { fish: string; speed: number; pace: number };
+  /** Fish Audio voice; `pace` is morae a second. A new person has none until the owner picks one (`story:voice`). */ voice?: { fish: string; speed: number; pace: number };
   /** Hair, face and clothes in a few words, for the templates of `storybook-paint.py`. */ looks?: string; /** What the face paintings keep besides hair and clothes, for example "thin glasses". */ keep?: string; /** The owner's character sheet. */ sheet?: string;
 }
 const FILES = import.meta.glob("./people/*.json", { eager: true, import: "default" }) as Record<string, Person>;
