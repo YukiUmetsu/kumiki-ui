@@ -22,10 +22,10 @@ Six scenes and the episode `first-trip`: 487.1 s (8 min 7 s), 115 shots, 11,690 
 | Registry smoke | `npm run registry:smoke` | 315 items, 7483 files |
 | Clean app, `painted-rig` | `node scripts/registry-fixture.js --item=painted-rig` | 12 items, 142 files compiled |
 | Clean app, `storybook-film` | `node scripts/registry-fixture.js --item=storybook-film` | 13 items, 153 files compiled |
-| Catalog | `npm run catalog:check` | @@CATALOG@@ |
+| Catalog | `npm run catalog:check` | 577 entries, 1497 stories, OK |
 | Docs | `npm run docs:check` | OK |
 | Sounds | `npm run sound:check` | 165 sounds |
-| Art from recipes and cards | `storybook-art.py` on the 11 recipes, `storybook-rig.py` on the 13 figure cards, from `local-assets/storybook/paintings` | @@ART@@ |
+| Art from recipes and cards | `storybook-art.py` on the 11 recipes, `storybook-rig.py` on the 13 figure cards (9 fronts, 4 rears), from `local-assets/storybook/paintings` | the same as the assets, byte for byte, with three exceptions: `head.webp` of the rear views of Daniel, Sophie and Leo differs by at most 15 of 255, in at most two pixels above 12 |
 
 The whole unit suite and the whole story suite were not run.
 
