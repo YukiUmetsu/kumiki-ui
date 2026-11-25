@@ -1,16 +1,18 @@
 // Speech for painted storybook films: speaks lines, slows them for learners, and times every phone against the recording.
 //
-//   node scripts/storybook-speech.mjs <play> [--wav scratch/raw] [--julius bin --kit dir]
+//   node scripts/storybook-speech.mjs <play> [--wav scratch/raw] [--julius bin --kit dir] [--hear python --ear model [--takes 4] [--only id,id]]
 //   node scripts/storybook-speech.mjs lines.json --out dir [--voices voices.json] [--wav scratch/raw] [--julius bin --kit dir]
 //
 // lines.json: { "voices": { "<speaker>": { "fish": "<voice id>", "tempo": 0.8, "pace": 5.5 } } (or those of --voices),
-//               "lines": [{ "id", "speaker", "ja" (ruby markup), "en", "speak"?: text for the voice, "tempo"?, "gap"? }] }
+//               "lines": [{ "id", "speaker", "ja" (ruby markup), "en", "speak"?: text (or texts) for the voice, "tempo"?, "gap"? }] }
 //
 // A raw recording <wav>/<id>.wav is used when it is there, from any source (a person, a local voice). Otherwise Fish Audio speaks
 // the line when FISH_AUDIO_API is set. `pace` is morae a second: the tempo is found from the recording and never goes below 0.7.
 // Timing: forced alignment with Julius and the segmentation-kit monophone model (BSD-style licences) when --julius and --kit are
 // given; else the track is estimated from the text and says so ("precision": "estimated").
-// Writes <out>/<id>.mp3 and <out>/lines.json ({ id: { speaker, ja, en, track } }), which a film reads as data.
+// With --hear (a Python with torch, transformers and, for the accents, pyopenjtalk) and --ear (the model) every line is heard without its
+// text: what was read another way is told, and of --takes new recordings the one is kept that is nearest to the reading and its accent.
+// A line of --only, or one with no recording, is recorded again. Writes <out>/<id>.mp3 and <out>/lines.json ({ id: { speaker, ja, en, track } }), which a film reads as data.
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -18,7 +20,7 @@ import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { moraeOf, parseRuby, phonesOf, rubyPlain, rubyReading } from "../registry/video/storybook/japanese-text.ts";
 
-const { values: opt, positionals } = parseArgs({ allowPositionals: true, options: { out: { type: "string" }, voices: { type: "string" }, wav: { type: "string" }, julius: { type: "string", default: process.env.JULIUS_BIN }, kit: { type: "string", default: process.env.JULIUS_KIT } } });
+const { values: opt, positionals } = parseArgs({ allowPositionals: true, options: { out: { type: "string" }, voices: { type: "string" }, wav: { type: "string" }, julius: { type: "string", default: process.env.JULIUS_BIN }, kit: { type: "string", default: process.env.JULIUS_KIT }, hear: { type: "string", default: process.env.STORY_HEAR }, ear: { type: "string", default: process.env.STORY_EAR }, takes: { type: "string", default: "1" }, only: { type: "string" }, again: { type: "boolean" } } });
 // a name is a play of the demo: its lines, its voices and where its recordings go are known
 const demo = resolve(import.meta.dirname, "../src/video/storybook"), play = positionals[0] && !positionals[0].endsWith(".json") ? positionals[0] : null;
 if (play) { positionals[0] = join(demo, "plays", `${play}.json`); opt.out ??= join(demo, "assets", play, "voice"); opt.voices ??= join(demo, "voices.json"); }
@@ -30,11 +32,11 @@ const pcm = (file, rate, filter) => { const b = ff(["-i", file, ...(filter ? ["-
 const wavOf = (x, rate) => { const b = Buffer.alloc(44 + x.length * 2); b.write("RIFF", 0); b.writeUInt32LE(36 + x.length * 2, 4); b.write("WAVEfmt ", 8); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(rate, 24); b.writeUInt32LE(rate * 2, 28); b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34); b.write("data", 36); b.writeUInt32LE(x.length * 2, 40); x.forEach((v, i) => b.writeInt16LE(Math.round(Math.max(-1, Math.min(1, v)) * 32767), 44 + i * 2)); return b; };
 const rms = (x, a, b) => { let s = 0; const i0 = Math.max(0, Math.floor(a)), i1 = Math.min(x.length, Math.ceil(b)); for (let i = i0; i < i1; i++) s += x[i] * x[i]; return Math.sqrt(s / Math.max(1, i1 - i0)); };
 
-async function speak(line, voice, file) {
+async function speak(line, voice, file, text) {
   if (existsSync(file)) return;
   const key = process.env.FISH_AUDIO_API;
   if (!key || !voice?.fish) throw new Error(`There is no recording ${file}, and no voice to speak "${line.id}" with.`);
-  const r = await fetch("https://api.fish.audio/v1/tts", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", model: process.env.FISH_MODEL ?? "s2.1-pro-free" }, body: JSON.stringify({ text: line.speak ?? rubyPlain(parseRuby(line.ja)), reference_id: voice.fish, format: "mp3", mp3_bitrate: 192, prosody: { speed: line.speed ?? voice.speed ?? 1 }, temperature: line.temperature ?? 0.7 }) });
+  const r = await fetch("https://api.fish.audio/v1/tts", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", model: process.env.FISH_MODEL ?? "s2.1-pro-free" }, body: JSON.stringify({ text, reference_id: voice.fish, format: "mp3", mp3_bitrate: 192, prosody: { speed: line.speed ?? voice.speed ?? 1 }, temperature: line.temperature ?? 0.7 }) });
   if (!r.ok) throw new Error(`"${line.id}": the voice service answered ${r.status}.`);
   const mp3 = `${file}.mp3`; writeFileSync(mp3, Buffer.from(await r.arrayBuffer())); ff(["-i", mp3, "-ac", "1", "-ar", String(RATE), file]); rmSync(mp3);
 }
@@ -81,9 +83,8 @@ function heldEnds(phones, x) {
 /** How long a voice sounds. */
 function loudSeconds(x) { let loud = 0, top = 0; const hop = RATE / 100; for (let i = 0; i + hop < x.length; i += hop) top = Math.max(top, rms(x, i, i + hop)); for (let i = 0; i + hop < x.length; i += hop) if (rms(x, i, i + hop) > top * 0.06) loud++; return loud / 100; }
 
-const kept = {};
-for (const line of spec.lines) {
-  const voice = voices[line.speaker] ?? {}, file = join(raw, `${line.id}.wav`); await speak(line, voice, file);
+/** A recording made ready: trimmed, slowed, at one loudness, with its phones in time. */
+async function ready(line, voice, file) {
   const tokens = parseRuby(line.ja), phones = phonesOf(tokens), morae = moraeOf(rubyReading(tokens)).filter(m => m.phones[0] !== "sp").length;
   // the silence round the line goes, and a pause inside it is never longer than `gap`
   const gap = line.gap ?? 0.42, trim = `silenceremove=start_periods=1:start_threshold=-46dB:start_silence=0.03,areverse,silenceremove=start_periods=1:start_threshold=-46dB:start_silence=0.1,areverse,silenceremove=stop_periods=-1:stop_duration=${gap}:stop_threshold=-42dB:stop_silence=${gap}`;
@@ -93,14 +94,45 @@ for (const line of spec.lines) {
   if (Math.abs(tempo - 1) > 0.01) x = pcm(file, RATE, `${trim},atempo=${tempo.toFixed(3)}`);
   // one loudness for every line
   let peak = 0; for (const v of x) peak = Math.max(peak, Math.abs(v)); const level = rms(x, 0, x.length), gain = Math.min(0.14 / Math.max(1e-4, level), 0.84 / Math.max(1e-4, peak)); x = x.map(v => v * gain);
-  const wav = join(raw, `${line.id}.ready.wav`); writeFileSync(wav, wavOf(x, RATE)); ff(["-i", wav, "-c:a", "libmp3lame", "-b:a", "128k", join(out, `${line.id}.mp3`)]);
+  const wav = file.replace(/\.wav$/, ".ready.wav"); writeFileSync(wav, wavOf(x, RATE));
   const seconds = x.length / RATE, x16 = roomTone(pcm(wav, AT)), found = alignWithPauses(x16, phones), got = found && found.phones.reduce((s, p) => s + (p.p === "sp" ? 0 : p.end - p.start), 0) > 0.55 * loudSeconds(x) ? { ...found, phones: heldEnds(found.phones, x) } : null; // an aligner that puts a slow word into a moment has lost it
   let track;
   if (got) {
     const levels = got.phones.map(p => rms(x, p.start * RATE, p.end * RATE)), loudest = Math.max(...levels);
     track = { seconds: +seconds.toFixed(3), precision: "aligned", phones: got.phones.map((p, i) => ({ p: p.p, start: +p.start.toFixed(3), end: +Math.min(p.end, seconds).toFixed(3), token: p.token, level: +(levels[i] / loudest).toFixed(2) })) };
   } else { const { estimateSpeech } = await import("../registry/video/storybook/speech-mouth.ts").catch(() => ({})); if (!estimateSpeech) throw new Error(`"${line.id}" could not be aligned. Give --julius and --kit.`); track = estimateSpeech(tokens, seconds); }
-  kept[line.id] = { speaker: line.speaker, ja: line.ja, en: line.en, track };
-  console.log(`${line.id.padEnd(16)} ${seconds.toFixed(2)} s  ${(morae / track.phones.reduce((s, p) => s + (p.p === "sp" ? 0 : p.end - p.start), 0)).toFixed(1)} morae/s  tempo ${tempo.toFixed(2)}  ${track.precision}${got ? ` ${got.score.toFixed(1)}` : ""}`);
+  return { wav, seconds, track, tempo, score: got?.score, phones: phones.map(p => p.p), text: rubyPlain(tokens).replace(/ /g, ""), pace: morae / track.phones.reduce((s, p) => s + (p.p === "sp" ? 0 : p.end - p.start), 0) };
 }
+
+/** Recordings heard without their text: what differs from the reading, and how the pitch goes with the accents. */
+function heard(list) {
+  if (!opt.hear || !opt.ear || !list.length) return new Map();
+  const run = spawnSync(opt.hear, ["-I", join(import.meta.dirname, "storybook-hear.py"), "--model", opt.ear], { input: JSON.stringify(list.map(q => ({ id: q.id, audio: q.wav, text: q.text, phones: q.phones, track: q.track }))), encoding: "utf8", maxBuffer: 1 << 26 });
+  if (run.status !== 0) throw new Error(`The recordings could not be heard: ${run.stderr.trim().split("\n").pop()}`);
+  return new Map(JSON.parse(run.stdout.trim().split("\n").pop()).map(q => [q.id, q]));
+}
+/** The part of a line's reading that a difference is in: the mora, with the one before and after. */
+const placeOf = (line, edit) => { const morae = moraeOf(rubyReading(parseRuby(line.ja))).filter(m => m.phones[0] !== "sp"), at = +edit.split("@")[1]; let n = 0; const i = morae.findIndex(m => (n += m.phones.length + m.phones.filter(p => p.endsWith(":")).length) >= at); return morae.slice(Math.max(0, i - 1), i + 2).map(m => m.kana).join(""); };
+/** Sounds that the free ear takes for another, and no one else does: a devoiced vowel, n before y, the first sound of a shout. */
+const faults = q => (q ? q.edits.filter(e => !/^-[iu]@|^\+N@/.test(e)) : []);
+
+const kept = existsSync(join(out, "lines.json")) && opt.only ? JSON.parse(readFileSync(join(out, "lines.json"), "utf8")) : {}, only = opt.only?.split(","), work = spec.lines.filter(l => !only || only.includes(l.id)), done = [];
+for (const line of work) {
+  const voice = voices[line.speaker] ?? {}, file = join(raw, `${line.id}.wav`), texts = [line.speak ?? rubyPlain(parseRuby(line.ja))].flat();
+  if (opt.again || !existsSync(file)) {
+    const n = Math.max(1, +opt.takes), all = [];
+    for (const [i, text] of texts.entries()) for (let k = 0; k < n; k++) { const take = join(raw, `${line.id}.take-${i}${k}.wav`); await speak(line, voice, take, text); all.push({ id: `${i}${k}`, file: take, ...(all.length || n * texts.length > 1 ? await ready(line, voice, take) : {}) }); }
+    const ears = all.length > 1 ? heard(all) : new Map(), cost = q => { const e = ears.get(q.id); return (e ? 4 * faults(e).length + 2 * (1 - (e.accent ?? 0.5)) : 0) - 0.1 * (q.score ?? -30) + 4 * Math.max(0, 1 - q.tempo); }, best = all.length > 1 ? all.reduce((p, q) => (cost(q) < cost(p) ? q : p)) : all[0];
+    for (const q of all) if (all.length > 1) console.log(`  take ${q.id}${q === best ? " *" : "  "} ${cost(q).toFixed(2)}  ${faults(ears.get(q.id)).join(" ") || "as written"}  accent ${ears.get(q.id)?.accent ?? "?"}`);
+    writeFileSync(file, readFileSync(best.file));
+  }
+  const got = await ready(line, voice, file); ff(["-i", got.wav, "-c:a", "libmp3lame", "-b:a", "128k", join(out, `${line.id}.mp3`)]); done.push({ id: line.id, line, ...got });
+  kept[line.id] = { speaker: line.speaker, ja: line.ja, en: line.en, track: got.track };
+}
+const ears = heard(done); let wrong = 0;
+for (const q of done) {
+  const e = ears.get(q.id), bad = faults(e); if (bad.length > 1 || (bad.length && !/^[-+]?[aiueoNw]@|>/.test(bad[0]))) wrong++;
+  console.log(`${q.id.padEnd(16)} ${q.seconds.toFixed(2)} s  ${q.pace.toFixed(1)} morae/s  tempo ${q.tempo.toFixed(2)}  ${q.track.precision}${q.score ? ` ${q.score.toFixed(1)}` : ""}${e ? `  accent ${e.accent ?? "?"}${bad.length ? `  heard ${bad.map(b => `${b} (${placeOf(q.line, b)})`).join(" ")}` : ""}` : ""}`);
+}
+if (ears.size) console.log(wrong ? `${wrong} lines are not heard as they are written. Listen to them.` : "Every line is heard as it is written.");
 writeFileSync(join(out, "lines.json"), JSON.stringify(kept, null, 1).replace(/\{\s+"p": ("[^"]+"),\s+"start": ([\d.]+),\s+"end": ([\d.]+),\s+"token": (\d+),\s+"level": ([\d.]+)\s+\}/g, '{ "p": $1, "start": $2, "end": $3, "token": $4, "level": $5 }') + "\n");

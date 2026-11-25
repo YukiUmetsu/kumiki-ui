@@ -9,6 +9,16 @@ import { castOf, PEOPLE } from "./cast";
 
 /** Places round the shoulder, in body heights, that each hand goes through. */
 export const ARM_PLACES_FRONT = [[0.02, 0.25], [0.1, 0.24], [0.2, 0.18], [0.26, 0.08], [0.24, -0.04], [0.16, -0.14], [0.22, -0.02], [0.2, 0.12], [0.1, 0.2], [0.02, 0.17], [0.02, 0.25]] as const;
+/** A head at the turns that it can be asked for: column, row, yaw, pitch. */
+const TURNS = [-1, 0, 1].flatMap(y => [-1, 0, 1].map(x => [x, y, x * 14, y * 6] as const));
+/** All that arms do, each at the moment when it is held: what to lay beside the photographs. A place (`to`) is from the feet, in body heights. */
+const POSES: readonly (readonly [string, Record<string, unknown>?, (readonly [number, number])?])[] = [
+  ["fold"], ["wave"], ["wave", { hand: "f" }], ["raise", { hand: "b" }], ["raise", { hand: "f" }],
+  ["point"], ["point", { hand: "b" }, [0.02, 0.5]], ["point", {}, [-0.3, 0.72]], ["point", { hand: "b" }, [0.5, 0.95]], ["point", {}, [0.06, 0.56]],
+  ["invite"], ["explain", { hand: "b" }], ["beckon"], ["offer"], ["receive"],
+  ["shrug"], ["clap"], ["carry"], ["think"], ["call"],
+  ["phone"], ["drink"], ["eat"], ["rest", {}, [-0.16, 0.55]], ["reach", {}, [-0.24, 0.6]],
+];
 const GESTURES = ["wave", "bow", "deep-bow", "point", "invite", "explain", "offer", "raise", "beckon", "clap", "shrug", "hop", "thank", "receive"] as const;
 /** Acts at the face: nothing of them shows from behind. */
 const AT_FACE = ["think", "call", "phone", "drink", "eat"] as const;
@@ -27,9 +37,11 @@ export function kitFilm(id: string): StorybookFilm {
     id: `kit-${id}`, title: `${cast[who].name} (${id})`, size, fps: 24, paper: "#fbf3e1", frame: { x: 0, y: 0, ...size }, cast, props: {}, lines: { said: line },
     sets: { paper: { home: all, layers: [] }, floor: { home: all, layers: [], ground: { horizon: [0, -0.86 * H], distance: 3.4 * H } } },
     shots: [
+      shot("poses", 1, { frame: { at: [0, -0.5 * H], tall: 3.75 * H }, roles: POSES.map(([act, params, to], i) => { const d = Math.max(4, ACTS[act].seconds), x = ((i % 5) - 2) * 0.74 * H, y = (Math.floor(i / 5) - 1.72) * 0.72 * H; return role({ path: [x, y], z: 20 + i, acts: [{ act, at: 0.5 - d / 2, for: d, params: { ...params, ...(to && { to: [x + to[0] * H, y - to[1] * H] }) } }] }); }) }),
       shot("stand", 2, { roles: [role()] }),
       ...(face ? [
         shot("turn", 5.2, { frame: bust, roles: [role({ acts: [{ act: "turn", at: 0.2, for: 1.8, params: { yaw: 26 } }, { act: "turn", at: 2, for: 1.8, params: { yaw: -26 } }, { act: "look-around", at: 3.6, for: 1.6 }] })] }),
+        shot("heads", 1.5, { frame: { at: [0, -0.62 * H], tall: 0.98 * H }, roles: TURNS.map(([x, y, yaw, pitch]) => role({ turn: [yaw, pitch], path: [x * 0.32 * H, y * 0.3 * H], z: 20 + y })) }),
         shot("looks", looks.length * 0.8, { frame: { at: head, tall: 0.26 * H }, roles: [role({ acts: looks.map((look, i) => ({ act: "feel", at: i * 0.8, for: 0.9, params: { look } })) })] }),
         shot("say", 5.9, { frame: { at: head, tall: 0.26 * H }, roles: [role()], says: [{ line: "said", at: 0.2 }] }),
       ] : []),

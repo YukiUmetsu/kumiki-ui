@@ -115,9 +115,9 @@ describe("the film", () => {
 
 describe("translations", () => {
   const order = 200, words = 846, stage = (frame: number, glosses?: boolean) => renderToStaticMarkup(createElement(StorybookFilmStage, { film: KONBINI_FILM, frame, glosses }));
-  it("are hidden until they are asked for", () => {
-    expect(stage(order)).toContain("すみません"); expect(stage(order)).not.toContain('lang="en"'); expect(stage(words)).not.toContain('lang="en"');
-    expect(stage(order, true)).toContain("One rice ball, please."); expect(stage(words, true)).toContain("rice ball");
+  it("are hidden until they are asked for, but a word to learn has its meaning", () => {
+    expect(stage(order)).toContain("すみません"); expect(stage(order)).not.toContain('lang="en"'); expect(stage(words)).toContain("rice ball"); expect(stage(words)).not.toContain("Today’s words");
+    expect(stage(order, true)).toContain("One rice ball, please."); expect(stage(words, true)).toContain("Today’s words");
   });
   it("have a switch that is off, and none in a film without translations", () => {
     const player = (film: typeof KONBINI_FILM) => renderToStaticMarkup(createElement(StorybookFilmPlayer, { film })), japanese = { ...KONBINI_FILM, lines: Object.fromEntries(Object.entries(KONBINI_FILM.lines).map(([id, l]) => [id, { ...l, en: undefined }])), shots: KONBINI_FILM.shots.map(s => ({ ...s, words: s.words?.map(w => ({ ...w, gloss: undefined })) })) };

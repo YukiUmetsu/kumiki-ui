@@ -50,6 +50,7 @@
     "driver": {
      "at": [-90, 140],
      "stays": true,
+     "much": 0.2,
      "scale": 1.4,
      "z": 10,
      "hidden": ["leg-f", "leg-b", "foot-f", "foot-b"],

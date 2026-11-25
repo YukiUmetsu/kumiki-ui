@@ -137,6 +137,21 @@
     "width": 338,
     "height": 338
    },
+   "hand-b-index": {
+    "src": "hand-b-index.webp",
+    "width": 338,
+    "height": 494
+   },
+   "hand-b-back": {
+    "src": "hand-b-back.webp",
+    "width": 260,
+    "height": 390
+   },
+   "hand-b-wave": {
+    "src": "hand-b-wave.webp",
+    "width": 390,
+    "height": 494
+   },
    "arm-f": {
     "src": "arm-f.webp",
     "width": 290,
@@ -217,10 +232,25 @@
     "width": 338,
     "height": 338
    },
+   "hand-f-index": {
+    "src": "hand-f-index.webp",
+    "width": 338,
+    "height": 494
+   },
+   "hand-f-back": {
+    "src": "hand-f-back.webp",
+    "width": 260,
+    "height": 390
+   },
+   "hand-f-wave": {
+    "src": "hand-f-wave.webp",
+    "width": 390,
+    "height": 494
+   },
    "head": {
     "src": "head.webp",
     "width": 675,
-    "height": 715
+    "height": 659
    },
    "face-rest": {
     "src": "face-rest.webp",
@@ -567,7 +597,8 @@
       "y": -8.0,
       "width": 23.0,
       "height": 28.0,
-      "wrist": -12.57
+      "wrist": -12.57,
+      "shows": "thumb"
      },
      "open": {
       "image": "hand-b-open",
@@ -575,7 +606,8 @@
       "y": -4.0,
       "width": 13.0,
       "height": 22.0,
-      "wrist": 0
+      "wrist": 0,
+      "shows": "palm"
      },
      "under": {
       "image": "hand-b-under",
@@ -590,7 +622,8 @@
        "y": 1.0,
        "width": 9.0,
        "height": 12.0
-      }
+      },
+      "shows": "palm"
      },
      "grip": {
       "image": "hand-b-grip",
@@ -605,7 +638,8 @@
        "y": 1.0,
        "width": 12.0,
        "height": 12.0
-      }
+      },
+      "shows": "palm"
      },
      "hold": {
       "image": "hand-b-hold",
@@ -620,7 +654,8 @@
        "y": -1.0,
        "width": 10.0,
        "height": 14.0
-      }
+      },
+      "shows": "palm"
      },
      "point": {
       "image": "hand-b-point",
@@ -628,7 +663,8 @@
       "y": -4.0,
       "width": 13.0,
       "height": 21.0,
-      "wrist": 0
+      "wrist": 0,
+      "shows": "palm"
      },
      "guide": {
       "image": "hand-b-guide",
@@ -636,7 +672,8 @@
       "y": -4.0,
       "width": 16.0,
       "height": 20.0,
-      "wrist": 0
+      "wrist": 0,
+      "shows": "palm"
      },
      "card": {
       "image": "hand-b-card",
@@ -644,7 +681,8 @@
       "y": -4.0,
       "width": 17.0,
       "height": 20.0,
-      "wrist": 0
+      "wrist": 0,
+      "shows": "palm"
      },
      "fist": {
       "image": "hand-b-fist",
@@ -652,7 +690,8 @@
       "y": -4.0,
       "width": 13.0,
       "height": 17.0,
-      "wrist": 0
+      "wrist": 0,
+      "shows": "palm"
      },
      "bar": {
       "image": "hand-b-bar",
@@ -668,7 +707,36 @@
        "width": 13.0,
        "height": 13.0
       },
-      "over": 0.4
+      "over": 0.4,
+      "shows": "back"
+     },
+     "index": {
+      "image": "hand-b-index",
+      "x": -6.0,
+      "y": -4.0,
+      "width": 13.0,
+      "height": 19.0,
+      "wrist": 0,
+      "shows": "back",
+      "as": "point"
+     },
+     "back": {
+      "image": "hand-b-back",
+      "x": -5.0,
+      "y": -4.0,
+      "width": 10.0,
+      "height": 15.0,
+      "wrist": 0,
+      "shows": "back"
+     },
+     "wave": {
+      "image": "hand-b-wave",
+      "x": -6.0,
+      "y": -4.0,
+      "width": 15.0,
+      "height": 19.0,
+      "wrist": 0,
+      "shows": "palm"
      }
     },
     "image": "hand-b-easy",
@@ -677,6 +745,7 @@
     "width": 23.0,
     "height": 28.0,
     "wrist": -12.57,
+    "shows": "thumb",
     "space": "bone"
    },
    {
@@ -774,7 +843,8 @@
       "y": -8.0,
       "width": 23.0,
       "height": 27.0,
-      "wrist": -1.51
+      "wrist": -1.51,
+      "shows": "thumb"
      },
      "open": {
       "image": "hand-f-open",
@@ -782,7 +852,8 @@
       "y": -4.0,
       "width": 13.0,
       "height": 22.0,
-      "wrist": 0
+      "wrist": 0,
+      "shows": "palm"
      },
      "under": {
       "image": "hand-f-under",
@@ -797,7 +868,8 @@
        "y": 1.0,
        "width": 9.0,
        "height": 12.0
-      }
+      },
+      "shows": "palm"
      },
      "grip": {
       "image": "hand-f-grip",
@@ -812,7 +884,8 @@
        "y": 1.0,
        "width": 12.0,
        "height": 12.0
-      }
+      },
+      "shows": "palm"
      },
      "hold": {
       "image": "hand-f-hold",
@@ -827,7 +900,8 @@
        "y": -1.0,
        "width": 10.0,
        "height": 14.0
-      }
+      },
+      "shows": "palm"
      },
      "point": {
       "image": "hand-f-point",
@@ -835,7 +909,8 @@
       "y": -4.0,
       "width": 13.0,
       "height": 21.0,
-      "wrist": 0
+      "wrist": 0,
+      "shows": "palm"
      },
      "guide": {
       "image": "hand-f-guide",
@@ -843,7 +918,8 @@
       "y": -4.0,
       "width": 16.0,
       "height": 20.0,
-      "wrist": 0
+      "wrist": 0,
+      "shows": "palm"
      },
      "card": {
       "image": "hand-f-card",
@@ -851,7 +927,8 @@
       "y": -4.0,
       "width": 17.0,
       "height": 20.0,
-      "wrist": 0
+      "wrist": 0,
+      "shows": "palm"
      },
      "fist": {
       "image": "hand-f-fist",
@@ -859,7 +936,8 @@
       "y": -4.0,
       "width": 13.0,
       "height": 17.0,
-      "wrist": 0
+      "wrist": 0,
+      "shows": "palm"
      },
      "bar": {
       "image": "hand-f-bar",
@@ -875,7 +953,36 @@
        "width": 13.0,
        "height": 13.0
       },
-      "over": 0.4
+      "over": 0.4,
+      "shows": "back"
+     },
+     "index": {
+      "image": "hand-f-index",
+      "x": -7.0,
+      "y": -4.0,
+      "width": 13.0,
+      "height": 19.0,
+      "wrist": 0,
+      "shows": "back",
+      "as": "point"
+     },
+     "back": {
+      "image": "hand-f-back",
+      "x": -5.0,
+      "y": -4.0,
+      "width": 10.0,
+      "height": 15.0,
+      "wrist": 0,
+      "shows": "back"
+     },
+     "wave": {
+      "image": "hand-f-wave",
+      "x": -9.0,
+      "y": -4.0,
+      "width": 15.0,
+      "height": 19.0,
+      "wrist": 0,
+      "shows": "palm"
      }
     },
     "image": "hand-f-easy",
@@ -884,6 +991,7 @@
     "width": 23.0,
     "height": 27.0,
     "wrist": -1.51,
+    "shows": "thumb",
     "space": "bone"
    },
    {
@@ -897,7 +1005,7 @@
     "x": -15.231,
     "y": -162.641,
     "width": 27.0,
-    "height": 28.6,
+    "height": 26.36,
     "grid": [
      40,
      40

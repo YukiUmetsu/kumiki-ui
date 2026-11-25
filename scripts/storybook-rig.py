@@ -136,12 +136,19 @@ class Body:
         main = biggest(rest); self.trunk = main | (rest & grow(main, 4))  # crumbs that no part claims go to the trunk if they touch it
         # hair, an ear or a knot that only a thin line joins to the collar moves with the head
         r = max(2, round(0.028 * self.wide)); body = biggest(cv2.morphologyEx(self.trunk.astype(np.uint8), cv2.MORPH_OPEN, disc(r)) > 0); ends = self.trunk & ~grow(body, r + 2) & (self.yy < self.chin[1] + 0.4 * self.wide)
-        if not self.rear: self.head |= ends; self.trunk &= ~ends
+        if not self.rear:
+            # the ink beside the neck stays with the neck, under the jaw
+            line = ends & ~grow(cv2.morphologyEx(ends.astype(np.uint8), cv2.MORPH_OPEN, disc(2)) > 0, 1) & grow(self.neck, 6) & (self.yy > self.face[172][1]); self.trunk &= ~line; ends &= ~line; self.neck |= line
+            n, lab, _, mid = cv2.connectedComponentsWithStats(ends.astype(np.uint8), connectivity=8); by = grow(self.neck, 3)
+            for i in range(1, n):
+                own = lab == i; self.trunk &= ~own
+                if mid[i][1] > self.face[132][1] and abs(mid[i][0] - self.chin[0]) < 0.9 * self.wide and own.sum() < (0.03 if (own & by).any() else 0.008) * self.wide ** 2: self.neck |= own
+                else: self.head |= own
 
     def head_mask(self):
         if self.rear: self.head = np.any([filled(self.solid.shape, p) for p in self.fix["head"]], 0) & self.solid; return
         f, yy, xx, W = self.face, self.yy, self.xx, self.wide; jaw = np.array([f[i][:2] for i in JAW]); order = np.argsort(jaw[:, 0]); line = np.interp(xx[0], jaw[order, 0], jaw[order, 1], left=-1, right=-1)
-        inside = (xx >= f[234][0]) & (xx <= f[454][0]); above = inside & (yy <= line[None, :] + 0.012 * W); ear = max(f[234][1], f[454][1]); beside = np.abs(xx - self.chin[0])
+        inside = (xx >= f[234][0]) & (xx <= f[454][0]); ear = max(f[234][1], f[454][1]); beside = np.abs(xx - self.chin[0]); above = inside & (yy <= line[None, :] + self.chin_ink(line)[None, :])
         hair, skin = np.isin(self.seg, (1, 5)), np.isin(self.seg, (2, 3)); side = ~inside & (yy > ear) & (hair | (skin & (yy < f[132][1] + 0.12 * W) & (beside < 0.75 * W))); under = inside & ~above & hair & (beside > 0.3 * W)
         m = self.solid & (above | (~inside & (yy <= ear)) | side | under)
         # the border between hair and clothes follows the colours
@@ -153,10 +160,31 @@ class Body:
         for p in self.fix.get("head", []): m |= filled(m.shape, p) & self.solid
         for p in self.fix.get("body", []): m &= ~filled(m.shape, p)
         clean = cv2.morphologyEx(m.astype(np.uint8), cv2.MORPH_OPEN, disc(1)) > 0; m = (clean | (m & (above | (yy <= ear)))); main = biggest(m); self.head = (main | (m & grow(main, 3))) & self.solid
+        # an ear is joined to its cheek down to the lobe: no row of the face has a slit there, whatever the colours say
+        for side, jaw, lobe in ((-1, 132, f[234][0]), (1, 361, f[454][0])):
+            for y in range(int(ear - 0.1 * W), int(f[jaw][1] + 0.12 * W)):
+                row = self.head[y]; edge = int(round(f[jaw][0])); outer = np.nonzero(row[:edge - int(0.02 * W)] if side < 0 else row[edge + int(0.02 * W):])[0]
+                if not len(outer): continue
+                far = outer[-1] if side < 0 else edge + int(0.02 * W) + outer[0]; a, b = (far, edge) if side < 0 else (edge, far)
+                if 0 < b - a < 0.16 * W: self.head[y, a:b + 1] |= self.solid[y, a:b + 1]
+        by_ear = (np.minimum(np.abs(xx - f[132][0]), np.abs(xx - f[361][0])) < 0.2 * W) & (yy > ear) & (yy < f[172][1]); self.head |= (cv2.morphologyEx(self.head.astype(np.uint8), cv2.MORPH_CLOSE, disc(max(2, round(0.035 * W)))) > 0) & by_ear & self.solid
         # what it goes all round, by an ear or a cheek, is head too
         n, lab, st, mid = cv2.connectedComponentsWithStats((~self.head).astype(np.uint8), connectivity=4)
         for i in range(1, n):
             if st[i, 4] < 0.02 * W * W and mid[i][1] < f[152][1] + 0.1 * W: self.head |= (lab == i) & self.solid
+
+    def chin_ink(self, line):
+        """How far under the line of the jaw, at each x, the ink of its outline goes: that ink turns with the chin."""
+        W, luma = self.wide, cv2.GaussianBlur(self.over.astype(np.float32).mean(2), (0, 0), 0.8); least = 0.012 * W; out = np.full(len(line), least, np.float32)
+        for x in np.nonzero(line > 0)[0]:
+            y0 = int(line[x] - 0.02 * W); col = luma[y0:int(line[x] + 0.075 * W), x]
+            if len(col) < 6: continue
+            k = int(col.argmin()); lit = float(np.median(luma[max(0, y0 - int(0.06 * W)):y0, x]))
+            if lit - col[k] < 34: continue
+            end = k + int(np.argmax(col[k:] > col[k] + 0.5 * (float(np.median(col[k:][-4:])) - col[k]))) if col[k:].max() > col[k] + 12 else k
+            out[x] = np.clip(y0 + end - line[x], least, 0.07 * W)
+        mid = cv2.medianBlur(out[None, :], 5)[0] if len(out) > 5 else out
+        return cv2.GaussianBlur(mid[None, :], (0, 0), 0.02 * W)[0]
 
     def neck_mask(self):
         W, (cx, cy), yy, xx = self.wide, self.chin[:2], self.yy, self.xx; skin = np.isin(self.seg, (2, 3))
@@ -332,7 +360,7 @@ def draft(card, root, models):
             # the wrist goes on under the sleeve: its first rows, pulled up along the arm
             zone = (s2 < cut + 5) & (s2 > cut - 0.2 * A["L2"]) & (np.abs(n2) < 0.5 * A["L2"]); want = (cut + 5 - s2) * K * zone; gy, gx = np.mgrid[0:shape[0], 0:shape[1]].astype(np.float32); mx, my = (gx + A["d"][0] * want).astype(np.float32), (gy + A["d"][1] * want).astype(np.float32)
             rgb, a = np.where(zone[..., None], cv2.remap(paint, mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE), rgb), np.where(zone, cv2.remap(a.astype(np.float32), mx, my, cv2.INTER_LINEAR), a)
-        own = {"easy": {"plate": plate(rgb, a), "wrist": A["w"], "knuckle": [(p + q) / 2 for p, q in zip(A["w"], A["tip"])]}}
+        own = {"easy": {"plate": plate(rgb, a), "wrist": A["w"], "knuckle": [(p + q) / 2 for p, q in zip(A["w"], A["tip"])], "shows": "little" if card.get("view") == "rear" else "thumb"}}
         hands[f"hand-{side}"] = {**own, **{n: {**h, "mirror": bool(h.get("mirror")) != (side == "b")} for n, h in kit.get("both", {}).items()}, **kit.get(side, {})}
         layers.append({"id": f"hand-{side}", "z": z + (0.1 if A["bare"] else -0.1), "grid": [6, 6], "bind": {"kind": "rigid", "bone": f"hand-{side}"}, "rest": "easy"}); joints["arm" + side.upper()] = {"top": A["s"], "mid": A["e"], "end": A["w"], "tip": A["tip"]}
 

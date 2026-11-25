@@ -9,7 +9,7 @@
 import { evaluateEasing } from "../../motion/easing";
 import type { EasingSpec } from "../../motion/types";
 import { ACTS, GRIP_FOR, actFrame } from "../../rig/rig-acting";
-import type { ActingBody, ActPoint, Act, TimedAct } from "../../rig/rig-acting";
+import type { ActedFrame, ActingBody, ActPoint, Act, TimedAct } from "../../rig/rig-acting";
 import { evaluateRig } from "../../rig/rig-evaluate";
 import type { RigFrame } from "../../rig/rig-evaluate";
 import type { FlutterParams } from "../../rig/rig-flutter";
@@ -70,7 +70,7 @@ export interface StoryDrift { id: string; sprites: readonly PaintedImage[]; coun
 export interface StoryBurst extends Burst { id: string; spark: PaintedImage; glow?: PaintedImage; /** Order with the layers of the set. Default −98. */ z?: number; depth?: number; /** How much its light is on the whole picture, 0–1. */ light?: number }
 export interface StoryFiredBurst { burst: StoryBurst; /** Seconds into the shot when it opens. */ at: number; /** Where it opens. */ place: Pt; /** Times its size. */ size?: number }
 export interface StorySay { line: string; at: number }
-export interface StoryWords { text: string; /** Translation under it, smaller. */ gloss?: string; at?: number; for?: number; /** Middle of its letters, in the last row: furigana stand above it and the translation under it, so that words stay in one line. */ place: Pt; size: number; align?: "left" | "center" | "right"; tone?: "title" | "vocab" | "note" }
+export interface StoryWords { text: string; /** Translation under it, smaller. */ gloss?: string; /** The translation is what the page teaches: it shows, also when `glosses` is off. */ means?: boolean; at?: number; for?: number; /** Middle of its letters, in the last row: furigana stand above it and the translation under it, so that words stay in one line. */ place: Pt; size: number; align?: "left" | "center" | "right"; tone?: "title" | "vocab" | "note" }
 export interface StorySound {
   src: string; /** Seconds into the shot. */ at: number; /** dB. */ gain?: number; /** Seconds into the recording, and how many of them sound. */ from?: number; for?: number;
   /** Seconds from the start of the recording to its hit, which lands on `at`. */ lead?: number; /** Seconds to come in and to go out. */ fade?: Pt; /** −1 left, 1 right. */ pan?: number;
@@ -138,7 +138,7 @@ export const storyLineSeconds = (line: StoryLine): number => { const p = line.tr
 
 // ---- roles -----------------------------------------------------------------------------------------------------------------------
 
-export interface StoryPlayed { role: StoryRole; actor: StoryActor; figure: StoryFigure; spec: RigSpec; frame: RigFrame; meshes: readonly PaintedMesh[]; /** 0–1: how far each hand is at a place. */ reaching: Readonly<Record<"f" | "b", number>>; /** Layers that are drawn over the head now. */ lift: Readonly<Record<string, number>> }
+export interface StoryPlayed { role: StoryRole; actor: StoryActor; figure: StoryFigure; spec: RigSpec; frame: RigFrame; meshes: readonly PaintedMesh[]; /** Turn of the head in depth, degrees: yaw and pitch. */ turn: Pt; /** 0–1: how far each hand is at a place. */ reaching: Readonly<Record<"f" | "b", number>>; /** Joints of the arms that reach, degrees, and the drawings of the hands. */ arms: ActedFrame["arms"]; hands: Readonly<Record<string, string>>; /** Layers that are drawn over the head now. */ lift: Readonly<Record<string, number>> }
 const viewAt = (role: StoryRole, t: number) => role.views?.reduce<{ view: string; facing?: 1 | -1 } | undefined>((on, k) => (t >= k.t ? k : on), undefined);
 const figureOf = (film: StorybookFilm, role: StoryRole, t = 0): StoryFigure => { const f = film.cast[role.actor].figures; return f[viewAt(role, t)?.view ?? role.view ?? Object.keys(f)[0]]; };
 /** Every figure that a role is drawn with. */
@@ -199,28 +199,31 @@ function turningAt(film: StorybookFilm, role: StoryRole, t: number): { yaw: numb
 }
 
 /** Where the face of a role is, scene centimetres. */
-function faceOf(film: StorybookFilm, shot: StoryShot, role: StoryRole, t: number): { x: number; y: number; depth: number } {
+function faceOf(film: StorybookFilm, shot: StoryShot, role: StoryRole, t: number): { x: number; y: number; depth: number; /** Over its own floor, in its own centimetres. */ up: number } {
   const r = rootAt(film, shot, role, t), H = figureOf(film, role, t).body.height, floor = film.sets[shot.set].ground && floorOf(film.sets[shot.set].ground!);
   const low = (role.acts ?? []).reduce((v, a) => { if (a.act !== "sit") return v; const d = a.for ?? 3, u = t - a.at; return u < 0 || u > d ? v : Math.max(v, 0.22 * smooth(u / Number(a.params?.in ?? 1)) * smooth((d - u) / Math.max(0.01, Number(a.params?.away ?? 1)))); }, 0);
-  return { x: r.x, y: r.y - (0.92 - low) * H * r.scale, depth: floor ? floor.place(r.x, r.y)[1] : 0 };
+  return { x: r.x, y: r.y - (0.92 - low) * H * r.scale, depth: floor ? floor.place(r.x, r.y)[1] : 0, up: (0.92 - low) * H };
 }
 interface Attention { gaze: Pt; turn: Pt; trunk: number }
+/** The head tips this far after what it looks at, degrees; the eyes do the rest. */
+const TIP = 5;
 const EYES = { lag: 0, over: 0.1 }, HEAD = { lag: 0.09, over: 0.44 }, CHEST = { lag: 0.22, over: 0.62 };
 /** Where a role looks: the eyes are there first, the head follows, the chest last. A face that is turned to the viewer keeps some of that. */
 function attention(film: StorybookFilm, shot: StoryShot, role: StoryRole, t: number): Attention {
   const list = role.attend; if (!list?.length) return { gaze: [0, 0], turn: [0, 0], trunk: 0 };
-  const me = faceOf(film, shot, role, t), side = facingAt(role, t), figure = figureOf(film, role, t), size = rootAt(film, shot, role, t).scale, base = 90 - (figure.body.facing ?? 45), most = Math.abs(base) < 20 ? 24 : 13;
+  const me = faceOf(film, shot, role, t), side = facingAt(role, t), figure = figureOf(film, role, t), size = rootAt(film, shot, role, t).scale, base = 90 - (figure.body.facing ?? 45), most = 13;
   const wants = list.map(k => {
-    if (k.to === "viewer") return { yaw: -base, pitch: 0, head: -base * 0.6, chest: 0 };
-    if (k.to === "ahead") return { yaw: 0, pitch: 0, head: 0, chest: 0 };
-    const who = typeof k.to === "string" ? shot.roles?.find(r => r !== role && r.actor === k.to) : undefined, at = who ? faceOf(film, shot, who, t) : (() => { const [x, y] = storyPlace(film, shot, k.to, k.t); return { x, y, depth: me.depth }; })();
-    const dx = ((at.x - me.x) * side) / size, dy = (at.y - me.y) / size, dz = (at.depth - me.depth) * (Math.abs(base) < 20 ? 1 : 0), far = Math.hypot(dx, dz, 40), much = k.much ?? 1;
+    if (k.to === "viewer") return { yaw: -base, pitch: 0, head: -base * 0.6, tip: 0, chest: 0 };
+    if (k.to === "ahead") return { yaw: 0, pitch: 0, head: 0, tip: 0, chest: 0 };
+    const who = typeof k.to === "string" ? shot.roles?.find(r => r !== role && r.actor === k.to) : undefined, at: { x: number; y: number; depth: number; up?: number } = who ? faceOf(film, shot, who, t) : (() => { const [x, y] = storyPlace(film, shot, k.to, k.t); return { x, y, depth: me.depth }; })();
+    // two people look at each other by how tall they are, not by how high the picture has them: who stands farther off stands higher in it
+    const dx = ((at.x - me.x) * side) / size, dy = at.up !== undefined ? me.up - at.up : (at.y - me.y) / size, dz = (at.depth - me.depth) * (Math.abs(base) < 20 ? 1 : 0), far = Math.hypot(dx, dz, 40), much = k.much ?? 1;
     const yaw = (Math.atan2(dx, Math.max(30, 62 + 0.7 * dz)) * 180) / Math.PI - base, pitch = Math.max(-26, Math.min(30, (Math.atan2(dy, far) * 180) / Math.PI));
     const head = Math.max(-most, Math.min(most, yaw * 0.6)) * much;
-    return { yaw, pitch, head, chest: Math.sign(head) * Math.max(0, Math.abs(yaw) * 0.3 - 5) * much };
+    return { yaw, pitch, head, tip: Math.max(-TIP, Math.min(TIP, pitch * 0.3)) * much, chest: Math.sign(head) * Math.max(0, Math.abs(yaw) * 0.3 - 5) * much };
   });
   const follow = (read: (w: (typeof wants)[number]) => number, p: { lag: number; over: number }) => wants.reduce((v, w, i) => (i ? v + (read(w) - v) * smooth((t - list[i].t - p.lag) / p.over) : read(w)), 0);
-  const head = follow(w => w.head, HEAD), tip = follow(w => w.pitch, HEAD) * 0.42, chest = Math.max(-13, Math.min(13, follow(w => w.chest, CHEST)));
+  const head = follow(w => w.head, HEAD), tip = follow(w => w.tip, HEAD), chest = Math.max(-13, Math.min(13, follow(w => w.chest, CHEST)));
   return { gaze: [Math.max(-1, Math.min(1, (follow(w => w.yaw, EYES) - head) / 46)), Math.max(-0.9, Math.min(0.9, (follow(w => w.pitch, EYES) - tip) / 30))], turn: [head, tip], trunk: chest };
 }
 /** A look that goes far comes with a blink. */
@@ -277,15 +280,16 @@ export function playRole(film: StorybookFilm, shot: StoryShot, role: StoryRole, 
   const hands: Record<string, string> = {};
   for (const l of art.layers) for (const w of role.wear ?? []) if (l.variants?.[w]) hands[l.id] = w;
   Object.assign(hands, role.hands);
-  for (const h of ["f", "b"] as const) if (p.grip[h]) hands[`hand-${h}`] = handFor(art, `hand-${h}`, p.grip[h]!);
+  for (const h of ["f", "b"] as const) if (acted.hands[h]) hands[`hand-${h}`] = handFor(art, `hand-${h}`, acted.hands[h]!);
   const lift: Record<string, number> = {}; for (const h of p.over) { lift[`arm-${h}`] = OVER_HEAD; lift[`hand-${h}`] = OVER_HEAD; }
   const a = attention(film, shot, role, t), turning = turningAt(film, role, t);
+  const turn: Pt = [p.headTurn[0] + (role.turn?.[0] ?? 0) + (turning.yaw ? Math.max(-TURNED, Math.min(TURNED, a.turn[0] + turning.yaw)) : a.turn[0]), p.headTurn[1] + (role.turn?.[1] ?? 0) + a.turn[1]];
   const meshes = paintedMeshes(art, acted.spec, acted.frame, {
     trunk: p.trunk + a.trunk + turning.trunk, hands, lift, hidden: role.hidden, tint: role.tint,
-    face: { look: p.look ?? undefined, from: p.lookFrom ?? undefined, mix: p.lookMix, blink: p.blink, gaze: [p.gaze[0] + (role.gaze?.[0] ?? 0) + a.gaze[0], p.gaze[1] + (role.gaze?.[1] ?? 0) + a.gaze[1]], brow: p.brow, turn: [p.headTurn[0] + (role.turn?.[0] ?? 0) + (turning.yaw ? Math.max(-TURNED, Math.min(TURNED, a.turn[0] + turning.yaw)) : a.turn[0]), p.headTurn[1] + (role.turn?.[1] ?? 0) + a.turn[1]], mouth: { ...mouth, weight: Math.max(0, speaking) } },
+    face: { look: p.look ?? undefined, from: p.lookFrom ?? undefined, mix: p.lookMix, blink: p.blink, gaze: [p.gaze[0] + (role.gaze?.[0] ?? 0) + a.gaze[0], p.gaze[1] + (role.gaze?.[1] ?? 0) + a.gaze[1]], brow: p.brow, turn, mouth: { ...mouth, weight: Math.max(0, speaking) } },
   });
   const at = (h: "f" | "b") => p.reach[h].reduce((w, r) => (r.to ? Math.max(w, r.weight) : w), 0);
-  return { role, actor, figure, spec: acted.spec, frame: acted.frame, meshes, reaching: { f: at("f"), b: at("b") }, lift };
+  return { role, actor, figure, spec: acted.spec, frame: acted.frame, meshes, turn, reaching: { f: at("f"), b: at("b") }, lift, arms: acted.arms, hands };
 }
 
 // ---- props -----------------------------------------------------------------------------------------------------------------------

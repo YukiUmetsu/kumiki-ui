@@ -14,6 +14,7 @@ export interface ArmBuild {
   side: "f" | "b"; /** Shoulder to elbow, elbow to wrist. */ upper: number; lower: number;
   /** Degrees that the front of the body is turned to the viewer: 0 is a side view, 90 faces the viewer. */ facing: number;
   /** Middle of the palm in the hand's space. */ palm?: ArmPoint;
+  /** How far the hand bends from its forearm in the picture, clockwise (`wristRange`). Default 46 either way. */ wrist?: readonly [number, number];
 }
 export interface ArmAim {
   /** The shoulder when nothing pulls it. */ shoulder: ArmPoint; /** Where the palm (or the wrist, without one) goes. */ to: ArmPoint;
@@ -24,6 +25,7 @@ export interface ArmAim {
 export interface ArmPose {
   /** Moves the shoulder. */ shift: [number, number];
   /** Angles in the picture, and how much of its length each part shows. */ upper: number; upperScale: number; lower: number; lowerScale: number; hand: number;
+  /** How near to the viewer the elbow and the wrist are, from the shoulder. */ depth: [number, number];
   /** Shoulder to wrist, 0–1 of the arm, before anything is clamped: over about 0.95 the body has to come along. */ stretch: number;
 }
 
@@ -37,7 +39,7 @@ export const turnBetween = (from: number, to: number) => ((((to - from) % 360) +
 /** A wrist bends this far from the forearm, degrees. An elbow folds to 36° and no more. */
 const WRIST = 46, FOLD = 36;
 /** How far a wrist bends when its hand should be turned by `t`: a hand that should point back along its forearm does not bend, so it never jumps from one side to the other. */
-const wristBend = (t: number) => Math.sign(t) * Math.min(Math.abs(t), WRIST, 180 - Math.abs(t));
+const wristBend = (t: number, [lo, hi]: readonly [number, number]) => Math.sign(t) * Math.min(Math.abs(t), t < 0 ? -lo : hi, 180 - Math.abs(t));
 /** An elbow rests this far from the ribs, of how far it hangs down; seen from the front it goes out with a hand that goes out, and not over the chest. */
 const AWAY = 0.26, BESIDE = 0.8;
 /** The longest that an arm reaches: an elbow is never locked. No part is drawn shorter than `SHORTEST` of itself. */
@@ -57,17 +59,17 @@ function bend(arm: ArmBuild, dx: number, dy: number, o: { out: number; near: num
   const solve = (k: number) => {
     const dz = Math.max(depth * k, Math.sqrt(Math.max(0, least * least - d2 * d2))), D = Math.hypot(d2, dz), a: Vec = [dx / D, dy / D, dz / D], p: Vec = [rests[0], rests[1], rests[2] * k], along = dot(p, a), q: Vec = [p[0] - along * a[0], p[1] - along * a[1], p[2] - along * a[2]], n = Math.hypot(...q) || 1e-6;
     const u = (U * U + D * D - V * V) / (2 * D), h = Math.sqrt(Math.max(0, U * U - u * u)), ex = a[0] * u + (q[0] / n) * h, ey = a[1] * u + (q[1] / n) * h;
-    return { ex, ey, us: Math.hypot(ex, ey) / U, ls: Math.hypot(dx - ex, dy - ey) / V };
+    return { ex, ey, us: Math.hypot(ex, ey) / U, ls: Math.hypot(dx - ex, dy - ey) / V, ez: a[2] * u + (q[2] / n) * h, dz };
   };
   let k = 1, at = solve(1);
   if (Math.min(at.us, at.ls) < o.shortest) { let lo = 0, hi = 1; for (let i = 0; i < 14; i++) { const m = (lo + hi) / 2, t = solve(m); if (Math.min(t.us, t.ls) < o.shortest) hi = m; else lo = m; } k = lo; at = solve(k); }
-  return { upper: aim(at.ex, at.ey), upperScale: at.us, lower: aim(dx - at.ex, dy - at.ey), lowerScale: at.ls, stretch };
+  return { upper: aim(at.ex, at.ey), upperScale: at.us, lower: aim(dx - at.ex, dy - at.ey), lowerScale: at.ls, depth: [at.ez, at.dz], stretch };
 }
 
 export function solveArm(arm: ArmBuild, goal: ArmAim): ArmPose {
-  const L = arm.upper + arm.lower, o = { out: goal.out ?? 0, near: goal.near ?? 0.68, aside: goal.aside ?? 0, shortest: goal.shortest ?? SHORTEST }, palm = arm.palm ?? [0, 0], [sx, sy] = goal.shoulder;
+  const L = arm.upper + arm.lower, o = { out: goal.out ?? 0, near: goal.near ?? 0.68, aside: goal.aside ?? 0, shortest: goal.shortest ?? SHORTEST }, palm = arm.palm ?? [0, 0], range = arm.wrist ?? [-WRIST, WRIST], [sx, sy] = goal.shoulder;
   const wristFor = (hand: number): [number, number] => { const a = hand * RAD, c = Math.cos(a), s = Math.sin(a); return [goal.to[0] - (palm[0] * c - palm[1] * s), goal.to[1] - (palm[0] * s + palm[1] * c)]; };
-  const held = (lower: number) => (goal.angle === undefined ? lower : lower + wristBend(turnBetween(lower, goal.angle)));
+  const held = (lower: number) => (goal.angle === undefined ? lower : lower + wristBend(turnBetween(lower, goal.angle), range));
   const straight = aim(goal.to[0] - sx, goal.to[1] - sy);
   let hand = goal.angle ?? straight, wrist = wristFor(hand), got = bend(arm, wrist[0] - sx, wrist[1] - sy, o); const stretch = got.stretch;
   // the shoulder goes with the arm: out to a far hand, up with a high elbow
