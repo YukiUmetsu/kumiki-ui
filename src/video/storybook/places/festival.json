@@ -88,6 +88,7 @@
     {"piece": "festival/lantern-l", "z": -95, "sway": {"pivot": [0.5, 0.01], "degrees": 1.2, "period": 4.1}},
     {"piece": "festival/lantern-r", "z": -95, "sway": {"pivot": [0.5, 0.01], "degrees": 1.2, "period": 4.7, "phase": 0.4}},
     {"piece": "festival/table", "stands": -8},
+    {"piece": "festival/stove", "z": -5.5},
     {"piece": "festival/griddle-1", "z": -5},
     {"piece": "festival/griddle-2", "z": -5}
    ]

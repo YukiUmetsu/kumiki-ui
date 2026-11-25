@@ -265,7 +265,7 @@ function poseRole(film: StorybookFilm, shot: StoryShot, role: StoryRole, t: numb
   const root: RigRootKey[] = path.map(k => ({ frame: way.floor ? k.t * film.fps : Math.round(k.t * film.fps), x: k.x, y: k.y, facing, scale: k.scale, ...(thin ? { yaw: thin } : {}), ease: k.ease })), legs = way.floor && way.runs.length ? (time: number) => legsOf(film, shot, role, time) : undefined, moves = path.length > 1 && path.some(k => k.x !== path[0].x) && !(way.floor && Math.abs(Math.sin(((body.facing ?? 45) * Math.PI) / 180)) >= 0.8), drivers: RigDriver[] = [];
   if (moves && figure.person) drivers.push(walkDriver(figure.person, { start: root[0].frame - 100, end: root[root.length - 1].frame + 6, ramp: 6, ...figure.walk }));
   const spec: RigSpec = moves ? { ...body.spec, drivers: (body.spec.drivers ?? []).filter(d => d.type !== "reach") } : body.spec;
-  return { actor, figure, says, acted: actFrame({ ...body, spec }, kept.acts, t, { root, fps: film.fps, drivers, voice, seed: (actor.seed ?? 1) * 3 + shot.id.length, blinks: blinksOf(role, actor.seed ?? 1), look: role.look, library: libraryOf(film), still, legs }) };
+  return { actor, figure, says, acted: actFrame({ ...body, spec }, kept.acts, t, { root, fps: film.fps, drivers, voice, seed: (actor.seed ?? 1) * 3 + shot.id.length, blinks: blinksOf(role, actor.seed ?? 1), look: role.look ?? figure.art.face?.idle, library: libraryOf(film), still, legs }) };
 }
 /** The drawing that a figure has of a hand. */
 function handFor(art: PaintedArt, layer: string, name: string): string { const has = art.layers.find(l => l.id === layer)?.variants; return !has || has[name] ? name : (GRIP_FOR[name]?.find(g => has[g]) ?? name); }

@@ -25,6 +25,7 @@ Card (points are pixels of the painting):
   fix?                 { off: [polygons that are not the figure: its shadow], head: [polygons that are head], body: [polygons that are not], neck: [polygons], under: {f, b: [x, y] armpit},
                          cuff: {f, b: share of the forearm}, skirt: bool, open: [points in holes that are holes: an ear ring],
                          sleeve: {f, b: [[x, y], ...] inner edge of a sleeve that hangs, from the armpit down. Its corner past the cuff hangs on a bone of its own, and the cloth is drawn in when the elbow bends} }
+  idle?                the look between lines and acts, when it is not the one of the painting
   body?, sockets?, lookFor?, expression?, sounds?, provenance?
 """
 import argparse, importlib.util, json, math
@@ -389,7 +390,7 @@ def face_of(card, root, models, b, head):
     looks = {"neutral": {"patches": first, "mouth": "rest"}, **({"laughing": {"patches": ["joy"], "mouth": "laugh", "shut": True}} if "joy" in patch else {})}
     cx = float((mesh[234][0] + mesh[454][0]) / 2); hrow = np.nonzero(b.head[int(mesh[234][1] - 0.15 * W)])[0]; rx = float(np.clip(min(cx - hrow.min(), hrow.max() - cx), 0.56 * W, 0.75 * W))
     return {"layer": "head", "eyes": eyes, "brows": [{"at": [float(np.mean([neutral[i][0] for i in q])), float(np.mean([neutral[i][1] for i in q]))], "radius": [0.16 * W, 0.08 * W]} for q in BROWS], "round": {"at": [cx, float(mesh[4][1] - 0.02 * W)], "radius": [rx, float(0.62 * (b.chin[1] - b.crown))]}, "regions": {"mouth": [mouth], "eyes": lids, "cheeks": cheeks}, "soft": 0.035 * W,
-            "jaw": {"at": E(neutral, 152), "radius": [0.42 * W, 0.26 * W], "drop": 0.035 * W}, "patches": patch, "looks": looks, "lookFor": card.get("lookFor", {}), "lids": ["closed"], "shows": card.get("expression", 1), "mouths": {"rest": "rest", **{n: n for n in "aeiou"}, "n": "n", "closed": "m"}, "mouthFor": {"teeth": "i"}, "mesh": [[float(p[0]), float(p[1]), float(zero - p[2])] for p in mesh]}
+            "jaw": {"at": E(neutral, 152), "radius": [0.42 * W, 0.26 * W], "drop": 0.035 * W}, "patches": patch, "looks": looks, "lookFor": card.get("lookFor", {}), **({"idle": card["idle"]} if "idle" in card else {}), "lids": ["closed"], "shows": card.get("expression", 1), "mouths": {"rest": "rest", **{n: n for n in "aeiou"}, "n": "n", "closed": "m"}, "mouthFor": {"teeth": "i"}, "mesh": [[float(p[0]), float(p[1]), float(zero - p[2])] for p in mesh]}
 
 
 def picture(recipe, b, path):

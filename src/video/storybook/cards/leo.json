@@ -12,6 +12,7 @@
   "sharp": "heads/leo.png"
  },
  "shows": "open",
+ "idle": "neutral",
  "faces": {
   "rest": "faces/leo_rest.png",
   "blink": "faces/leo_blink.png",

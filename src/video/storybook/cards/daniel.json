@@ -12,6 +12,7 @@
   "sharp": "heads/daniel.png"
  },
  "shows": "open",
+ "idle": "neutral",
  "faces": {
   "rest": "faces/daniel_rest.png",
   "a": "faces/daniel_a.png",

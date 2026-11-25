@@ -44,6 +44,17 @@
    "width": 272.375,
    "height": 67.0
   },
+  "stove": {
+   "image": {
+    "src": "stove.webp",
+    "width": 1826,
+    "height": 102
+   },
+   "x": -57.0,
+   "y": -91.9,
+   "width": 114.125,
+   "height": 6.375
+  },
   "griddle-1": {
    "image": {
     "src": "griddle-1.webp",

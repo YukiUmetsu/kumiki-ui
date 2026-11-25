@@ -47,6 +47,7 @@ export interface PaintedFace {
   mesh?: FacePoints; /** How much this face shows (1). */ shows?: number;
   /** Expressions: patches over the neutral painting, the mouth to rest in, and action units. `shut`: the eyes are closed, so they never blink. */
   looks: Readonly<Record<string, PaintedLook>>;
+  /** The look between lines and acts, when it is not the one of the painting (a painting that laughs). */ idle?: string;
   /** Looks that stand in for looks that were not painted. */
   lookFor?: Readonly<Record<string, string>>;
   /** Half closed and closed. */ lids: readonly string[];
