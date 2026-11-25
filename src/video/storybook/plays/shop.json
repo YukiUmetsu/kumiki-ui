@@ -2,138 +2,33 @@
  "id": "shop",
  "title": "お{土産|みやげ}{屋|や}で — At the souvenir shop",
  "lines": [
-  {
-   "id": "welcome",
-   "speaker": "emi",
-   "ja": "いらっしゃいませ。",
-   "en": "Welcome."
-  },
-  {
-   "id": "what",
-   "speaker": "sophie",
-   "ja": "これ[は|わ] {何|なん}ですか。",
-   "en": "What is this?"
-  },
-  {
-   "id": "fan",
-   "speaker": "emi",
-   "ja": "これ[は|わ] {扇子|せんす}です。 {夏|なつ}に {使|つか}います。",
-   "en": "It’s a folding fan. We use it in summer."
-  },
-  {
-   "id": "look",
-   "speaker": "sophie",
-   "ja": "きれい！ {見|み}ても いいですか。",
-   "en": "It’s pretty! May I look at it?",
-   "speak": "きれい！見ても、いいですか？"
-  },
-  {
-   "id": "go-ahead",
-   "speaker": "emi",
-   "ja": "はい、 どうぞ。",
-   "en": "Yes, go ahead."
-  },
-  {
-   "id": "how-much",
-   "speaker": "ema",
-   "ja": "いくらですか。",
-   "en": "How much is it?"
-  },
-  {
-   "id": "two-thousand",
-   "speaker": "emi",
-   "ja": "{二千|にせん}{円|えん}です。",
-   "en": "It’s 2,000 yen."
-  },
-  {
-   "id": "two",
-   "speaker": "ema",
-   "ja": "じゃあ、 これを {二|ふた}つ ください。",
-   "en": "Then, two of these, please."
-  },
-  {
-   "id": "total",
-   "speaker": "emi",
-   "ja": "ありがとうございます。 {全部|ぜんぶ}で {四千|よんせん}{円|えん}です。",
-   "en": "Thank you. It’s 4,000 yen in all."
-  },
-  {
-   "id": "bag",
-   "speaker": "emi",
-   "ja": "{袋|ふくろ}に {入|い}れますね。",
-   "en": "I’ll put them in a bag.",
-   "speak": "袋に、いれますね。"
-  },
-  {
-   "id": "thanks",
-   "speaker": "sophie",
-   "ja": "ありがとうございます！",
-   "en": "Thank you!"
-  }
+  {"id": "welcome", "speaker": "emi", "ja": "いらっしゃいませ。", "en": "Welcome."},
+  {"id": "what", "speaker": "sophie", "ja": "これ[は|わ] {何|なん}ですか。", "en": "What is this?"},
+  {"id": "fan", "speaker": "emi", "ja": "これ[は|わ] {扇子|せんす}です。 {夏|なつ}に {使|つか}います。", "en": "It’s a folding fan. We use it in summer."},
+  {"id": "look", "speaker": "sophie", "ja": "きれい！ {見|み}ても いいですか。", "en": "It’s pretty! May I look at it?", "speak": "きれい！見ても、いいですか？"},
+  {"id": "go-ahead", "speaker": "emi", "ja": "はい、 どうぞ。", "en": "Yes, go ahead."},
+  {"id": "how-much", "speaker": "ema", "ja": "いくらですか。", "en": "How much is it?"},
+  {"id": "two-thousand", "speaker": "emi", "ja": "{二千|にせん}{円|えん}です。", "en": "It’s 2,000 yen."},
+  {"id": "two", "speaker": "ema", "ja": "じゃあ、 これを {二|ふた}つ ください。", "en": "Then, two of these, please."},
+  {"id": "total", "speaker": "emi", "ja": "ありがとうございます。 {全部|ぜんぶ}で {四千|よんせん}{円|えん}です。", "en": "Thank you. It’s 4,000 yen in all."},
+  {"id": "bag", "speaker": "emi", "ja": "{袋|ふくろ}に {入|い}れますね。", "en": "I’ll put them in a bag.", "speak": "袋に、いれますね。"},
+  {"id": "thanks", "speaker": "sophie", "ja": "ありがとうございます！", "en": "Thank you!"}
  ],
  "scenes": [
   {
    "id": "front",
    "stage": "shop-front",
-   "cast": {
-    "ema": "street-1",
-    "sophie": "street-2"
-   },
-   "bed": [
-    {
-     "sound": "kalimba-1",
-     "at": 0.3,
-     "for": 11.2
-    }
-   ],
+   "cast": {"ema": "street-1", "sophie": "street-2"},
+   "bed": [{"sound": "kalimba-1", "at": 0.3, "for": 11.2}],
    "beats": [
     {
-     "shot": {
-      "id": "street",
-      "frame": {
-       "at": [
-        0,
-        -150
-       ],
-       "tall": 318
-      },
-      "move": {
-       "frame": {
-        "at": [
-         -2,
-         -118
-        ],
-        "tall": 226
-       }
-      },
-      "about": "Emma and Sophie walk to a souvenir shop with a blue curtain."
-     },
-     "go": {
-      "ema": "door-1",
-      "sophie": "door-2"
-     },
+     "shot": {"id": "street", "frame": {"at": [0, -150], "tall": 318}, "move": {"frame": {"at": [-2, -118], "tall": 226}}, "about": "Emma and Sophie walk to a souvenir shop with a blue curtain."},
+     "go": {"ema": "door-1", "sophie": "door-2"},
      "in": 2.6,
      "seconds": 4.4,
-     "look": {
-      "ema": "ahead",
-      "sophie": "ahead"
-     },
-     "words": [
-      {
-       "text": "お{土産|みやげ}{屋|や}で",
-       "gloss": "At the souvenir shop",
-       "tone": "title",
-       "at": 0.8,
-       "for": 3.2
-      }
-     ],
-     "sounds": [
-      {
-       "sound": "suzu",
-       "at": 3.6,
-       "gain": -20
-      }
-     ],
+     "look": {"ema": "ahead", "sophie": "ahead"},
+     "words": [{"text": "お{土産|みやげ}{屋|や}で", "gloss": "At the souvenir shop", "tone": "title", "at": 0.8, "for": 3.2}],
+     "sounds": [{"sound": "suzu", "at": 3.6, "gain": -20}],
      "after": 0
     }
    ]
@@ -142,200 +37,38 @@
    "id": "fan",
    "stage": "shop",
    "join": "dissolve",
-   "cast": {
-    "emi": "clerk",
-    "ema": "ask-1",
-    "sophie": "ask-2"
-   },
-   "props": [
-    {
-     "prop": "fan",
-     "to": "goods",
-     "view": "closed",
-     "angle": 82,
-     "scale": 0.9
-    },
-    {
-     "prop": "fan-2",
-     "to": "goods-2",
-     "view": "closed",
-     "angle": 86,
-     "scale": 0.9
-    }
-   ],
+   "cast": {"emi": "clerk", "ema": "ask-1", "sophie": "ask-2"},
+   "props": [{"prop": "fan", "to": "goods", "view": "closed", "angle": 82, "scale": 0.9}, {"prop": "fan-2", "to": "goods-2", "view": "closed", "angle": 86, "scale": 0.9}],
    "beats": [
+    {"shot": {"id": "in", "frame": "all"}, "say": "welcome", "to": "ema", "mood": "happy", "do": [{"who": "emi", "act": "greet", "arms": false, "at": 0.7, "degrees": 20}], "look": {"sophie": "emi"}},
+    {"shot": {"id": "what", "frame": "both", "from": "door"}, "say": "what", "to": "emi", "do": [{"who": "sophie", "act": "point", "to": "goods", "at": 0.1, "for": 2.2}], "look": {"sophie": "goods", "ema": "goods"}},
     {
-     "shot": {
-      "id": "in",
-      "frame": "all"
-     },
-     "say": "welcome",
-     "to": "ema",
-     "mood": "happy",
-     "do": [
-      {
-       "who": "emi",
-       "act": "greet",
-       "arms": false,
-       "at": 0.7,
-       "degrees": 20
-      }
-     ],
-     "look": {
-      "sophie": "emi"
-     }
-    },
-    {
-     "shot": {
-      "id": "what",
-      "frame": "both",
-      "from": "door"
-     },
-     "say": "what",
-     "to": "emi",
-     "do": [
-      {
-       "who": "sophie",
-       "act": "point",
-       "to": "goods",
-       "at": 0.1,
-       "for": 2.2
-      }
-     ],
-     "look": {
-      "sophie": "goods",
-      "ema": "goods"
-     }
-    },
-    {
-     "shot": {
-      "id": "opens",
-      "on": "emi",
-      "size": "waist"
-     },
+     "shot": {"id": "opens", "on": "emi", "size": "waist"},
      "say": "fan",
      "to": "sophie",
      "mood": "happy",
      "do": [
-      {
-       "who": "emi",
-       "act": "take",
-       "hand": "f",
-       "to": "goods",
-       "in": 0.55,
-       "away": 0.5,
-       "catch": 0.5,
-       "after": "bar",
-       "at": 0,
-       "for": 1.25
-      },
-      {
-       "who": "emi",
-       "act": "unfold",
-       "hand": "f",
-       "at": 0.95,
-       "for": 1.7
-      },
-      {
-       "who": "emi",
-       "act": "fan",
-       "hand": "f",
-       "in": 0.35,
-       "at": 2.3,
-       "for": 3.4
-      }
+      {"who": "emi", "act": "take", "hand": "f", "to": "goods", "in": 0.55, "away": 0.5, "catch": 0.5, "after": "bar", "at": 0, "for": 1.25},
+      {"who": "emi", "act": "unfold", "hand": "f", "at": 0.95, "for": 1.7},
+      {"who": "emi", "act": "fan", "hand": "f", "in": 0.35, "at": 2.3, "for": 3.4}
      ],
      "give": [
-      {
-       "prop": "fan",
-       "to": "emi:bar-f",
-       "view": "closed",
-       "at": 0.62,
-       "over": 0.15
-      },
-      {
-       "prop": "fan",
-       "to": "emi:bar-f",
-       "view": "narrow",
-       "at": 1.62
-      },
-      {
-       "prop": "fan",
-       "to": "emi:bar-f",
-       "view": "half",
-       "at": 1.76
-      },
-      {
-       "prop": "fan",
-       "to": "emi:bar-f",
-       "at": 1.92
-      }
+      {"prop": "fan", "to": "emi:bar-f", "view": "closed", "at": 0.62, "over": 0.15},
+      {"prop": "fan", "to": "emi:bar-f", "view": "narrow", "at": 1.62},
+      {"prop": "fan", "to": "emi:bar-f", "view": "half", "at": 1.76},
+      {"prop": "fan", "to": "emi:bar-f", "at": 1.92}
      ],
-     "sounds": [
-      {
-       "sound": "paper-slides",
-       "at": 1.6,
-       "gain": -16
-      }
-     ]
+     "sounds": [{"sound": "paper-slides", "at": 1.6, "gain": -16}]
     },
+    {"shot": {"id": "look", "on": "sophie", "size": "chest"}, "say": "look", "to": "emi", "mood": "amazed", "do": [{"who": "sophie", "act": "hop", "at": 0.1}]},
     {
-     "shot": {
-      "id": "look",
-      "on": "sophie",
-      "size": "chest"
-     },
-     "say": "look",
-     "to": "emi",
-     "mood": "amazed",
-     "do": [
-      {
-       "who": "sophie",
-       "act": "hop",
-       "at": 0.1
-      }
-     ]
-    },
-    {
-     "shot": {
-      "id": "gives",
-      "on": "emi",
-      "size": "waist"
-     },
+     "shot": {"id": "gives", "on": "emi", "size": "waist"},
      "say": "go-ahead",
      "to": "sophie",
      "mood": "happy",
-     "pose": {
-      "emi": [
-       {
-        "act": "fold"
-       }
-      ]
-     },
-     "do": [
-      {
-       "who": "emi",
-       "act": "offer",
-       "to": [
-        -36,
-        -126
-       ],
-       "grip": "under",
-       "apart": 8,
-       "in": 0.5,
-       "at": 0,
-       "for": 2.6
-      }
-     ],
-     "give": [
-      {
-       "prop": "fan",
-       "to": "emi:tray-f",
-       "view": "closed",
-       "angle": 90,
-       "scale": 0.9
-      }
-     ]
+     "pose": {"emi": [{"act": "fold"}]},
+     "do": [{"who": "emi", "act": "offer", "to": [-36, -126], "grip": "under", "apart": 8, "in": 0.5, "at": 0, "for": 2.6}],
+     "give": [{"prop": "fan", "to": "emi:tray-f", "view": "closed", "angle": 90, "scale": 0.9}]
     }
    ]
   },
@@ -343,300 +76,58 @@
    "id": "price",
    "stage": "shop",
    "join": "cut",
-   "cast": {
-    "emi": "clerk",
-    "ema": "ask-1",
-    "sophie": "ask-2"
-   },
-   "props": [
-    {
-     "prop": "fan",
-     "to": "sophie:bar-f"
-    },
-    {
-     "prop": "fan-2",
-     "to": "goods-2",
-     "view": "closed",
-     "angle": 86,
-     "scale": 0.9
-    }
-   ],
+   "cast": {"emi": "clerk", "ema": "ask-1", "sophie": "ask-2"},
+   "props": [{"prop": "fan", "to": "sophie:bar-f"}, {"prop": "fan-2", "to": "goods-2", "view": "closed", "angle": 86, "scale": 0.9}],
    "beats": [
+    {"shot": {"id": "cool", "frame": "both", "from": "door"}, "say": "how-much", "to": "emi", "pose": {"sophie": [{"act": "fan", "y": 0.16}]}, "react": {"sophie": "happy"}, "look": {"sophie": "viewer"}},
+    {"shot": {"id": "two-thousand", "on": "emi", "size": "chest", "without": ["sophie"]}, "say": "two-thousand", "to": "ema", "do": [{"who": "emi", "act": "explain", "hand": "f", "at": 0.1}]},
     {
-     "shot": {
-      "id": "cool",
-      "frame": "both",
-      "from": "door"
-     },
-     "say": "how-much",
-     "to": "emi",
-     "pose": {
-      "sophie": [
-       {
-        "act": "fan",
-        "y": 0.16
-       }
-      ]
-     },
-     "react": {
-      "sophie": "happy"
-     },
-     "look": {
-      "sophie": "viewer"
-     }
-    },
-    {
-     "shot": {
-      "id": "two-thousand",
-      "on": "emi",
-      "size": "chest",
-      "without": [
-       "sophie"
-      ]
-     },
-     "say": "two-thousand",
-     "to": "ema",
-     "do": [
-      {
-       "who": "emi",
-       "act": "explain",
-       "hand": "f",
-       "at": 0.1
-      }
-     ]
-    },
-    {
-     "shot": {
-      "id": "two",
-      "on": [
-       "ema",
-       "sophie"
-      ],
-      "size": "waist",
-      "from": "door"
-     },
+     "shot": {"id": "two", "on": ["ema", "sophie"], "size": "waist", "from": "door"},
      "say": "two",
      "to": "emi",
-     "do": [
-      {
-       "who": "ema",
-       "act": "point",
-       "to": "goods-2",
-       "at": 0.7,
-       "for": 2.2
-      }
-     ],
-     "react": {
-      "sophie": "happy"
-     },
-     "look": {
-      "sophie": "ema"
-     }
+     "do": [{"who": "ema", "act": "point", "to": "goods-2", "at": 0.7, "for": 2.2}],
+     "react": {"sophie": "happy"},
+     "look": {"sophie": "ema"}
     },
-    {
-     "shot": {
-      "id": "total",
-      "on": "emi",
-      "size": "chest",
-      "without": [
-       "sophie"
-      ]
-     },
-     "say": "total",
-     "to": "ema",
-     "mood": "happy",
-     "do": [
-      {
-       "who": "emi",
-       "act": "thank",
-       "arms": false,
-       "at": 0.2
-      }
-     ]
-    }
+    {"shot": {"id": "total", "on": "emi", "size": "chest", "without": ["sophie"]}, "say": "total", "to": "ema", "mood": "happy", "do": [{"who": "emi", "act": "thank", "arms": false, "at": 0.2}]}
    ]
   },
   {
    "id": "bag",
    "stage": "shop",
    "join": "dissolve",
-   "cast": {
-    "emi": "clerk",
-    "ema": "ask-1",
-    "sophie": "ask-2"
-   },
+   "cast": {"emi": "clerk", "ema": "ask-1", "sophie": "ask-2"},
    "props": [
-    {
-     "prop": "paper-bag",
-     "to": "bag",
-     "scale": 0.82
-    },
-    {
-     "prop": "fan-2",
-     "to": [
-      -34,
-      -117
-     ],
-     "view": "closed",
-     "angle": 8,
-     "scale": 0.85,
-     "z": -1.7
-    },
-    {
-     "prop": "fan",
-     "to": "goods",
-     "view": "closed",
-     "angle": 82,
-     "scale": 0.9
-    }
+    {"prop": "paper-bag", "to": "bag", "scale": 0.82},
+    {"prop": "fan-2", "to": [-34, -117], "view": "closed", "angle": 8, "scale": 0.85, "z": -1.7},
+    {"prop": "fan", "to": "goods", "view": "closed", "angle": 82, "scale": 0.9}
    ],
    "beats": [
     {
-     "shot": {
-      "id": "packs",
-      "on": "emi",
-      "size": "waist"
-     },
+     "shot": {"id": "packs", "on": "emi", "size": "waist"},
      "say": "bag",
      "to": "sophie",
-     "do": [
-      {
-       "who": "emi",
-       "act": "pack",
-       "hand": "f",
-       "from": [
-        -72,
-        -108
-       ],
-       "to": [
-        -44,
-        -128
-       ],
-       "grip": "bar",
-       "at": 0.1,
-       "for": 2.2
-      }
-     ],
-     "give": [
-      {
-       "prop": "fan",
-       "to": "emi:bar-f",
-       "view": "closed",
-       "at": 0.5,
-       "over": 0.1
-      },
-      {
-       "prop": "fan",
-       "to": [
-        -44,
-        -115
-       ],
-       "view": "closed",
-       "angle": -6,
-       "z": -1.7,
-       "at": 1.75,
-       "over": 0.25
-      }
-     ],
-     "sounds": [
-      {
-       "sound": "bag-opens",
-       "at": 1.7,
-       "gain": -18
-      }
-     ]
+     "do": [{"who": "emi", "act": "pack", "hand": "f", "from": [-72, -108], "to": [-44, -128], "grip": "bar", "at": 0.1, "for": 2.2}],
+     "give": [{"prop": "fan", "to": "emi:bar-f", "view": "closed", "at": 0.5, "over": 0.1}, {"prop": "fan", "to": [-44, -115], "view": "closed", "angle": -6, "z": -1.7, "at": 1.75, "over": 0.25}],
+     "sounds": [{"sound": "bag-opens", "at": 1.7, "gain": -18}]
     },
     {
-     "shot": {
-      "id": "hands",
-      "on": "emi",
-      "size": "waist"
-     },
+     "shot": {"id": "hands", "on": "emi", "size": "waist"},
      "seconds": 1.7,
-     "do": [
-      {
-       "who": "emi",
-       "act": "offer",
-       "to": [
-        -36,
-        -139
-       ],
-       "under": 23,
-       "side": 5,
-       "grip": "bar",
-       "in": 0.5,
-       "at": 0,
-       "for": 2.4
-      }
-     ],
-     "give": [
-      {
-       "prop": "paper-bag",
-       "to": "emi:bar-f"
-      },
-      {
-       "prop": "fan",
-       "to": "goods",
-       "hidden": true
-      },
-      {
-       "prop": "fan-2",
-       "to": "goods",
-       "hidden": true
-      }
-     ],
-     "look": {
-      "emi": "sophie"
-     },
+     "do": [{"who": "emi", "act": "offer", "to": [-36, -139], "under": 23, "side": 5, "grip": "bar", "in": 0.5, "at": 0, "for": 2.4}],
+     "give": [{"prop": "paper-bag", "to": "emi:bar-f"}, {"prop": "fan", "to": "goods", "hidden": true}, {"prop": "fan-2", "to": "goods", "hidden": true}],
+     "look": {"emi": "sophie"},
      "after": 0
     },
     {
-     "shot": {
-      "id": "thanks",
-      "frame": "both",
-      "from": "door"
-     },
+     "shot": {"id": "thanks", "frame": "both", "from": "door"},
      "say": "thanks",
      "to": "emi",
      "mood": "happy",
-     "react": {
-      "ema": "happy"
-     },
-     "do": [
-      {
-       "who": "sophie",
-       "act": "receive",
-       "to": [
-        -34,
-        -95
-       ],
-       "under": 20,
-       "side": 5,
-       "grip": "bar",
-       "in": 0.4,
-       "at": -1,
-       "for": 3.6
-      },
-      {
-       "who": "ema",
-       "act": "thank",
-       "arms": false,
-       "at": 0.8
-      }
-     ],
-     "give": [
-      {
-       "prop": "paper-bag",
-       "to": "sophie:bar-f"
-      }
-     ],
-     "sounds": [
-      {
-       "sound": "bag-taken",
-       "at": 0.2,
-       "gain": -18
-      }
-     ],
+     "react": {"ema": "happy"},
+     "do": [{"who": "sophie", "act": "receive", "to": [-34, -95], "under": 20, "side": 5, "grip": "bar", "in": 0.4, "at": -1, "for": 3.6}, {"who": "ema", "act": "thank", "arms": false, "at": 0.8}],
+     "give": [{"prop": "paper-bag", "to": "sophie:bar-f"}],
+     "sounds": [{"sound": "bag-taken", "at": 0.2, "gain": -18}],
      "after": 0.5
     }
    ]
@@ -645,102 +136,22 @@
    "id": "out",
    "stage": "shop-front",
    "join": "dissolve",
-   "cast": {
-    "ema": "step-1",
-    "sophie": "step-2"
-   },
-   "props": [
-    {
-     "prop": "paper-bag",
-     "to": "ema:bar-f"
-    },
-    {
-     "prop": "fan",
-     "to": "sophie:bar-f"
-    }
-   ],
+   "cast": {"ema": "step-1", "sophie": "step-2"},
+   "props": [{"prop": "paper-bag", "to": "ema:bar-f"}, {"prop": "fan", "to": "sophie:bar-f"}],
    "beats": [
     {
-     "shot": {
-      "id": "home",
-      "frame": {
-       "at": [
-        0,
-        -124
-       ],
-       "tall": 226
-      },
-      "move": {
-       "frame": {
-        "at": [
-         0,
-         -112
-        ],
-        "tall": 206
-       }
-      },
-      "about": "Emma and Sophie come out with a paper bag. Sophie has a fan."
-     },
-     "go": {
-      "ema": "way-1",
-      "sophie": "way-2"
-     },
+     "shot": {"id": "home", "frame": {"at": [0, -124], "tall": 226}, "move": {"frame": {"at": [0, -112], "tall": 206}}, "about": "Emma and Sophie come out with a paper bag. Sophie has a fan."},
+     "go": {"ema": "way-1", "sophie": "way-2"},
      "in": 2.8,
      "seconds": 4,
-     "pose": {
-      "sophie": [
-       {
-        "act": "fan",
-        "cool": 0.8,
-        "y": 0.16
-       }
-      ]
-     },
-     "look": {
-      "ema": "sophie",
-      "sophie": "viewer"
-     },
-     "sounds": [
-      {
-       "sound": "suzu",
-       "at": 0.2,
-       "gain": -20
-      }
-     ],
+     "pose": {"sophie": [{"act": "fan", "cool": 0.8, "y": 0.16}]},
+     "look": {"ema": "sophie", "sophie": "viewer"},
+     "sounds": [{"sound": "suzu", "at": 0.2, "gain": -20}],
      "after": 0.3
     }
    ]
   },
-  {
-   "id": "say",
-   "practice": {
-    "lines": [
-     "how-much",
-     "two"
-    ]
-   }
-  },
-  {
-   "id": "words",
-   "recap": {
-    "words": [
-     {
-      "text": "{扇子|せんす}",
-      "gloss": "folding fan",
-      "prop": "fan"
-     },
-     {
-      "text": "{袋|ふくろ}",
-      "gloss": "bag",
-      "prop": "paper-bag"
-     },
-     {
-      "text": "お{土産|みやげ}",
-      "gloss": "souvenir",
-      "prop": "gift"
-     }
-    ]
-   }
-  }
+  {"id": "say", "practice": {"lines": ["how-much", "two"]}},
+  {"id": "words", "recap": {"words": [{"text": "{扇子|せんす}", "gloss": "folding fan", "prop": "fan"}, {"text": "{袋|ふくろ}", "gloss": "bag", "prop": "paper-bag"}, {"text": "お{土産|みやげ}", "gloss": "souvenir", "prop": "gift"}]}}
  ]
 }

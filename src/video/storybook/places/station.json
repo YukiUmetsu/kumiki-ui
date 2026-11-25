@@ -1,21 +1,100 @@
 {
-  "sets": {
-    "platform": { "home": { "at": [0, -150], "tall": 410 }, "ground": { "horizon": [0, -177], "distance": 900 }, "layers": [
-      { "piece": "station/plat", "z": -100 }, { "piece": "station/train", "z": -90, "flow": { "speed": 0, "round": 834 } }, { "piece": "station/kiosk", "stands": -12 } ] },
-    "hall": { "home": { "at": [0, -82], "tall": 271 }, "ground": { "horizon": [7, -92], "distance": 590 }, "marks": { "slot": [-58, -99], "exit": [100, -190] }, "layers": [
-      { "piece": "station/hall", "z": -100 }, { "piece": "station/counter", "stands": -25 }, { "piece": "station/gate-1", "stands": -28.5 }, { "piece": "station/gate-2", "stands": -28.5 }, { "piece": "station/gate-3", "stands": -28.5 } ] },
-    "passage": { "home": { "at": [10, -150], "tall": 326 }, "ground": { "horizon": [0, -123], "distance": 710 }, "layers": [{ "piece": "station/out", "z": -100 }] }
+ "sets": {
+  "platform": {
+   "home": {"at": [0, -150], "tall": 410},
+   "ground": {"horizon": [0, -177], "distance": 900},
+   "layers": [{"piece": "station/plat", "z": -100}, {"piece": "station/train", "z": -90, "flow": {"speed": 0, "round": 834}}, {"piece": "station/kiosk", "stands": -12}]
   },
-  "stages": {
-    "platform": { "set": "platform", "about": "The platform of a station in spring.", "soft": 1.2, "bounds": [-456, -438, 460, 78], "steps": { "takes": ["stone-1", "stone-2", "stone-3", "stone-4"], "gain": -24 }, "bed": [{ "sound": "birds" }], "drifts": ["petals"], "spots": {
-      "door-1": { "at": [-18, -46] }, "door-2": { "at": [30, -41] }, "door-3": { "at": [72, -37] }, "door-4": { "at": [108, -40] },
-      "front-1": { "at": [-70, 34] }, "front-2": { "at": [6, 38] }, "front-3": { "at": [76, 46] }, "front-4": { "at": [132, 50] } } },
-    "hall": { "set": "hall", "about": "The ticket gates of a station.", "soft": 0.8, "bounds": [-300, -285, 300, 50], "steps": { "takes": ["stone-1", "stone-2", "stone-3", "stone-4"], "gain": -22 }, "bed": [{ "sound": "birds", "gain": -22 }], "spots": {
-      "desk": { "at": [-238, -32.2], "facing": 1, "toward": [-160, -120] }, "ask-1": { "at": [-146, -16], "facing": 1 }, "ask-2": { "at": [-100, -10] }, "ask-3": { "at": [-60, -4] }, "ask-4": { "at": [-26, 2] },
-      "by-gate": { "at": [-100, -13] }, "slot-side": { "at": [-28, -2] }, "wait-1": { "at": [26, -10] }, "wait-2": { "at": [76, -8] }, "wait-3": { "at": [120, 0] } } },
-    "passage": { "set": "passage", "about": "The way out of a station.", "bounds": [-352, -344, 372, 60], "steps": { "takes": ["stone-1", "stone-2", "stone-3", "stone-4"], "gain": -22 }, "bed": [{ "sound": "birds", "gain": -18 }], "spots": {
-      "here-1": { "at": [-96, 36], "view": "rear" }, "here-2": { "at": [-28, 30], "view": "rear" }, "here-3": { "at": [30, 34], "view": "rear" }, "here-4": { "at": [78, 24], "view": "rear" },
-      "there-1": { "at": [-26, -76], "view": "rear" }, "there-2": { "at": [0, -78], "view": "rear" }, "there-3": { "at": [24, -74], "view": "rear" }, "there-4": { "at": [44, -77], "view": "rear" } } }
+  "hall": {
+   "home": {"at": [0, -82], "tall": 271},
+   "ground": {"horizon": [7, -92], "distance": 590},
+   "marks": {"slot": [-58, -99], "exit": [100, -190]},
+   "layers": [
+    {"piece": "station/hall", "z": -100},
+    {"piece": "station/counter", "stands": -25},
+    {"piece": "station/gate-1", "stands": -28.5},
+    {"piece": "station/gate-2", "stands": -28.5},
+    {"piece": "station/gate-3", "stands": -28.5}
+   ]
   },
-  "props": { "exit-sign": { "name": "出口", "piece": "station/exit-sign" } }
+  "passage": {"home": {"at": [10, -150], "tall": 326}, "ground": {"horizon": [0, -123], "distance": 710}, "layers": [{"piece": "station/out", "z": -100}]},
+  "hall-in": {"home": {"at": [10, -150], "tall": 326}, "ground": {"horizon": [0, -123], "distance": 710}, "layers": [{"piece": "station/out", "z": -100}]}
+ },
+ "stages": {
+  "platform": {
+   "set": "platform",
+   "about": "The platform of a station in spring.",
+   "soft": 1.2,
+   "bounds": [-456, -438, 460, 78],
+   "steps": {"takes": ["stone-1", "stone-2", "stone-3", "stone-4"], "gain": -24},
+   "bed": [{"sound": "birds"}],
+   "drifts": ["petals"],
+   "spots": {
+    "door-1": {"at": [-18, -46]},
+    "door-2": {"at": [30, -41]},
+    "door-3": {"at": [72, -37]},
+    "door-4": {"at": [108, -40]},
+    "front-1": {"at": [-70, 34]},
+    "front-2": {"at": [6, 38]},
+    "front-3": {"at": [76, 46]},
+    "front-4": {"at": [132, 50]}
+   }
+  },
+  "hall": {
+   "set": "hall",
+   "about": "The ticket gates of a station.",
+   "soft": 0.8,
+   "bounds": [-300, -285, 300, 50],
+   "steps": {"takes": ["stone-1", "stone-2", "stone-3", "stone-4"], "gain": -22},
+   "bed": [{"sound": "birds", "gain": -22}],
+   "spots": {
+    "desk": {"at": [-238, -32.2], "facing": 1, "toward": [-160, -120]},
+    "ask-1": {"at": [-182, 10], "view": "rear", "toward": [-236, -118]},
+    "ask-2": {"at": [-130, 16], "view": "rear", "toward": [-236, -118]},
+    "ask-3": {"at": [-88, 8], "view": "rear", "toward": [-236, -118]},
+    "ask-4": {"at": [-52, 14], "view": "rear", "toward": [-236, -118]},
+    "by-gate": {"at": [-100, -13]},
+    "slot-side": {"at": [-28, -2]},
+    "wait-1": {"at": [26, -10]},
+    "wait-2": {"at": [76, -8]},
+    "wait-3": {"at": [120, 0]},
+    "come-1": {"at": [-150, 44], "view": "rear"},
+    "come-2": {"at": [-98, 46], "view": "rear"},
+    "come-3": {"at": [-56, 36], "view": "rear"},
+    "come-4": {"at": [-20, 40], "view": "rear"}
+   },
+   "sides": {
+    "desk": {
+     "set": "hall-in",
+     "about": "From behind the counter.",
+     "soft": 1.8,
+     "bounds": [-352, -344, 372, 60],
+     "spots": {
+      "ask-1": {"at": [64, 40], "view": "front", "toward": [10, -176]},
+      "ask-2": {"at": [0, 42], "view": "front", "toward": [0, -170]},
+      "ask-3": {"at": [-56, 36], "view": "front", "toward": [-6, -166]},
+      "ask-4": {"at": [-104, 40], "view": "front", "toward": [-10, -160]}
+     }
+    }
+   }
+  },
+  "passage": {
+   "set": "passage",
+   "about": "The way out of a station.",
+   "bounds": [-352, -344, 372, 60],
+   "steps": {"takes": ["stone-1", "stone-2", "stone-3", "stone-4"], "gain": -22},
+   "bed": [{"sound": "birds", "gain": -18}],
+   "spots": {
+    "here-1": {"at": [-96, 36], "view": "rear"},
+    "here-2": {"at": [-28, 30], "view": "rear"},
+    "here-3": {"at": [30, 34], "view": "rear"},
+    "here-4": {"at": [78, 24], "view": "rear"},
+    "there-1": {"at": [-26, -76], "view": "rear"},
+    "there-2": {"at": [0, -78], "view": "rear"},
+    "there-3": {"at": [24, -74], "view": "rear"},
+    "there-4": {"at": [44, -77], "view": "rear"}
+   }
+  }
+ },
+ "props": {"exit-sign": {"name": "出口", "piece": "station/exit-sign"}}
 }

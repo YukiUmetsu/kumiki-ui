@@ -1,236 +1,34 @@
 {
- "props": {
-  "fan-2": {
-   "name": "扇子",
-   "piece": "props/fan",
-   "views": {
-    "half": "props/fan-half",
-    "narrow": "props/fan-narrow",
-    "closed": "props/fan-closed"
-   }
-  }
- },
+ "props": {"fan-2": {"name": "扇子", "piece": "props/fan", "views": {"half": "props/fan-half", "narrow": "props/fan-narrow", "closed": "props/fan-closed"}}},
  "sets": {
   "shop-front": {
-   "home": {
-    "at": [
-     0,
-     -146
-    ],
-    "tall": 326
-   },
-   "ground": {
-    "horizon": [
-     0,
-     -142
-    ],
-    "distance": 330
-   },
+   "home": {"at": [0, -146], "tall": 326},
+   "ground": {"horizon": [0, -142], "distance": 330},
    "layers": [
-    {
-     "piece": "shop/front",
-     "z": -100
-    },
-    {
-     "piece": "shop/front-noren",
-     "z": -95,
-     "sway": {
-      "pivot": [
-       0.5,
-       0.02
-      ],
-      "degrees": 0.35,
-      "period": 5.4
-     }
-    },
-    {
-     "piece": "shop/lantern",
-     "z": -94,
-     "sway": {
-      "pivot": [
-       0.5,
-       0
-      ],
-      "degrees": 1.3,
-      "period": 4.2
-     }
-    },
-    {
-     "piece": "shop/bell-1",
-     "z": -94,
-     "sway": {
-      "pivot": [
-       0.5,
-       0
-      ],
-      "degrees": 3.4,
-      "period": 2.6,
-      "phase": 0
-     }
-    },
-    {
-     "piece": "shop/bell-2",
-     "z": -94,
-     "sway": {
-      "pivot": [
-       0.5,
-       0
-      ],
-      "degrees": 3.4,
-      "period": 2.8,
-      "phase": 0.4
-     }
-    },
-    {
-     "piece": "shop/bell-3",
-     "z": -94,
-     "sway": {
-      "pivot": [
-       0.5,
-       0
-      ],
-      "degrees": 3.4,
-      "period": 3.0,
-      "phase": 0.2
-     }
-    },
-    {
-     "piece": "shop/bell-4",
-     "z": -94,
-     "sway": {
-      "pivot": [
-       0.5,
-       0
-      ],
-      "degrees": 3.4,
-      "period": 3.2,
-      "phase": 0.7
-     }
-    }
+    {"piece": "shop/front", "z": -100},
+    {"piece": "shop/front-noren", "z": -95, "sway": {"pivot": [0.5, 0.02], "degrees": 0.35, "period": 5.4}},
+    {"piece": "shop/lantern", "z": -94, "sway": {"pivot": [0.5, 0], "degrees": 1.3, "period": 4.2}},
+    {"piece": "shop/bell-1", "z": -94, "sway": {"pivot": [0.5, 0], "degrees": 3.4, "period": 2.6, "phase": 0}},
+    {"piece": "shop/bell-2", "z": -94, "sway": {"pivot": [0.5, 0], "degrees": 3.4, "period": 2.8, "phase": 0.4}},
+    {"piece": "shop/bell-3", "z": -94, "sway": {"pivot": [0.5, 0], "degrees": 3.4, "period": 3.0, "phase": 0.2}},
+    {"piece": "shop/bell-4", "z": -94, "sway": {"pivot": [0.5, 0], "degrees": 3.4, "period": 3.2, "phase": 0.7}}
    ]
   },
   "shop": {
-   "home": {
-    "at": [
-     0,
-     -164
-    ],
-    "tall": 326
-   },
-   "ground": {
-    "horizon": [
-     -10,
-     -182
-    ],
-    "distance": 300
-   },
-   "marks": {
-    "goods": [
-     -72,
-     -106,
-     -3
-    ],
-    "goods-2": [
-     -76,
-     -100,
-     -3
-    ],
-    "bag": [
-     -40,
-     -106,
-     -1.5
-    ]
-   },
-   "layers": [
-    {
-     "piece": "shop/room",
-     "z": -100
-    },
-    {
-     "piece": "shop/back-noren",
-     "z": -95,
-     "sway": {
-      "pivot": [
-       0.5,
-       0.05
-      ],
-      "degrees": 0.4,
-      "period": 5.2
-     }
-    },
-    {
-     "piece": "shop/counter",
-     "stands": -25
-    }
-   ]
+   "home": {"at": [0, -164], "tall": 326},
+   "ground": {"horizon": [-10, -182], "distance": 300},
+   "marks": {"goods": [-72, -106, -3], "goods-2": [-76, -100, -3], "bag": [-40, -106, -1.5]},
+   "layers": [{"piece": "shop/room", "z": -100}, {"piece": "shop/back-noren", "z": -95, "sway": {"pivot": [0.5, 0.05], "degrees": 0.4, "period": 5.2}}, {"piece": "shop/counter", "stands": -25}]
   },
   "shop-lane": {
-   "home": {
-    "at": [
-     2,
-     -118
-    ],
-    "tall": 196
-   },
-   "ground": {
-    "horizon": [
-     0,
-     -130
-    ],
-    "distance": 300
-   },
-   "marks": {
-    "goods": [
-     4,
-     -82,
-     26
-    ],
-    "goods-2": [
-     8,
-     -78,
-     26
-    ],
-    "bag": [
-     10,
-     -80,
-     26
-    ]
-   },
+   "home": {"at": [2, -118], "tall": 196},
+   "ground": {"horizon": [0, -130], "distance": 300},
+   "marks": {"goods": [4, -82, 26], "goods-2": [8, -78, 26], "bag": [10, -80, 26]},
    "layers": [
-    {
-     "piece": "shop/lane",
-     "z": -100
-    },
-    {
-     "piece": "shop/lane-noren-1",
-     "z": -95,
-     "sway": {
-      "pivot": [
-       0.5,
-       0.02
-      ],
-      "degrees": 0.5,
-      "period": 4.8
-     }
-    },
-    {
-     "piece": "shop/lane-noren-2",
-     "z": -95,
-     "sway": {
-      "pivot": [
-       0.5,
-       0.02
-      ],
-      "degrees": 0.5,
-      "period": 5.3,
-      "phase": 0.35
-     }
-    },
-    {
-     "piece": "shop/desk",
-     "stands": 30,
-     "mirror": true
-    }
+    {"piece": "shop/lane", "z": -100},
+    {"piece": "shop/lane-noren-1", "z": -95, "sway": {"pivot": [0.5, 0.02], "degrees": 0.5, "period": 4.8}},
+    {"piece": "shop/lane-noren-2", "z": -95, "sway": {"pivot": [0.5, 0.02], "degrees": 0.5, "period": 5.3, "phase": 0.35}},
+    {"piece": "shop/desk", "stands": 30, "mirror": true}
    ]
   }
  },
@@ -239,239 +37,44 @@
    "set": "shop-front",
    "about": "A souvenir shop in an old street.",
    "soft": 1,
-   "bounds": [
-    -300,
-    -310,
-    298,
-    22
-   ],
-   "steps": {
-    "takes": [
-     "stone-1",
-     "stone-2",
-     "stone-3",
-     "stone-4"
-    ],
-    "gain": -24
-   },
-   "bed": [
-    {
-     "sound": "birds",
-     "gain": -22
-    }
-   ],
-   "drifts": [
-    "petals"
-   ],
+   "bounds": [-300, -310, 298, 22],
+   "steps": {"takes": ["stone-1", "stone-2", "stone-3", "stone-4"], "gain": -24},
+   "bed": [{"sound": "birds", "gain": -22}],
+   "drifts": ["petals"],
    "spots": {
-    "street-1": {
-     "at": [
-      -66,
-      18
-     ],
-     "view": "rear"
-    },
-    "street-2": {
-     "at": [
-      -16,
-      20
-     ],
-     "view": "rear"
-    },
-    "door-1": {
-     "at": [
-      -20,
-      -27
-     ],
-     "view": "rear"
-    },
-    "door-2": {
-     "at": [
-      12,
-      -25
-     ],
-     "view": "rear"
-    },
-    "step-1": {
-     "at": [
-      -18,
-      -27
-     ],
-     "view": "front"
-    },
-    "step-2": {
-     "at": [
-      16,
-      -25
-     ],
-     "view": "front"
-    },
-    "way-1": {
-     "at": [
-      -40,
-      17
-     ],
-     "view": "front"
-    },
-    "way-2": {
-     "at": [
-      30,
-      20
-     ],
-     "view": "front"
-    }
+    "street-1": {"at": [-66, 18], "view": "rear"},
+    "street-2": {"at": [-16, 20], "view": "rear"},
+    "door-1": {"at": [-20, -27], "view": "rear"},
+    "door-2": {"at": [12, -25], "view": "rear"},
+    "step-1": {"at": [-18, -27], "view": "front"},
+    "step-2": {"at": [16, -25], "view": "front"},
+    "way-1": {"at": [-40, 17], "view": "front"},
+    "way-2": {"at": [30, 20], "view": "front"}
    }
   },
   "shop": {
    "set": "shop",
    "about": "In a souvenir shop, at the counter.",
    "soft": 0.9,
-   "bounds": [
-    -296,
-    -326,
-    296,
-    2
-   ],
-   "steps": {
-    "takes": [
-     "wood-1",
-     "wood-2",
-     "wood-3",
-     "wood-4"
-    ],
-    "gain": -24
-   },
-   "bed": [
-    {
-     "sound": "birds",
-     "gain": -30
-    }
-   ],
-   "frames": {
-    "all": {
-     "at": [
-      -34,
-      -140
-     ],
-     "tall": 212
-    }
-   },
+   "bounds": [-296, -326, 296, 2],
+   "steps": {"takes": ["wood-1", "wood-2", "wood-3", "wood-4"], "gain": -24},
+   "bed": [{"sound": "birds", "gain": -30}],
+   "frames": {"all": {"at": [-34, -140], "tall": 212}},
    "spots": {
-    "clerk": {
-     "at": [
-      -36,
-      -40
-     ],
-     "scale": 1.15,
-     "raise": [
-      {
-       "layers": [
-        "arm-f",
-        "hand-f",
-        "arm-b",
-        "hand-b"
-       ],
-       "z": -2
-      }
-     ],
-     "pose": [
-      {
-       "act": "fold"
-      }
-     ],
-     "toward": [
-      -40,
-      -130
-     ]
-    },
-    "ask-1": {
-     "at": [
-      -132,
-      10
-     ],
-     "view": "rear",
-     "toward": [
-      -36,
-      -150
-     ]
-    },
-    "ask-2": {
-     "at": [
-      56,
-      16
-     ],
-     "view": "rear",
-     "toward": [
-      -36,
-      -150
-     ]
-    }
+    "clerk": {"at": [-36, -40], "scale": 1.15, "raise": [{"layers": ["arm-f", "hand-f", "arm-b", "hand-b"], "z": -2}], "pose": [{"act": "fold"}], "toward": [-40, -130]},
+    "ask-1": {"at": [-132, 10], "view": "rear", "toward": [-36, -150]},
+    "ask-2": {"at": [56, 16], "view": "rear", "toward": [-36, -150]}
    },
    "sides": {
     "door": {
      "set": "shop-lane",
      "about": "From behind the counter.",
      "soft": 1.1,
-     "bounds": [
-      -182,
-      -216,
-      178,
-      -30
-     ],
-     "frames": {
-      "both": {
-       "at": [
-        4,
-        -114
-       ],
-       "tall": 112
-      }
-     },
+     "bounds": [-182, -216, 178, -30],
+     "frames": {"both": {"at": [4, -114], "tall": 112}},
      "spots": {
-      "ask-1": {
-       "at": [
-        40,
-        -2
-       ],
-       "view": "front",
-       "raise": [
-        {
-         "layers": [
-          "arm-f",
-          "hand-f",
-          "arm-b",
-          "hand-b"
-         ],
-         "z": 40
-        }
-       ],
-       "toward": [
-        26,
-        -146
-       ]
-      },
-      "ask-2": {
-       "at": [
-        -34,
-        2
-       ],
-       "view": "front",
-       "raise": [
-        {
-         "layers": [
-          "arm-f",
-          "hand-f",
-          "arm-b",
-          "hand-b"
-         ],
-         "z": 41
-        }
-       ],
-       "toward": [
-        -22,
-        -122
-       ]
-      }
+      "ask-1": {"at": [40, -2], "view": "front", "raise": [{"layers": ["arm-f", "hand-f", "arm-b", "hand-b"], "z": 40}], "toward": [26, -146]},
+      "ask-2": {"at": [-34, 2], "view": "front", "raise": [{"layers": ["arm-f", "hand-f", "arm-b", "hand-b"], "z": 41}], "toward": [-22, -122]}
      }
     }
    }
