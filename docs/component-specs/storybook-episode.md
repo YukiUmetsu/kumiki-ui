@@ -67,6 +67,9 @@ A set is layers of paintings with a place in centimetres. A stage is a set with 
 - `depthZ` puts a layer between people by the floor that it stands on (`stands`).
 - `raise` of a spot brings hands over a wheel, a counter or a tray.
 - `stays` of a spot keeps its person in each picture of the place (who sits in a car): the picture grows, and the person is not left out. Without it a close-up leaves out a person whom the edge of the picture cuts.
+- `sides` gives the place as it is seen from the other side (a desk: the clerk's side and the guests' side). A shot asks for it with `from`.
+- A layer that stands on an upright `hinge` opens with `swing` in its `slide` (a car door). It gets narrower, and what comes nearer gets larger.
+- A step `picture` of a recipe puts another painting on a phone, a poster or a card in the picture.
 - A spot never looks (`toward`) at the person who stands on it.
 - Drifts are petals, steam, rain or smoke. With `grow` they get larger. Bursts are fireworks. `slides` moves a layer: a train, a door, a car. `pace` is how fast the street goes by behind a window.
 
@@ -75,6 +78,8 @@ A set is layers of paintings with a place in centimetres. A stage is a set with 
 A card of about 60 lines replaces a recipe cut by hand. `storybook-rig.py` finds joints, jaw, lips and cuffs from landmarks, cuts the painting, fills what a joint uncovers, sews the faces, and takes hands and feet from the kit of the cast in the size and the skin colour of the figure. It prints how like the painting the figure is at rest. Then look at the kit film of the figure (`npm run -s story:look -- kit-<figure> --n 4`) and measure it (`story:qa -- kit-<figure>`): standing, turning, each look, speech, both arms through the space in front, each act, a walk, sitting.
 
 A wide sleeve (a kimono) needs `fix.sleeve` in the card: the line where it ends against the body. Its corner past the cuff then hangs on a bone of its own (`hang`), and the cloth on the inside of the elbow is drawn in as the elbow bends (`slack` of the bind). Under a skirt or a hem the legs stand straight, so that the cloth hangs as it is painted.
+
+`fix.hole` gives the armhole where the gap beside an arm does not show it. `idle` names the look between lines when the painting laughs. `badges` replaces the letters of a real company on a badge with a plain wheel. A view in other clothes is named in `apart` of the person in `cast.ts`: it is loaded only by the films that name it.
 
 A rear view is a card with `"view": "rear"`. `"body": { "sits": false }` says that the clothes hang in one piece and the figure only stands: a screenplay that asks for `sit` is refused.
 

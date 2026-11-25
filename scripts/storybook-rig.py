@@ -24,7 +24,9 @@ Card (points are pixels of the painting):
   loose?               [{ id, poly, at, to, parent, z, sway? }] a part that trails: a pony tail, a scarf end
   fix?                 { off: [polygons that are not the figure: its shadow], head: [polygons that are head], body: [polygons that are not], neck: [polygons], under: {f, b: [x, y] armpit},
                          cuff: {f, b: share of the forearm}, skirt: bool, open: [points in holes that are holes: an ear ring],
-                         sleeve: {f, b: [[x, y], ...] inner edge of a sleeve that hangs, from the armpit down. Its corner past the cuff hangs on a bone of its own, and the cloth is drawn in when the elbow bends} }
+                         sleeve: {f, b: [[x, y], ...] inner edge of a sleeve that hangs, from the armpit down. Its corner past the cuff hangs on a bone of its own, and the cloth is drawn in when the elbow bends},
+                         hole: {f, b: {seam: [shoulder, armpit], side: [[x, y], ...]}} the armhole where an arm is sewn on, and the side of the body under it, when the gap beside the arm does not say it }
+  badges?              [{ at, r, field, mark }] a badge with the letters of a real company: it gets a plain wheel in these colours
   idle?                the look between lines and acts, when it is not the one of the painting
   body?, sockets?, lookFor?, expression?, sounds?, provenance?
 """

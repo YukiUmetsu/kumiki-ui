@@ -82,6 +82,10 @@ Rules that decide the quality:
 - **Change a drawing instead of bending it** for hands and for faces. A mesh bends sleeves, trouser legs, torsos, hems and hair.
 - **Cloth that hangs does not stand up.** A wide sleeve has `slack`: cloth on the inside of a bent elbow is drawn in to the arm, and its corner hangs (`hang` of an extra bone). Without it the folded hands of a kimono made two points of cloth over the elbows.
 - **An elbow has a side.** It hangs below the line from shoulder to hand when the hand is in front of the waist. On a body that faces the viewer it also goes out with a hand that goes out, and a wrist bends at most 46°. The inside of the elbow folds and shows a crease. The shoulder goes along with a high or a far reach.
+- **A shirt is sewn at the armhole.** An arm is cut along the seam from the shoulder to the armpit. The cap of the shoulder stays with the chest, and the side of the body goes on behind the arm. Without it a raised arm took a piece of the side with it (`fix.hole`).
+- **What stands out of a face fades toward the ears.** The depth of a face moves the nose most and the edge of the cheek not at all. Without the fade a turned cheek folded over itself and showed specks.
+- **A face that laughs in its painting listens with closed lips.** `idle` of the card names the look between lines.
+- **Hair past the head box is in the figure** as a layer of its own (`head-past`).
 - **A loose part** (a bun, a bag, a scarf end) is an `extra` bone. At rest it has the angle of the painting. `sway` says how much it trails.
 - **Photographs come before joints.** A hand on a wheel, a pick or a purse has a grip that nobody invents well. Look at real people doing it.
 - **A walk along the picture has no first step and no last step.** Start it outside the picture or under a join. A walk in depth has both.

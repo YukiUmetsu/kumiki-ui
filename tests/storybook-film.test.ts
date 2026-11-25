@@ -11,6 +11,7 @@ import type { SpeechTrack } from "../registry/video/storybook/speech-mouth";
 import { inspectStorybook, planStorybook, storybookFrame } from "../registry/video/storybook/storybook-film";
 import { StorybookFilmPlayer, StorybookFilmStage } from "../registry/video/storybook/storybook-film-react";
 import { figure, figureIds } from "../src/video/storybook/art";
+import { filmNames, filmOf } from "../src/video/storybook/films";
 import { KONBINI_FILM, KONBINI_LINES } from "../src/video/storybook/konbini-film";
 import { armBench, walkBench } from "../src/video/storybook/story-benches";
 
@@ -64,6 +65,14 @@ describe("speech", () => {
       const a = l.track.phones.filter(p => p.p[0] === "a" && p.end - p.start > 0.07); for (const p of a) expect(open((p.start + p.end) / 2), `${id} ${p.start}`).toBeGreaterThan(0.2);
       expect(open(l.track.seconds + 0.4), id).toBeLessThan(0.1);
     }
+  });
+});
+
+describe("films from data", () => {
+  it.each(filmNames().filter(n => !n.startsWith("kit-")))("%s is whole", name => expect(inspectStorybook(filmOf(name))).toEqual([]));
+  it("join with the views that each of them has of a person", () => {
+    const { cast, shots } = filmOf("first-trip"), seen = new Set(shots.flatMap(s => (s.roles ?? []).filter(r => r.actor === "ema").map(r => r.view!)));
+    expect([...seen].sort()).toEqual(expect.arrayContaining(["front", "rear", "three-quarter"])); for (const v of seen) expect(cast.ema.figures[v], v).toBeDefined();
   });
 });
 

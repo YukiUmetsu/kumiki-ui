@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useMemo } from "react";
 import type { ReactNode } from "react";
-import { asset, provenanceOf } from "./art";
+import { asset, figureIds, provenanceOf } from "./art";
+import { kitFilm } from "./kit-film";
 import { armBench, lineUp, lookBench, standBench, walkBench } from "./story-benches";
 import { RigOverlay, StoryBench, StoryPage, StoryStill } from "./story-page";
 
@@ -14,6 +16,12 @@ export const Joints: StoryObj = { name: "Joints and grips", render: () => <Story
 /** The arm is solved in depth: the elbow hangs down and back, the shoulder goes along, and a forearm that points at the viewer is drawn shorter. */
 export const Arms: StoryObj = { name: "Shoulders and elbows", render: () => <StoryPage title="Shoulders and elbows" about="Near and far arms go through the same eleven places. Use the speed menu to slow them down."><StoryBench film={arms} /></StoryPage> };
 export const ArmJoints: StoryObj = { name: "Shoulders and elbows, with the rig", render: () => <StoryPage title="Shoulders and elbows"><StoryBench film={arms}>{f => <RigOverlay frame={f} film={arms} names={false} />}</StoryBench></StoryPage> };
+function Kit({ figure, rig }: { figure: string; rig: boolean }) {
+  const film = useMemo(() => kitFilm(figure), [figure]);
+  return <StoryPage title={film.title} about={provenanceOf(figure)} wide={false}><StoryBench key={figure} film={film}>{rig ? f => <RigOverlay frame={f} film={film} names={false} /> : undefined}</StoryBench></StoryPage>;
+}
+/** One figure of the cast: it stands, turns, shows each look, speaks, moves its arms, does each act, walks and sits. */
+export const OneFigure: StoryObj<{ figure: string; rig: boolean }> = { name: "One figure, all it can do", args: { figure: "haruka-front", rig: false }, argTypes: { figure: { control: "select", options: figureIds() } }, render: a => <Kit {...a} /> };
 /** Feet stay where they stand. */
 export const Walk: StoryObj = { render: () => <StoryPage title="Walk"><StoryBench film={walk} /></StoryPage> };
 

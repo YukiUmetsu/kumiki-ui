@@ -10,7 +10,7 @@
 import type { EasingSpec } from "../../motion/types";
 import { floorOf } from "../../rig/rig-walk";
 import { storyLineSeconds } from "./storybook-film";
-import type { StoryAct, StoryAttend, StoryBurst, StoryCameraKey, StoryDrift, StoryFiredBurst, StoryHold, StoryLine, StoryPlace, StoryRole, StorySay, StorySet, StoryShot, StorySound, StoryStagedProp, StoryTransition, StoryWords, StorybookFilm } from "./storybook-film";
+import type { StoryAct, StoryActor, StoryAttend, StoryBurst, StoryCameraKey, StoryDrift, StoryFiredBurst, StoryHold, StoryLine, StoryPlace, StoryRole, StorySay, StorySet, StoryShot, StorySound, StoryStagedProp, StoryTransition, StoryWords, StorybookFilm } from "./storybook-film";
 
 type Pt = readonly [number, number];
 
@@ -269,10 +269,12 @@ export function joinStories(id: string, title: string, films: readonly Storybook
     return f.shots.map((s, i): StoryShot => ({
       ...s, id: `${f.id}/${s.id}`, set: `${f.id}/${s.set}`, ...(i === 0 && n > 0 && !s.transition ? { transition: join } : {}), says: s.says?.map(q => ({ ...q, line: `${f.id}/${q.line}` })),
       props: s.props?.map(p => ({ ...p, prop: `${f.id}/${p.prop}`, holds: p.holds.map(h => ("at" in h ? { ...h, at: place(h.at, s) } : h)) })),
-      roles: s.roles?.map(r => ({ ...r, attend: r.attend?.map(k => ({ ...k, to: s.roles?.some(q => q.actor === k.to) || k.to === "viewer" || k.to === "ahead" ? k.to : place(k.to, s) })), acts: r.acts?.map(a => (a.params && (typeof a.params.to === "string" || typeof a.params.from === "string") ? { ...a, params: { ...a.params, ...(a.params.to === undefined ? {} : { to: place(a.params.to, s) }), ...(a.params.from === undefined ? {} : { from: place(a.params.from, s) }) } } : a)) })),
+      roles: s.roles?.map(r => ({ ...r, view: r.view ?? Object.keys(f.cast[r.actor].figures)[0], attend: r.attend?.map(k => ({ ...k, to: s.roles?.some(q => q.actor === k.to) || k.to === "viewer" || k.to === "ahead" ? k.to : place(k.to, s) })), acts: r.acts?.map(a => (a.params && (typeof a.params.to === "string" || typeof a.params.from === "string") ? { ...a, params: { ...a.params, ...(a.params.to === undefined ? {} : { to: place(a.params.to, s) }), ...(a.params.from === undefined ? {} : { from: place(a.params.from, s) }) } } : a)) })),
     }));
   });
-  return { ...one, id, title, shots, audio: undefined, cast: Object.assign({}, ...films.map(f => f.cast)), sets: Object.assign({}, ...films.map(f => keyed(f, f.sets))), props: Object.assign({}, ...films.map(f => keyed(f, f.props))), lines: Object.assign({}, ...films.map(f => keyed(f, f.lines))), acts: Object.assign({}, ...films.map(f => f.acts ?? {})) };
+  // a person can be in other views, in other clothes, in another film
+  const cast: Record<string, StoryActor> = {}; for (const f of films) for (const [who, a] of Object.entries(f.cast)) cast[who] = { ...a, ...cast[who], figures: { ...cast[who]?.figures, ...a.figures } };
+  return { ...one, id, title, shots, audio: undefined, cast, sets: Object.assign({}, ...films.map(f => keyed(f, f.sets))), props: Object.assign({}, ...films.map(f => keyed(f, f.props))), lines: Object.assign({}, ...films.map(f => keyed(f, f.lines))), acts: Object.assign({}, ...films.map(f => f.acts ?? {})) };
 }
 
 // ---- scenes that teach -----------------------------------------------------------------------------------------------------------
