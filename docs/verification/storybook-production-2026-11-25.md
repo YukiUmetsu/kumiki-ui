@@ -13,7 +13,19 @@ Six scenes and the episode `first-trip`: 487.1 s (8 min 7 s), 115 shots, 11,690 
 
 ## Commands
 
-@@COMMANDS@@
+| Check | Command | Result |
+|---|---|---|
+| Types | `npm run typecheck` | exit 0 |
+| Lint of the 46 changed scripts and sources | `npx eslint` with each file | exit 0 |
+| Unit tests of this work | `npx vitest run --project unit tests/storybook-film.test.ts tests/rig.test.tsx tests/riso-rig-ik.test.tsx` | 66 passed |
+| Registry manifest | `npm run registry:validate` | 315 items valid |
+| Registry smoke | `npm run registry:smoke` | 315 items, 7483 files |
+| Clean app, `painted-rig` | `node scripts/registry-fixture.js --item=painted-rig` | 12 items, 142 files compiled |
+| Clean app, `storybook-film` | `node scripts/registry-fixture.js --item=storybook-film` | 13 items, 153 files compiled |
+| Catalog | `npm run catalog:check` | @@CATALOG@@ |
+| Docs | `npm run docs:check` | OK |
+| Sounds | `npm run sound:check` | 165 sounds |
+| Art from recipes and cards | `storybook-art.py` on the 11 recipes, `storybook-rig.py` on the 13 figure cards, from `local-assets/storybook/paintings` | @@ART@@ |
 
 The whole unit suite and the whole story suite were not run.
 
@@ -38,7 +50,20 @@ The whole unit suite and the whole story suite were not run.
 
 ## Films, from the pictures
 
-@@FRAMES@@
+Each frame at 640 px in Chromium (`story:qa -- <film> --frames`), 11,870 frames of seven films: no faults. The episode is made of these films, and its frames were not taken a second time.
+
+| Film | Three frames again in another order | A frame unlike both neighbours | Feet that are down, Lucas-Kanade: tracked, median, worst | Painted mouth against recording |
+|---|---|---|---|---|
+| hello | 0 of 255, SSIM 1.0 | 0.08% | 1271, 0.002 cm, 0.22 cm | 1 line, 0.95, lag 0 |
+| konbini | 0 of 255, SSIM 1.0 | 0.03% | 184, 0.007, 0.65 | 2 lines, 0.78 to 0.88, lag 0 |
+| station | 0 of 255, SSIM 1.0 | 0.28% (the train comes in) | 1351, 0.013, 0.25 | 2 lines, 0.87 to 0.96, lag 0 |
+| taxi | 0 of 255, SSIM 1.0 | 0.10% | 146, 0.045, 0.37 | 9 lines, 0.85 to 0.94, lag 0 |
+| shop | 0 of 255, SSIM 1.0 | 0.06% | 140, 0.000, 0.07 | 6 lines, 0.39 to 0.98, lag −1 to 0 |
+| ryokan | 0 of 255, SSIM 1.0 | 0.03% | 2021, 0.008, 0.35 | 5 lines, 0.92 to 0.96, lag 0 |
+| festival | 0 of 255, SSIM 1.0 | 0.14% | 247, 0.017, 0.36 | 5 lines, 0.80 to 0.96, lag −1 to 0 |
+| Limit | 2 of 255 | 0.6% | 1.2 cm | 0.35; 2 frames |
+
+The other mouths are too small to measure in a picture of 640 px. They were measured from the data only. A change of a doc loaded the page again at frame 952 of hello and frame 847 of shop. The films and the art did not change, and the checks went on.
 
 ## Layers against the painting
 
@@ -71,7 +96,12 @@ The voices are Fish Audio voices of the library. The phone times come from a for
 
 ## Browser
 
-@@BROWSER@@
+Chromium, Storybook on port 6016:
+
+- 32 stories of the group opened: no console error and no page error. Three of them (`Library`, `Lines`, `Text`) have no canvas.
+- Play, on the convenience store and on the episode: the sound starts (peak 0.80 and 0.81), and the clock follows the audio.
+- 375 px: no sideways scroll. Reduced motion: stays at frame 0.
+- The episode is ready to play 3.7 s after the page opens on this machine.
 
 ## Looked at
 
@@ -132,6 +162,9 @@ Only the agent that built the films looked at the corrections. There was no seco
 | A kimono sleeve bent as a stiff board | its corner hangs on a bone, and its inner cloth is drawn in |
 | A shot of a car left out a person | a spot that `stays` keeps its person in each picture |
 | A painted badge had the letters of a real railway company | a plain wheel (`badges` in the card): the repository is public |
+| A re-cut figure lost its `idle` look, because the art tool dropped the field | the tool keeps it, and Leo and Daniel were cut again |
+| Face patches of three figures of the first phase came from an older tool than the recipes say | cut again, compared before and after, and the store film was measured again |
+| Two face pictures that no figure names | removed |
 | A long queue of paintings was stopped by its time limit of 2 h | the remaining pictures were painted in shorter runs |
 
 ## Capabilities

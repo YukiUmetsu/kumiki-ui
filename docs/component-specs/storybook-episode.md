@@ -11,6 +11,8 @@ How a scene or an episode of a painted storybook film is made from data. A new s
 | A figure | `cards/<name>.json` → `assets/<name>-front/` | `scripts/storybook-rig.py` |
 | An episode: plays, or scenes of plays, one after another | `episodes/<name>.json` | hand |
 
+The paintings, the raw voices and the landmark models are in `local-assets/storybook` (git ignores it): `--src local-assets/storybook/paintings` for figures and the convenience store, `--src local-assets/storybook/paintings/sets` for other places and props, `--models local-assets/storybook/models`. Keep a copy: without them nothing can be cut again.
+
 `src/video/storybook/library.ts` gathers all of them by folder. Nothing is registered by hand, except a new family of sound files, which the list in that file names.
 
 ## Order of work

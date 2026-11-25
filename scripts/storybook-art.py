@@ -23,7 +23,7 @@ Recipe (all points are pixels of the painting they belong to; "base" is the pain
   sockets.<name>       { bone, hand?: variant it was measured on, at: point of that source or of the base, to?: a point that the top of a held thing goes toward }
   body, walk           how it stands and walks (story-figure.ts), copied as they are
   face                 { layer, source, round, eyes, brows, regions: {name: polygon}, patches: {name: {file, region, marks?, steps?, squeeze?: { at, by: [sx, sy], radius }}},
-                         looks, lookFor?, lids, mouths, mouthFor, sync?: max pixels a patch may be off }
+                         looks, lookFor?, idle?, lids, mouths, mouthFor, sync?: max pixels a patch may be off }
 
 A recipe with pieces and no joints is a set or a tray of props:
   px                   painting pixels in a centimetre (a source may have its own "px")
@@ -363,7 +363,7 @@ def build(recipe, root, out):
         # polygons of a drafted face are in base pixels, several to a region
         region = (lambda n: np.max([polygon(s.a.shape, [(x - hx, y - hy) for x, y in q], s.k, f.get("soft", 14)) for q in f["regions"][n]], 0)) if top_plate else (lambda n: polygon(s.a.shape, f["regions"][n], s.k, f.get("soft", 14)))
         rounds = lambda e: {"at": B(e["at"]), "radius": [r(e["radius"][0]), r(e["radius"][1])]}
-        face = {"layer": f["layer"], "round": rounds(f["round"]), "eyes": [rounds(e) for e in f["eyes"]], "brows": [rounds(e) for e in f.get("brows", [])], "patches": {}, "looks": f["looks"], **({"lookFor": f["lookFor"]} if "lookFor" in f else {}), "lids": f["lids"], "mouths": f["mouths"], "mouthFor": f.get("mouthFor", {}), **({"jaw": {**rounds(f["jaw"]), "drop": r(f["jaw"]["drop"])}} if "jaw" in f else {})}
+        face = {"layer": f["layer"], "round": rounds(f["round"]), "eyes": [rounds(e) for e in f["eyes"]], "brows": [rounds(e) for e in f.get("brows", [])], "patches": {}, "looks": f["looks"], **{k: f[k] for k in ("lookFor", "idle") if k in f}, "lids": f["lids"], "mouths": f["mouths"], "mouthFor": f.get("mouthFor", {}), **({"jaw": {**rounds(f["jaw"]), "drop": r(f["jaw"]["drop"])}} if "jaw" in f else {})}
         if "mesh" in f: face["mesh"] = [[*P(q), round(q[2] * cm, 3)] for q in f["mesh"]]; face["shows"] = f.get("shows", 1)
         changed = sum((region(n) > 0.5).astype(np.float32) for n in f["regions"]); steady = ((changed < 0.01) & (s.a > 0.9)).astype(np.float32)
         for name, p in f["patches"].items():
