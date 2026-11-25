@@ -52,6 +52,7 @@ K = 2  # pixels of a layer for each pixel of the painting
 REPO = Path(__file__).resolve().parent.parent
 PROVENANCE = "The owner's full-body painting, cut; the face paintings were made from it with FLUX.2 Klein 4B (Apache-2.0), run locally."
 FACE_FILES = {"rest": "rest", "a": "a", "blink": "blink", "joy": "happy"}  # card name: suffix of faces/<id>_<suffix>.png
+OWN = {"rest": {"rest"}, "open": {"a"}, "joy": {"a", "joy"}, "narrow": {"rest"}}  # the faces that a painting gives itself, by what it shows
 
 
 class Models:
@@ -125,6 +126,13 @@ def shows_of(state):
     laugh measure 0.025 to 0.045, narrow eyes 0.039, eyes at rest 0.049 and more."""
     if state["gap"] > 0.04: return "joy" if state["eyes"] < 0.047 else "open"
     return "narrow" if state["eyes"] < 0.042 else "rest"
+
+
+def face_of(models, over, solid):
+    """The head box of a painting, the openings of its face and what the face shows."""
+    box = head_box(models, over, solid); p = models.face(square(over, *box), 0.2)
+    if p is None: raise SystemExit(f"MediaPipe (face_landmarker.task) found no face in the head box {box}.")
+    state = face_state(p); return box, state, shows_of(state)
 
 
 def square(rgb, x, y, s):
@@ -514,9 +522,7 @@ def propose(n, root, models, look):
     if not pf.exists(): raise SystemExit(f"There is no person {n}: write {pf.relative_to(REPO)} first.")
     person, painting = json.loads(pf.read_text()), f"cast/{n}_full_body.png"; over, a = paper(root / painting)
     try:
-        box = head_box(models, over, a > 0.5); x, y, s = box; p = models.face(square(over, x, y, s), 0.2)
-        if p is None: raise SystemExit(f"MediaPipe (face_landmarker.task) found no face in the head box {box}.")
-        state = face_state(p); shows = shows_of(state); own = {"rest": {"rest"}, "open": {"a"}, "joy": {"a", "joy"}, "narrow": {"rest"}}[shows]
+        box, state, shows = face_of(models, over, a > 0.5); own = OWN[shows]
         faces = {k: f"faces/{n}_{v}.png" for k, v in FACE_FILES.items() if k not in own and (root / "faces" / f"{n}_{v}.png").exists()}
         card = {"id": f"{n}-front", "height": person["height"], "painting": painting, "sharp": f"flat/{n}@2.png", "head": {"box": box, "sharp": f"heads/{n}.png"}, "shows": shows, "faces": faces, "provenance": PROVENANCE, "kit": "kit-hands.json"}
         if not (root / card["sharp"]).exists(): del card["sharp"]
@@ -544,6 +550,9 @@ if __name__ == "__main__":
         for own in (card, card.get("feet", {})):
             if own.get("kit"): own["kit"] = json.loads((Path(c).parent / own["kit"]).read_text())
         recipe, body = draft(card, Path(o.src), models); ears, bad = ears_left(body); print(f"{card['id']}: ears left on the body: {ears} px", flush=True)
+        if not body.rear: print(f"{card['id']}: faces not painted: {', '.join(k for k in FACE_FILES if k not in OWN[card.get('shows', 'rest')] and k not in card.get('faces', {})) or 'none'}", flush=True)
         if o.look: Path(o.look).mkdir(parents=True, exist_ok=True); picture(recipe, body, Path(o.look) / f"{card['id']}_parts.png")
         if bad: raise SystemExit(f"{card['id']}: the cut leaves {ears} px of ear on the body. The head layer must hold both ears: look at the parts picture of --look.")
-        if not o.only_look: art.build(recipe, Path(o.src), Path(o.out))
+        if not o.only_look:
+            art.build(recipe, Path(o.src), Path(o.out)); whole = Path(o.out) / card["id"] / "_assembled.png"
+            if o.look and whole.exists(): whole.replace(Path(o.look) / f"{card['id']}_assembled.png")  # a picture to look at, not an asset

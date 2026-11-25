@@ -2,7 +2,7 @@
 """Paints what a new person of the storybook films needs from the owner's full-body painting, and checks each painting
 against it. A painting that fails its check is not kept: it is painted again with the next seed, three times at most.
 
-  python scripts/storybook-paint.py <id> [--kinds prepare,face-a,face-blink,face-joy] [--seed 1] [--again] [--src dir] [--models dir]
+  python scripts/storybook-paint.py <id> [--kinds prepare,faces] [--seed 1] [--again] [--src dir] [--models dir]
   python scripts/storybook-paint.py <id> --check faces/<id>_blink.png --kind face-blink
 
 The person is src/video/storybook/people/<id>.json (`looks`, and `keep`: what the face paintings keep besides hair and
@@ -14,6 +14,7 @@ clothes, for example "thin glasses"). The painting is <src>/cast/<id>_full_body.
   face-blink   faces/<id>_blink.png  the eyes closed; the nose, the outline and the mouth stay
   face-joy     faces/<id>_happy.png  a laugh; the nose and the upper outline stay
   face-rest    faces/<id>_rest.png   the mouth closed and the eyes open, for a painting that laughs
+  faces        the faces of these four that the painting does not show itself (storybook-rig.py OWN)
   rear         views/<id>_rear.png and @2: the person from behind. views/<id>_back.png (the back of the owner's sheet) is
                a second reference when it is there
 
@@ -135,7 +136,7 @@ class Painter:
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("id"); ap.add_argument("--kinds", default="prepare,face-a,face-blink,face-joy"); ap.add_argument("--seed", type=int, default=1)
+    ap = argparse.ArgumentParser(); ap.add_argument("id"); ap.add_argument("--kinds", default="prepare,faces"); ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--src", default=str(ROOT / "local-assets/storybook/paintings")); ap.add_argument("--models", default=os.environ.get("STORY_MODELS", str(ROOT / "local-assets/storybook/models")))
     ap.add_argument("--again", action="store_true"); ap.add_argument("--check"); ap.add_argument("--kind"); o = ap.parse_args()
     src, models_dir, n = Path(o.src), Path(o.models), o.id; pf = ROOT / "src/video/storybook/people" / f"{n}.json"
@@ -148,7 +149,8 @@ def main():
         r = check_rear(models, flat, mask, (lambda q: (q[0], q[1] > 0.5))(rig.paper(out))) if kind == "rear" else check_face(kind, models, rig.art.load(head), rig.art.load(out))
         print(json.dumps({"kind": kind, "file": o.check, **r}, ensure_ascii=False)); sys.exit(0 if r["kept"] else 1)
     up, paint, failed = None, Painter(models_dir / "klein6"), False
-    for kind in o.kinds.split(","):
+    kinds = [k for kind in o.kinds.split(",") for k in ([f"face-{f}" for f in rig.FACE_FILES if f not in rig.OWN[rig.face_of(models, flat, mask)[2]]] if kind == "faces" else [kind])]
+    for kind in kinds:
         t0 = time.time()
         if kind == "prepare":
             box = rig.head_box(models, flat, mask); x, y, s = box; write(src / "flat" / f"{n}.png", flat); write(src / "heads" / f"{n}_src.png", rig.square(flat, x, y, s))
@@ -165,7 +167,7 @@ def main():
             suffix, ask = FACES[kind]; file = f"faces/{n}_{suffix}.png"; refs, size = [head], (768, 768)
             keep = f"same {person['keep']}, " if person.get("keep") else ""; prompt = ask + KEEP.format(keep=keep); base = rig.art.load(head)
             judge = lambda rgb, kind=kind, base=base: check_face(kind, models, base, rgb)
-        else: raise SystemExit(f"There is no kind {kind}: prepare, {', '.join(FACES)} or rear.")
+        else: raise SystemExit(f"There is no kind {kind}: prepare, faces, {', '.join(FACES)} or rear.")
         if (src / file).exists() and not o.again: print(json.dumps({"kind": kind, "file": file, "kept": True, "why": "it was there"}), flush=True); continue
         for seed in range(o.seed, o.seed + TRIES):
             t = time.time(); rgb = paint(prompt, refs, size, seed); r = judge(rgb)
