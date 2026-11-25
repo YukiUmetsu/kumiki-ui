@@ -36,7 +36,7 @@ function hashOf(v) {
 const shas = new Map(), shaOf = path => { if (!shas.has(path)) shas.set(path, existsSync(path) ? createHash("sha1").update(readFileSync(path)).digest("hex") : ""); return shas.get(path); };
 /** The paintings that something of a film names. */
 const paintings = (v, to = new Set()) => { if (typeof v === "string") { const m = /^\/?(?:@fs)?(.*\.(?:webp|png|jpe?g))(?:[?#].*)?$/.exec(v); if (m) to.add(m[1]); } else if (v && typeof v === "object" && !ArrayBuffer.isView(v)) for (const k of Object.values(v)) paintings(k, to); return to; };
-const server = await createServer({ root, configFile: false, logLevel: "error", server: { middlewareMode: true, hmr: false, watch: null }, appType: "custom", optimizeDeps: { noDiscovery: true, include: [] } });
+const server = await createServer({ root, configFile: false, logLevel: "error", server: { middlewareMode: true, hmr: false, ws: false, watch: null }, appType: "custom", optimizeDeps: { noDiscovery: true, include: [] } });
 try {
   const [made, story, mouth, check] = await Promise.all([name ? `/${film1}` : "/src/video/storybook/films.ts", "/registry/video/storybook/storybook-film.ts", "/registry/video/storybook/speech-mouth.ts", "/registry/video/storybook/story-check.ts"].map(p => server.ssrLoadModule(p)));
   const film = name ? made[name] : made.filmOf(film1);

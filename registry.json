@@ -4194,6 +4194,16 @@
           "target": "components/rig/rig-acting.ts"
         },
         {
+          "path": "registry/rig/rig-comfort.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-comfort.ts"
+        },
+        {
+          "path": "registry/rig/rig-act-studies.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-act-studies.ts"
+        },
+        {
           "path": "registry/rig/rig-face.ts",
           "type": "registry:ui",
           "target": "components/rig/rig-face.ts"
@@ -4266,6 +4276,11 @@
           "path": "registry/video/storybook/story-play.ts",
           "type": "registry:ui",
           "target": "components/video/storybook/story-play.ts"
+        },
+        {
+          "path": "registry/video/storybook/story-check.ts",
+          "type": "registry:ui",
+          "target": "components/video/storybook/story-check.ts"
         },
         {
           "path": "registry/video/storybook/story-burst.ts",

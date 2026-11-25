@@ -21,7 +21,7 @@ const loudness = source => {
   const text = spawnSync("ffmpeg", ["-hide_banner", "-nostats", "-i", source, "-af", "ebur128=peak=true", "-f", "null", "-"], { encoding: "utf8" }).stderr, last = text.slice(text.lastIndexOf("Summary:"));
   return { integratedLufs: Number(/I:\s+(-?[\d.]+) LUFS/.exec(last)?.[1]), truePeakDbtp: Number(/Peak:\s+(-?[\d.]+) dBFS/.exec(last)?.[1]) };
 };
-const server = await createServer({ root, configFile: false, logLevel: "error", server: { middlewareMode: true }, appType: "custom", optimizeDeps: { noDiscovery: true, include: [] } });
+const server = await createServer({ root, configFile: false, logLevel: "error", server: { middlewareMode: true, hmr: false, ws: false }, appType: "custom", optimizeDeps: { noDiscovery: true, include: [] } });
 try {
   const [made, { planStorybook }, { mixStory, wavBytes }, master] = await Promise.all([name ? `/${file}` : "/src/video/storybook/films.ts", "/registry/video/storybook/storybook-film.ts", "/registry/video/storybook/story-sound.ts", "/registry/video/sound-mastering.ts"].map(p => server.ssrLoadModule(p)));
   const film = name ? made[name] : made.filmOf(file); if (!film) throw new Error(`${file} exports no ${name}.`);

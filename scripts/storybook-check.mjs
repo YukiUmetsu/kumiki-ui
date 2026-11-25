@@ -15,7 +15,7 @@ import { createServer } from "vite";
 
 const { values: opt, positionals: [name] } = parseArgs({ allowPositionals: true, options: { shots: { type: "string" }, out: { type: "string" }, port: { type: "string", default: process.env.STORYBOOK_PORT ?? "6006" }, width: { type: "string", default: "250" }, cols: { type: "string", default: "8" }, all: { type: "boolean" } } });
 if (!name) { console.error("usage: storybook-check.mjs <film> [--shots a,b] [--out sheet.jpg] [--port n] [--all]"); process.exit(2); }
-const server = await createServer({ root: join(import.meta.dirname, ".."), configFile: false, logLevel: "error", server: { middlewareMode: true, hmr: false, watch: null }, appType: "custom", optimizeDeps: { noDiscovery: true, include: [] } });
+const server = await createServer({ root: join(import.meta.dirname, ".."), configFile: false, logLevel: "error", server: { middlewareMode: true, hmr: false, ws: false, watch: null }, appType: "custom", optimizeDeps: { noDiscovery: true, include: [] } });
 let checked;
 try {
   const [{ filmOf }, { planStorybook, inspectStorybook }, { checkStory }] = await Promise.all(["/src/video/storybook/films.ts", "/registry/video/storybook/storybook-film.ts", "/registry/video/storybook/story-check.ts"].map(p => server.ssrLoadModule(p)));
