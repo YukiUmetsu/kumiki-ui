@@ -28,7 +28,7 @@ Each kind prints one JSON line: { kind, file, seed, seconds, kept, why?, ... }. 
 Models in <models>: klein6/ (FLUX.2 Klein 4B), RealESRGAN_x4plus_anime_6B.pth (BSD-3-Clause), and the MediaPipe models
 of storybook-rig.py. Set-up: docs/component-specs/storybook-character.md#tools
 """
-import argparse, importlib.util, json, math, os, sys, time
+import argparse, importlib.util, json, os, sys, time
 from pathlib import Path
 import cv2
 import numpy as np
@@ -61,30 +61,8 @@ ASKED = {"face-a": ("gap", ">", 0.04, "eyes", ">", 0.02), "face-blink": ("eyes",
 WORDS = {"gap": "the lips are {:.1%} apart", "eyes": "the eyes are {:.1%} open", "corners": "the corners of the mouth are {:.1%} over the middle of the lips"}
 
 
-def on_white(path):
-    """RGB on white paper, and the mask of the figure: the alpha of an RGBA painting, or what is not paper."""
-    im = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
-    if im is None: raise SystemExit(f"There is no painting {path}.")
-    if im.ndim == 3 and im.shape[2] == 4:
-        a = im[:, :, 3:].astype(np.float32) / 255; return (im[:, :, 2::-1] * a + 255 * (1 - a)).astype(np.float32), a[:, :, 0] > 0.5
-    rgb = (im[:, :, ::-1] if im.ndim == 3 else np.repeat(im[:, :, None], 3, 2)).astype(np.float32); return rgb, rgb.min(2) < 235
-
-
 def write(path, rgb):
     path.parent.mkdir(parents=True, exist_ok=True); cv2.imwrite(str(path), np.clip(rgb, 0, 255).round().astype(np.uint8)[:, :, ::-1])
-
-
-def head_box(models, rgb, mask):
-    """The square of the head: from just over the hair to past the chin, wide enough for the ears (headcrop of the first cast)."""
-    H, W = mask.shape; rows = np.where(mask.any(1))[0]
-    if not len(rows): raise SystemExit("The painting is empty.")
-    top = int(rows[0]); hh = int(H * 0.22); cols = np.where(mask[top:top + hh // 2].any(0))[0]; cx0 = (cols[0] + cols[-1]) / 2; half = int(W * 0.195)
-    x0 = int(max(0, cx0 - half)); y0 = max(0, top - 10); f = models.face(rgb[y0:top + hh, x0:int(cx0 + half)], 0.2)
-    if f is None: raise SystemExit("No face was found in the painting: is the head at the top, seen from the front?")
-    f = f + [x0, y0, 0]; chin = f[152, 1]; cx = (f[234, 0] + f[454, 0]) / 2
-    xs = np.where(mask[top:int(chin)].any(0))[0]; half = max(cx - xs[0], xs[-1] - cx)
-    S = int(math.ceil(min(1.5 * (chin - top), max(1.36 * (chin - top), 2 * half + 24)) / 8) * 8)
-    return [int(round(cx - S / 2)), int(round(top - S * 0.06)), S]
 
 
 class Upscaler:
@@ -122,9 +100,7 @@ def check_face(kind, models, src, out):
     H = float(np.linalg.norm(a[10, :2] - a[152, :2])); oval = rig.filled(src.shape[:2], a[rig.OVAL, :2]); steady = ~rig.grow(oval, 20) & (src.min(2) < 245)
     try: _, W = cv2.findTransformECC(grey(src), grey(out), np.eye(2, 3, dtype=np.float32), cv2.MOTION_AFFINE, (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 200, 1e-6), steady.astype(np.uint8), 5)
     except cv2.error: return {"kept": False, "why": "the hair, ears and clothes could not be aligned with the head painting"}
-    eye = lambda p: (abs(p[159, 1] - p[145, 1]) + abs(p[386, 1] - p[374, 1])) / 2 / H
-    r = {"moved": round(float(np.hypot(W[0, 2], W[1, 2])) / H, 4), "size": round(float(np.sqrt(abs(np.linalg.det(W[:, :2])))), 4), "gap": round(float(b[14, 1] - b[13, 1]) / H, 4), "eyes": round(float(eye(b)), 4),
-         "corners": round(float((b[13, 1] + b[14, 1]) / 2 - (b[61, 1] + b[291, 1]) / 2) / H, 4), "colour": round(float(np.linalg.norm(lab(src, oval) - lab(out, oval))), 1)}
+    r = {"moved": round(float(np.hypot(W[0, 2], W[1, 2])) / H, 4), "size": round(float(np.sqrt(abs(np.linalg.det(W[:, :2])))), 4), **rig.face_state(b), "colour": round(float(np.linalg.norm(lab(src, oval) - lab(out, oval))), 1)}
     k1, o1, v1, k2, o2, v2 = ASKED[kind]; ok = lambda k, op, v: r[k] > v if op == ">" else r[k] < v
     why = (f"the head moved {r['moved']:.1%} of the face height" if r["moved"] > MOVE else f"the head is {r['size']:.1%} of its size" if abs(r["size"] - 1) > MOVE else
            next((WORDS[k].format(r[k]) + f" of the face height, not {'over' if op == '>' else 'under'} {v:.1%}" for k, op, v in ((k1, o1, v1), (k2, o2, v2)) if not ok(k, op, v)), None))
@@ -138,7 +114,7 @@ def check_rear(models, front, mask, out):
     inter, union = (m & mask).sum(), (m | mask).sum(); iou = float(inter / max(union, 1))
     ra, rb = np.where(mask.any(1))[0], np.where(m.any(1))[0]; tall = float((rb[-1] - rb[0]) / (ra[-1] - ra[0]))
     r = {"cover": round(iou, 3), "height": round(tall, 3)}
-    try: face = head_box(models, rgb, m) and True
+    try: face = rig.head_box(models, rgb, m) and True
     except SystemExit: face = False
     why = "a face is seen" if face else f"the figure covers {iou:.0%} of the painting's, not 80 %" if iou < 0.8 else f"the figure is {tall:.0%} as tall as the painting" if abs(tall - 1) > 0.03 else None
     return {"kept": why is None, **({"why": why} if why else {}), **r}
@@ -165,17 +141,17 @@ def main():
     src, models_dir, n = Path(o.src), Path(o.models), o.id; pf = ROOT / "src/video/storybook/people" / f"{n}.json"
     if not pf.exists(): raise SystemExit(f"There is no person {n}: write {pf.relative_to(ROOT)} first.")
     person = json.loads(pf.read_text()); models = rig.Models(models_dir); painting = src / "cast" / f"{n}_full_body.png"
-    flat, mask = on_white(painting); head = src / "heads" / f"{n}_768.png"
+    flat, a = rig.paper(painting); mask = a > 0.5; head = src / "heads" / f"{n}_768.png"
     if not head.exists() and (src / "heads" / f"{n}.png").exists(): write(head, cv2.resize(rig.art.load(src / "heads" / f"{n}.png"), (768, 768), interpolation=cv2.INTER_AREA))
     if o.check:
         out = src / o.check; kind = o.kind or "face-blink"
-        r = check_rear(models, flat, mask, on_white(out)) if kind == "rear" else check_face(kind, models, rig.art.load(head), rig.art.load(out))
+        r = check_rear(models, flat, mask, (lambda q: (q[0], q[1] > 0.5))(rig.paper(out))) if kind == "rear" else check_face(kind, models, rig.art.load(head), rig.art.load(out))
         print(json.dumps({"kind": kind, "file": o.check, **r}, ensure_ascii=False)); sys.exit(0 if r["kept"] else 1)
     up, paint, failed = None, Painter(models_dir / "klein6"), False
     for kind in o.kinds.split(","):
         t0 = time.time()
         if kind == "prepare":
-            box = head_box(models, flat, mask); x, y, s = box; write(src / "flat" / f"{n}.png", flat); write(src / "heads" / f"{n}_src.png", rig.square(flat, x, y, s))
+            box = rig.head_box(models, flat, mask); x, y, s = box; write(src / "flat" / f"{n}.png", flat); write(src / "heads" / f"{n}_src.png", rig.square(flat, x, y, s))
             up = up or Upscaler(models_dir / "RealESRGAN_x4plus_anime_6B.pth")
             for path, rgb, fac in ((src / "heads" / f"{n}.png", rig.square(flat, x, y, s), 4), (src / "flat" / f"{n}@2.png", flat, 2)):
                 if o.again or not path.exists() or cv2.imread(str(path)).shape[0] != round(rgb.shape[0] * fac): write(path, up(rgb, fac))
