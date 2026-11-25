@@ -361,7 +361,7 @@ def draft(card, root, models):
             zone = (s2 < cut + 5) & (s2 > cut - 0.2 * A["L2"]) & (np.abs(n2) < 0.5 * A["L2"]); want = (cut + 5 - s2) * K * zone; gy, gx = np.mgrid[0:shape[0], 0:shape[1]].astype(np.float32); mx, my = (gx + A["d"][0] * want).astype(np.float32), (gy + A["d"][1] * want).astype(np.float32)
             rgb, a = np.where(zone[..., None], cv2.remap(paint, mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE), rgb), np.where(zone, cv2.remap(a.astype(np.float32), mx, my, cv2.INTER_LINEAR), a)
         own = {"easy": {"plate": plate(rgb, a), "wrist": A["w"], "knuckle": [(p + q) / 2 for p, q in zip(A["w"], A["tip"])], "shows": "little" if card.get("view") == "rear" else "thumb"}}
-        hands[f"hand-{side}"] = {**own, **{n: {**h, "mirror": bool(h.get("mirror")) != (side == "b")} for n, h in kit.get("both", {}).items()}, **kit.get(side, {})}
+        hands[f"hand-{side}"] = {**own, **{n: {**h, "mirror": bool(h.get("mirror")) != ((side == "b") != b.rear)} for n, h in kit.get("both", {}).items()}, **kit.get(side, {})}
         layers.append({"id": f"hand-{side}", "z": z + (0.1 if A["bare"] else -0.1), "grid": [6, 6], "bind": {"kind": "rigid", "bone": f"hand-{side}"}, "rest": "easy"}); joints["arm" + side.upper()] = {"top": A["s"], "mid": A["e"], "end": A["w"], "tip": A["tip"]}
 
     if card.get("feet"): more, socks = foot_kit(card["feet"], root, joints, b.ground - 3, card["height"] / H, b.rear); sources, hands = {**sources, **more}, {**hands, **socks}

@@ -140,7 +140,7 @@ function sewing(hole: readonly PaintedPoint[], soft: number, base: AffineMatrix,
   };
 }
 /** The line round a limb that has left the pose of its painting. Cloth on an arm that is up or bent does not lie in the folds of an arm that hangs: those make a line like a hose. Here both edges are straight from the armhole to the elbow and from the elbow to the hand, the limb is as wide at its root as the armhole, and the elbow has a corner on its outside and a crease on its inside. The hand end stays as it was painted. */
-function outlined(bind: Extract<PaintedBind, { kind: "limb" }>, rest: RigFrame, now: RigFrame): { in: number; at: (s: number, n: number) => PaintedPoint } | undefined {
+export function outlined(bind: Extract<PaintedBind, { kind: "limb" }>, rest: RigFrame, now: RigFrame): { in: number; at: (s: number, n: number) => PaintedPoint } | undefined {
   const sides = bind.sides; if (!sides) return undefined;
   const move = (bone: string) => mul(now.bones.get(bone)!.world, inv(rest.bones.get(bone)!.world)), u = rest.bones.get(bind.upper)!, l = rest.bones.get(bind.lower)!;
   const S = put(u.world, 0, 0), E0 = put(l.world, 0, 0), T = put(l.world, 0, l.length || 1), L1 = Math.hypot(E0[0] - S[0], E0[1] - S[1]) || 1, L2 = Math.hypot(T[0] - E0[0], T[1] - E0[1]) || 1, d1 = [(E0[0] - S[0]) / L1, (E0[1] - S[1]) / L1], d2 = [(T[0] - E0[0]) / L2, (T[1] - E0[1]) / L2];

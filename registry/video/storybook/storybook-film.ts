@@ -182,7 +182,8 @@ function legsOf(film: StorybookFilm, shot: StoryShot, role: StoryRole, t: number
 }
 /** Order on a floor: who stands lower in the picture is in front. */
 const depthZ = (set: StorySet, y: number): number => (set.ground ? (floorOf(set.ground).scale(y) - 1) * 100 : 0);
-const zOf = (film: StorybookFilm, shot: StoryShot, role: StoryRole, t: number): number => role.z ?? depthZ(film.sets[shot.set], rootAt(film, shot, role, t).y);
+/** How near someone is drawn: the larger number covers the smaller one. */
+export const storyDepth = (film: StorybookFilm, shot: StoryShot, role: StoryRole, t: number): number => role.z ?? depthZ(film.sets[shot.set], rootAt(film, shot, role, t).y);
 
 /** Which way a figure looks in the picture, degrees: 0 at the viewer, 90 to the right, 180 away. */
 const heading = (figure: StoryFigure, facing: 1 | -1) => facing * (90 - (figure.body.facing ?? 45));
@@ -308,7 +309,7 @@ function holdAt(film: StorybookFilm, shot: StoryShot, staged: StoryStagedProp, h
     if (who && socket) {
       const mirrored = who.frame.root.facing < 0, deg = (mirrored ? 180 - socket.angle : socket.angle) + (hold.angle ?? 0) * (mirrored ? -1 : 1), hangs = film.props[staged.prop].hangs ?? false, angle = hangs !== false ? (hold.angle ?? 0) + (hangs ? swingOf(film, shot, who, hold.socket, t, Number(hangs)) : 0) : mirrored ? -deg : deg, a = (angle * Math.PI) / 180, grip = hold.grip ?? view.grip ?? [0.5, 0.5], gx = (0.5 - grip[0]) * view.width * k, gy = (0.5 - grip[1]) * view.height * k;
       const layer = who.figure.art.layers.find(l => l.id === (who.figure.art.sockets?.[hold.socket]?.layer ?? "")), raised = layer && storyRaised(who, layer.id, t), order = (layer?.z ?? 50) + (who.lift[layer?.id ?? ""] ?? 0) + 0.03;
-      return { view, at: [socket.at[0] + gx * Math.cos(a) - gy * Math.sin(a), socket.at[1] + gx * Math.sin(a) + gy * Math.cos(a)], angle, z: (raised?.z ?? zOf(film, shot, who.role, t)) + order * 0.01, hidden: !!hold.hidden, behind: raised && veilOf(who, layer!.id) > 0.5 ? { body: who.role.actor, near: order } : undefined };
+      return { view, at: [socket.at[0] + gx * Math.cos(a) - gy * Math.sin(a), socket.at[1] + gx * Math.sin(a) + gy * Math.cos(a)], angle, z: (raised?.z ?? storyDepth(film, shot, who.role, t)) + order * 0.01, hidden: !!hold.hidden, behind: raised && veilOf(who, layer!.id) > 0.5 ? { body: who.role.actor, near: order } : undefined };
     }
     return { view, at: [0, 0], angle: 0, z: 0, hidden: true };
   }
@@ -413,7 +414,7 @@ export function storySheet(film: StorybookFilm, shot: StoryShot, t: number, stil
     for (let n = first; n <= last; n++) { const at = gone + n * round, by = at * unit, moved = mesh.positions.map((v, i) => (i % 2 ? v : v + by)); out.push({ z, mesh: { ...mesh, ...(flow.within ? cropped(moved, mesh.uvs, zero + flow.within[0] * unit, zero + flow.within[1] * unit) : { positions: moved }) } }); }
   }
   const dark = set.shade ?? (set.ground ? 0.34 : 0);
-  for (const p of played) { const z = zOf(film, shot, p.role, t); if (dark > 0) out.push(...shadeOf(p, dark, z, view)); for (const m of p.meshes) {
+  for (const p of played) { const z = storyDepth(film, shot, p.role, t); if (dark > 0) out.push(...shadeOf(p, dark, z, view)); for (const m of p.meshes) {
     const positions = new Float32Array(m.positions.length); for (let i = 0; i < positions.length; i += 2) { const [X, Y] = view.put(m.positions[i], m.positions[i + 1]); positions[i] = X; positions[i + 1] = Y; }
     const id = m.id.split("/")[0], raised = storyRaised(p, id, t), least = Math.min(...p.meshes.filter(q => storyRaised(p, q.id.split("/")[0], t)).map(q => q.z)), bare = raised ? veilOf(p, id) : 1;
     const veil = !raised || bare >= 1 ? undefined : m.along ? m.along.map(s => 1 - (1 - bare) * smooth((s - 1.05) / 0.3)) : new Float32Array(m.positions.length / 2).fill(bare);

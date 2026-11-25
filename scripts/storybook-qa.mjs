@@ -4,7 +4,7 @@
 //   node scripts/storybook-qa.mjs <film> --out dir [--frames] [--port 6006] [--width 640] [--shots a,b] [--known file] [--python python3]
 //   node scripts/storybook-qa.mjs <module> <export> --out dir [--url export-story] …
 //
-// Data: what `inspectStorybook` finds, feet that slide, joints that jump, hands that are too fast, meshes that fold, and how far each mouth is from its own
+// Data: what `inspectStorybook` and `story:check` find, feet that slide, joints that jump, hands that are too fast, meshes that fold, and how far each mouth is from its own
 // recording. With --frames or --url (the film's export story, Storybook must run) it also takes every frame and `storybook-qa.py` (OpenCV) looks
 // for pops, feet that slide against the picture, mouths that do not move with the voice, and frames that depend on the order they
 // are drawn in. --known keeps what was measured and had no faults: a picture that is drawn from the same data with the same paintings
@@ -38,14 +38,16 @@ const shas = new Map(), shaOf = path => { if (!shas.has(path)) shas.set(path, ex
 const paintings = (v, to = new Set()) => { if (typeof v === "string") { const m = /^\/?(?:@fs)?(.*\.(?:webp|png|jpe?g))(?:[?#].*)?$/.exec(v); if (m) to.add(m[1]); } else if (v && typeof v === "object" && !ArrayBuffer.isView(v)) for (const k of Object.values(v)) paintings(k, to); return to; };
 const server = await createServer({ root, configFile: false, logLevel: "error", server: { middlewareMode: true, hmr: false, watch: null }, appType: "custom", optimizeDeps: { noDiscovery: true, include: [] } });
 try {
-  const [made, story, mouth] = await Promise.all([name ? `/${film1}` : "/src/video/storybook/films.ts", "/registry/video/storybook/storybook-film.ts", "/registry/video/storybook/speech-mouth.ts"].map(p => server.ssrLoadModule(p)));
+  const [made, story, mouth, check] = await Promise.all([name ? `/${film1}` : "/src/video/storybook/films.ts", "/registry/video/storybook/storybook-film.ts", "/registry/video/storybook/speech-mouth.ts", "/registry/video/storybook/story-check.ts"].map(p => server.ssrLoadModule(p)));
   const film = name ? made[name] : made.filmOf(film1);
   if (!film) throw new Error(`${film1} exports no ${name}.`);
   const plan = story.planStorybook(film), first = Math.round(Number(opt.from ?? 0) * film.fps), last = Math.min(plan.frames, Math.round(Number(opt.to ?? plan.seconds) * film.fps)), faults = [], worst = { fold: {}, slide: {}, turn: {}, hand: {} }, trace = [];
   const most = (kind, key, value, n) => { const w = worst[kind][key]; if (!w || value > w.value) worst[kind][key] = { value, frame: n }; };
   faults.push(...story.inspectStorybook(film));
 
-  const only = opt.shots?.split(","), drawn = {}, wants = id => !only || only.includes(id);
+  const only = opt.shots?.split(","), poses = check.checkStory(plan, { shots: only });
+  faults.push(...poses.joints.filter(j => j.level === "can").map(j => `${j.shot} ${j.t.toFixed(2)} s: ${j.joint}${j.hand ? ` of hand ${j.hand}` : ""} of "${j.actor}" is ${j.angle}°, more than a person can.`), ...poses.counters, ...poses.jumps);
+  const drawn = {}, wants = id => !only || only.includes(id);
   const feet = new Map(), before = new Map(), hands = new Map();
   for (let n = first; n < last; n++) {
     const now = story.storybookFrame(plan, n / film.fps), id = now.shot.shot.id; if (!wants(id)) continue;

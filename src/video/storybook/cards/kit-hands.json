@@ -213,6 +213,9 @@
   },
   "kit-wave": {
    "file": "kit/kit_wave.png"
+  },
+  "kit-wave-back": {
+   "file": "kit/kit_wave_back.png"
   }
  },
  "both": {
@@ -1422,6 +1425,40 @@
     ]
    ],
    "shows": "palm"
+  },
+  "wave-back": {
+   "source": "kit-wave-back",
+   "soft": 22,
+   "wrist": [
+    400,
+    382
+   ],
+   "knuckle": [
+    660,
+    382
+   ],
+   "length": 9.1,
+   "mirror": false,
+   "poly": [
+    [
+     372,
+     20
+    ],
+    [
+     1010,
+     20
+    ],
+    [
+     1010,
+     750
+    ],
+    [
+     372,
+     750
+    ]
+   ],
+   "shows": "back",
+   "as": "wave"
   }
  },
  "sockets": {

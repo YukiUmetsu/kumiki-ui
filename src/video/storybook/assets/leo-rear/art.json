@@ -137,6 +137,11 @@
     "width": 338,
     "height": 442
    },
+   "hand-b-wave-back": {
+    "src": "hand-b-wave-back.webp",
+    "width": 338,
+    "height": 442
+   },
    "arm-f": {
     "src": "arm-f.webp",
     "width": 213,
@@ -224,6 +229,11 @@
    },
    "hand-f-wave": {
     "src": "hand-f-wave.webp",
+    "width": 338,
+    "height": 442
+   },
+   "hand-f-wave-back": {
+    "src": "hand-f-wave-back.webp",
     "width": 338,
     "height": 442
    },
@@ -573,7 +583,7 @@
       "wrist": 0,
       "front": {
        "image": "hand-b-under-front",
-       "x": -6.0,
+       "x": -3.0,
        "y": 0.0,
        "width": 9.0,
        "height": 11.0
@@ -598,14 +608,14 @@
      },
      "hold": {
       "image": "hand-b-hold",
-      "x": -6.0,
+      "x": -5.0,
       "y": -4.0,
       "width": 11.0,
       "height": 17.0,
       "wrist": 0,
       "front": {
        "image": "hand-b-hold-front",
-       "x": -5.0,
+       "x": -4.0,
        "y": -1.0,
        "width": 9.0,
        "height": 12.0
@@ -614,7 +624,7 @@
      },
      "point": {
       "image": "hand-b-point",
-      "x": -6.0,
+      "x": -5.0,
       "y": -4.0,
       "width": 11.0,
       "height": 19.0,
@@ -623,7 +633,7 @@
      },
      "guide": {
       "image": "hand-b-guide",
-      "x": -6.0,
+      "x": -8.0,
       "y": -4.0,
       "width": 14.0,
       "height": 18.0,
@@ -632,7 +642,7 @@
      },
      "card": {
       "image": "hand-b-card",
-      "x": -6.0,
+      "x": -9.0,
       "y": -4.0,
       "width": 15.0,
       "height": 18.0,
@@ -686,12 +696,22 @@
      },
      "wave": {
       "image": "hand-b-wave",
-      "x": -5.0,
+      "x": -8.0,
       "y": -4.0,
       "width": 13.0,
       "height": 17.0,
       "wrist": 0,
       "shows": "palm"
+     },
+     "wave-back": {
+      "image": "hand-b-wave-back",
+      "x": -5.0,
+      "y": -4.0,
+      "width": 13.0,
+      "height": 17.0,
+      "wrist": 0,
+      "shows": "back",
+      "as": "wave"
      }
     },
     "image": "hand-b-easy",
@@ -891,7 +911,7 @@
       "wrist": 0,
       "front": {
        "image": "hand-f-under-front",
-       "x": -3.0,
+       "x": -6.0,
        "y": 0.0,
        "width": 9.0,
        "height": 11.0
@@ -916,14 +936,14 @@
      },
      "hold": {
       "image": "hand-f-hold",
-      "x": -5.0,
+      "x": -6.0,
       "y": -4.0,
       "width": 11.0,
       "height": 17.0,
       "wrist": 0,
       "front": {
        "image": "hand-f-hold-front",
-       "x": -4.0,
+       "x": -5.0,
        "y": -1.0,
        "width": 9.0,
        "height": 12.0
@@ -932,7 +952,7 @@
      },
      "point": {
       "image": "hand-f-point",
-      "x": -5.0,
+      "x": -6.0,
       "y": -4.0,
       "width": 11.0,
       "height": 19.0,
@@ -941,7 +961,7 @@
      },
      "guide": {
       "image": "hand-f-guide",
-      "x": -8.0,
+      "x": -6.0,
       "y": -4.0,
       "width": 14.0,
       "height": 18.0,
@@ -950,7 +970,7 @@
      },
      "card": {
       "image": "hand-f-card",
-      "x": -9.0,
+      "x": -6.0,
       "y": -4.0,
       "width": 15.0,
       "height": 18.0,
@@ -1004,12 +1024,22 @@
      },
      "wave": {
       "image": "hand-f-wave",
-      "x": -8.0,
+      "x": -5.0,
       "y": -4.0,
       "width": 13.0,
       "height": 17.0,
       "wrist": 0,
       "shows": "palm"
+     },
+     "wave-back": {
+      "image": "hand-f-wave-back",
+      "x": -8.0,
+      "y": -4.0,
+      "width": 13.0,
+      "height": 17.0,
+      "wrist": 0,
+      "shows": "back",
+      "as": "wave"
      }
     },
     "image": "hand-f-easy",
@@ -1054,25 +1084,25 @@
    "pen-f": {
     "bone": "hand-f",
     "at": [
-     1.113,
+     -1.113,
      7.577
     ],
     "layer": "hand-f",
-    "angle": 154.0
+    "angle": -154.0
    },
    "pen-b": {
     "bone": "hand-b",
     "at": [
-     -1.113,
+     1.113,
      7.577
     ],
     "layer": "hand-b",
-    "angle": -154.0
+    "angle": 154.0
    },
    "palm-f": {
     "bone": "hand-f",
     "at": [
-     -0.433,
+     0.433,
      5.632
     ],
     "layer": "hand-f"
@@ -1080,7 +1110,7 @@
    "palm-b": {
     "bone": "hand-b",
     "at": [
-     0.433,
+     -0.433,
      5.632
     ],
     "layer": "hand-b"
@@ -1088,7 +1118,7 @@
    "fist-f": {
     "bone": "hand-f",
     "at": [
-     1.425,
+     -1.425,
      4.974
     ],
     "layer": "hand-f"
@@ -1096,7 +1126,7 @@
    "fist-b": {
     "bone": "hand-b",
     "at": [
-     -1.425,
+     1.425,
      4.974
     ],
     "layer": "hand-b"
@@ -1104,7 +1134,7 @@
    "ball-f": {
     "bone": "hand-f",
     "at": [
-     -0.389,
+     0.389,
      7.114
     ],
     "layer": "hand-f"
@@ -1112,7 +1142,7 @@
    "ball-b": {
     "bone": "hand-b",
     "at": [
-     0.389,
+     -0.389,
      7.114
     ],
     "layer": "hand-b"
@@ -1120,7 +1150,7 @@
    "card-f": {
     "bone": "hand-f",
     "at": [
-     -3.64,
+     3.64,
      6.839
     ],
     "layer": "hand-f"
@@ -1128,7 +1158,7 @@
    "card-b": {
     "bone": "hand-b",
     "at": [
-     3.64,
+     -3.64,
      6.839
     ],
     "layer": "hand-b"
@@ -1136,7 +1166,7 @@
    "tip-f": {
     "bone": "hand-f",
     "at": [
-     -1.369,
+     1.369,
      11.92
     ],
     "layer": "hand-f"
@@ -1144,7 +1174,7 @@
    "tip-b": {
     "bone": "hand-b",
     "at": [
-     1.369,
+     -1.369,
      11.92
     ],
     "layer": "hand-b"
@@ -1152,7 +1182,7 @@
    "key-f": {
     "bone": "hand-f",
     "at": [
-     1.849,
+     -1.849,
      7.917
     ],
     "layer": "hand-f"
@@ -1160,7 +1190,7 @@
    "key-b": {
     "bone": "hand-b",
     "at": [
-     -1.849,
+     1.849,
      7.917
     ],
     "layer": "hand-b"
@@ -1168,38 +1198,38 @@
    "bar-f": {
     "bone": "hand-f",
     "at": [
-     -1.068,
+     1.068,
      3.075
     ],
     "layer": "hand-f",
-    "angle": 127.0
+    "angle": -127.0
    },
    "bar-b": {
     "bone": "hand-b",
     "at": [
-     1.068,
+     -1.068,
      3.075
     ],
     "layer": "hand-b",
-    "angle": -127.0
+    "angle": 127.0
    },
    "tray-f": {
     "bone": "hand-f",
     "at": [
-     0.339,
+     -0.339,
      5.639
     ],
     "layer": "hand-f",
-    "angle": 85.6
+    "angle": -85.6
    },
    "tray-b": {
     "bone": "hand-b",
     "at": [
-     -0.339,
+     0.339,
      5.639
     ],
     "layer": "hand-b",
-    "angle": -85.6
+    "angle": 85.6
    }
   }
  },
