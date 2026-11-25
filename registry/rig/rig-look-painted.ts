@@ -2,7 +2,7 @@
  * RIG1 painted look: hand-painted cut-outs bent by a rig, as textured meshes for a film stage (`paint-stage.ts`).
  *
  * The painting is never redrawn. Each layer is one painting with a place in the rig's rest pose; a bind says how bones move
- * it: rigid (a head, a hand), limb (one sleeve bent round a joint without creasing) or skin (a torso, loose hair, a hem).
+ * it: rigid (a head, a hand), limb (one sleeve bent round a joint: straight parts, a corner outside, a crease inside) or skin (a torso, loose hair, a hem).
  * Faces are painted too: patches cut from paintings of the same head replace the eyes or the mouth, and two mouths are
  * joined by moving marks on their lips. Nothing here knows who the character is. Pure: no DOM, no state.
  */
@@ -11,6 +11,7 @@ import { evaluateRig } from "./rig-evaluate";
 import type { RigFrame } from "./rig-evaluate";
 import { FACE_LOOKS, browUnits, expressWarp, faceRelief } from "./rig-face";
 import type { FacePoints, FaceUnits } from "./rig-face";
+import type { HandView } from "./rig-comfort";
 import type { RigBone, RigSpec } from "./rig-spec";
 
 export type PaintedPoint = readonly [number, number];
@@ -20,7 +21,7 @@ export interface PaintedPlace { image: string; x: number; y: number; width: numb
 export type PaintedBind =
   | { kind: "rigid"; bone: string }
   /** One painting over two bones: it bends smoothly over `soft` rig units on each side of the joint and keeps its width. */
-  | { kind: "limb"; upper: string; lower: string; soft: number; /** Round its first joint it hands over to what it grows from (a shoulder to the chest), over `soft` rig units on each side. With `hole`, a line of points in the rest pose (the seam of a sleeve, from the top of the shoulder to the armpit), it stays sewn to that line, and is all limb `soft` away from it: each point goes round the joint as far as it is the limb's, so a raised arm keeps its shoulder. */ root?: { bone: string; soft: number; hole?: readonly PaintedPoint[] }; slack?: PaintedSlack }
+  | { kind: "limb"; upper: string; lower: string; soft: number; /** Where the painted limb has its two edges: along the bones, and off them on each side, rig units. Cloth that hangs in its folds has no straight edges: with them the limb is drawn in a line of its own (`outlined`) as it leaves the pose of the painting. */ sides?: readonly (readonly [number, number, number])[]; /** Round its first joint it hands over to what it grows from (a shoulder to the chest), over `soft` rig units on each side. With `hole`, a line of points in the rest pose (the seam of a sleeve, from the top of the shoulder to the armpit), it stays sewn to that line, and is all limb `soft` away from it: each point goes round the joint as far as it is the limb's, so a raised arm keeps its shoulder. */ root?: { bone: string; soft: number; hole?: readonly PaintedPoint[] }; slack?: PaintedSlack }
   /** Follows `bone`; each pull hands over to another bone from `from` (none) to `to` (all), inside a round patch if given. */
   | { kind: "skin"; bone: string; pulls: readonly { bone: string; from: PaintedPoint; to: PaintedPoint; within?: { at: PaintedPoint; radius: number } }[]; slack?: PaintedSlack };
 /** Cloth that hangs from an arm on one side, as a wide sleeve does. While the joint of `lower` bends to that side, what is farther than `past` from the bone line is drawn in, and so is what hangs beyond `cuff` along the lower bone: without it the cloth would stand up at the elbow. `side`: 1 when the cloth is on the left of somebody who walks along the bone in the picture (y down), else -1. */
@@ -28,8 +29,8 @@ export interface PaintedSlack { upper: string; lower: string; side: 1 | -1; past
 export interface PaintedLayer extends PaintedPlace {
   id: string; z: number; bind: PaintedBind; space?: "bone";
   /** Cells across and down. */ grid?: readonly [number, number];
-  /** Other drawings for the same place (hands, feet). `front` is drawn over what the hand holds; `over` is added to the order: a fist that points at the viewer is in front of its own cuff; `rest` lies in the rest pose, as a layer does, and bends like it. */
-  variants?: Readonly<Record<string, PaintedPlace & { front?: PaintedPlace; over?: number; rest?: boolean }>>;
+  /** Other drawings for the same place (hands, feet). `front` is drawn over what the hand holds; `over` is added to the order: a fist that points at the viewer is in front of its own cuff; `rest` lies in the rest pose, as a layer does, and bends like it. `shows`: the side of the hand that is seen; with `as` it is another view of that drawing. */
+  variants?: Readonly<Record<string, PaintedPlace & { front?: PaintedPlace; over?: number; rest?: boolean; shows?: HandView; as?: string }>>;
   /** Multiplies the paint: a limb on the far side. */ tint?: readonly [number, number, number];
   /** It turns in depth: with the face (a head, its back hair) or with the trunk (a chest, a collar). */ turns?: boolean | "trunk";
   /** Lettering: it is turned back when the whole figure is mirrored. */ keepReading?: boolean;
@@ -78,6 +79,8 @@ const inv = (m: AffineMatrix): AffineMatrix => { const k = m.a * m.d - m.b * m.c
 const put = (m: AffineMatrix, x: number, y: number): [number, number] => [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f];
 const smooth = (t: number) => { const u = Math.min(1, Math.max(0, t)); return u * u * (3 - 2 * u); };
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+/** An angle between half a turn back and half a turn on. */
+const wrapped = (a: number) => a - 2 * Math.PI * Math.round(a / (2 * Math.PI));
 
 const rests = new WeakMap<RigSpec["bones"], WeakMap<object, RigFrame>>(), UNTURNED = {};
 /** The pose that the paintings were cut in. */
@@ -136,6 +139,55 @@ function sewing(hole: readonly PaintedPoint[], soft: number, base: AffineMatrix,
     return [lerp(bx, lx, g) + Math.cos(to) * r, lerp(by, ly, g) + Math.sin(to) * r];
   };
 }
+/** The line round a limb that has left the pose of its painting. Cloth on an arm that is up or bent does not lie in the folds of an arm that hangs: those make a line like a hose. Here both edges are straight from the armhole to the elbow and from the elbow to the hand, the limb is as wide at its root as the armhole, and the elbow has a corner on its outside and a crease on its inside. The hand end stays as it was painted. */
+export function outlined(bind: Extract<PaintedBind, { kind: "limb" }>, rest: RigFrame, now: RigFrame): { in: number; at: (s: number, n: number) => PaintedPoint } | undefined {
+  const sides = bind.sides; if (!sides) return undefined;
+  const move = (bone: string) => mul(now.bones.get(bone)!.world, inv(rest.bones.get(bone)!.world)), u = rest.bones.get(bind.upper)!, l = rest.bones.get(bind.lower)!;
+  const S = put(u.world, 0, 0), E0 = put(l.world, 0, 0), T = put(l.world, 0, l.length || 1), L1 = Math.hypot(E0[0] - S[0], E0[1] - S[1]) || 1, L2 = Math.hypot(T[0] - E0[0], T[1] - E0[1]) || 1, d1 = [(E0[0] - S[0]) / L1, (E0[1] - S[1]) / L1], d2 = [(T[0] - E0[0]) / L2, (T[1] - E0[1]) / L2];
+  const mu = move(bind.upper), ml = move(bind.lower), base = bind.root && move(bind.root.bone), far = (m: AffineMatrix, d: number[]): PaintedPoint => [m.a * d[0] + m.c * d[1], m.b * d[0] + m.d * d[1]], f1 = far(mu, d1), f2 = far(ml, d2), k1 = Math.hypot(...f1) || 1e-6, k2 = Math.hypot(...f2) || 1e-6;
+  const mirror = mu.a * mu.d - mu.b * mu.c < 0 ? -1 : 1, a1 = Math.atan2(f1[1], f1[0]), turn = wrapped(Math.atan2(f2[1], f2[0]) - a1), root = far(base ?? mu, d1), up = Math.abs(wrapped(a1 - Math.atan2(root[1], root[0])));
+  const gone = smooth((Math.max(up, Math.abs(turn - mirror * wrapped(Math.atan2(d2[1], d2[0]) - Math.atan2(d1[1], d1[0])))) - 0.2) / 0.6); if (gone <= 0) return undefined;
+  const scale = Math.hypot(mu.a, mu.b), u1 = [f1[0] / k1, f1[1] / k1], u2 = [f2[0] / k2, f2[1] / k2], n1 = [-u1[1], u1[0]], n2 = [-u2[1], u2[0]], E = put(ml, ...E0), l1 = k1 * L1, l2 = k2 * L2;
+  // the painting: where its edges are, and how wide it is on the whole
+  const row = (s: number, j: 1 | 2) => { let i = 1; while (i < sides.length - 1 && sides[i][0] < s) i++; return lerp(sides[i - 1][j], sides[i][j], Math.min(1, Math.max(0, (s - sides[i - 1][0]) / (sides[i][0] - sides[i - 1][0] || 1)))); };
+  const calm = (c: number, over: number, read: (r: readonly [number, number, number]) => number) => { let sum = 0, w = 0; for (const r of sides) { const g = Math.exp(-(((r[0] - c) / over) ** 2)); sum += read(r) * g; w += g; } return sum / (w || 1); };
+  const paint = (s: number, n: number): PaintedPoint => (s < L1 ? [S[0] + d1[0] * s - d1[1] * n, S[1] + d1[1] * s + d1[0] * n] : [E0[0] + d2[0] * (s - L1) - d2[1] * n, E0[1] + d2[1] * (s - L1) + d2[0] * n]);
+  const wide = (s: number) => calm(s, 0.07 * (L1 + L2), r => r[2] - r[1]), he = (calm(L1, 0.14 * (L1 + L2), r => r[2] - r[1]) * scale) / 2;
+  const hole = bind.root?.hole, pit = hole && hole[hole.length - 1], inner = pit ? Math.sign(-(pit[0] - S[0]) * d1[1] + (pit[1] - S[1]) * d1[0]) || 1 : 0, first = sides[0][0], at0 = pit ? Math.min(0.8 * L1, (pit[0] - S[0]) * d1[0] + (pit[1] - S[1]) * d1[1]) : first;
+  // the joint: a corner outside, a crease inside, both where the edges of the two parts meet
+  const half = Math.abs(turn) / 2, sum = [n1[0] + n2[0], n1[1] + n2[1]], len = Math.hypot(...sum) || 1e-6, mid = [sum[0] / len, sum[1] / len], inside = Math.sign(turn) || 1, crease = Math.min(he / Math.max(0.05, Math.cos(half)), (0.55 * Math.min(l1, l2)) / Math.max(1e-3, Math.sin(half))), tip = Math.min(0.24, 0.45 * (1 / Math.max(0.3, Math.cos(half)) - 1)), d = Math.min((he / scale) * half, 0.3 * Math.min(L1, L2));
+  const J: PaintedPoint = [E[0] + mid[0] * inside * crease, E[1] + mid[1] * inside * crease], c = crease * Math.sin(half), low = crease * Math.cos(half);
+  const corner = (x: number): PaintedPoint => { const a = half * x * inside, r = -inside * he * (1 + tip * (1 - x * x) ** 2), vx = mid[0] * Math.cos(a) - mid[1] * Math.sin(a), vy = mid[0] * Math.sin(a) + mid[1] * Math.cos(a); return [E[0] + vx * r, E[1] + vy * r]; };
+  // the root: the armhole on the body, its top carried along by the shoulder
+  const on = (q: PaintedPoint): PaintedPoint => put(base ?? mu, ...q), Sn = put(mu, ...S), Sb = on(S), shift = [Sn[0] - Sb[0], Sn[1] - Sb[1]], carried = (q: PaintedPoint, w: number): PaintedPoint => { const r = on(q); return [r[0] + shift[0] * w, r[1] + shift[1] * w]; };
+  const armpit = pit && carried(paint(at0, row(at0, inner < 0 ? 1 : 2)), 0.3), q0 = inner * mirror;
+  const rootOf = (j: 1 | 2): PaintedPoint => {
+    if (inner && (j === 1) === inner < 0) return armpit!;
+    const r = inner ? carried(paint(first, row(first, j)), 1) : put(mu, ...paint(first, row(first, j))); if (!armpit) return r;
+    // an arm that is up has its shoulder up with it: the root is not narrower than the arm
+    const more = Math.max(0, 2.3 * he - ((armpit[0] - r[0]) * n1[0] + (armpit[1] - r[1]) * n1[1]) * q0) * smooth((up - 1.15) / 0.8);
+    return [r[0] - n1[0] * q0 * more, r[1] - n1[1] * q0 * more];
+  };
+  const edges = ([1, 2] as const).map(j => {
+    const q = (j === 1 ? -1 : 1) * mirror, bent = q === inside, R = rootOf(j), from = inner && (j === 1) === inner < 0 ? at0 : first, chordA = row(from, j), chordB = row(L1, j), P1: PaintedPoint = bent ? J : corner(-1);
+    // the round of the shoulder stays on the outside
+    const round = (s: number) => (inner && (j === 1) !== inner < 0 ? Math.max(0, Math.min(0.07 * L1, (calm(s, 0.1 * (L1 + L2), r => r[j]) - lerp(chordA, chordB, (s - from) / (L1 - from))) * (j === 1 ? -1 : 1))) * Math.sin(Math.PI * Math.min(1, (s - from) / (L1 - from))) * scale : 0);
+    return (s: number): PaintedPoint => {
+      if (s < from) return inner && (j === 1) === inner < 0 ? carried(paint(s, row(s, j)), lerp(1, 0.3, Math.max(0, s / at0))) : R;
+      if (s <= L1 - (bent ? 0 : d)) { const f = (s - from) / (L1 - (bent ? 0 : d) - from || 1), b = round(s) * q; return [lerp(R[0], P1[0], f) + n1[0] * b, lerp(R[1], P1[1], f) + n1[1] * b]; }
+      const v = s - L1; if (!bent && v < d) return corner(v / (d || 1));
+      const a = bent ? v * k2 + c * Math.max(0, 1 - v / (0.7 * L2)) : ((v - d) / (L2 - d || 1)) * l2, h = lerp(bent ? low : he, (wide(s) * scale) / 2, smooth(v / (0.35 * L2))), X = E[0] + u2[0] * a + n2[0] * q * h, Y = E[1] + u2[1] * a + n2[1] * q * h, w = smooth((v - 0.72 * L2) / (0.22 * L2)); if (w <= 0) return [X, Y];
+      const r = put(ml, ...paint(s, row(s, j))); return [lerp(X, r[0], w), lerp(Y, r[1], w)];
+    };
+  });
+  // both edges on rows near enough to each other, once for a picture
+  const N = 72, span = L1 + L2, rows = Array.from({ length: N + 1 }, (_, i) => { const s = first + ((span - first) * i) / N; return [edges[0](s), edges[1](s)] as const; });
+  return { in: gone, at: (s, n) => {
+    const x = Math.min(N - 1e-6, Math.max(0, ((s - first) / (span - first)) * N)), i = Math.floor(x), f = x - i, [A, B] = rows[i], [C, D] = rows[i + 1], lo = row(s, 1), hi = row(s, 2), t = (n - lo) / (hi - lo || 1);
+    const ax = lerp(A[0], C[0], f), ay = lerp(A[1], C[1], f), back = Math.min(0, s - first), on = Math.max(0, s - span);
+    return [ax + (lerp(B[0], D[0], f) - ax) * t + root[0] * back + f2[0] * on, ay + (lerp(B[1], D[1], f) - ay) * t + root[1] * back + f2[1] * on];
+  } };
+}
 /** `loose`: how far the pulls of a skin act: cloth that is drawn in no longer hangs. */
 function bound(bind: PaintedBind, rest: RigFrame, now: RigFrame, loose = 1): Warp {
   const move = (bone: string) => mul(now.bones.get(bone)!.world, inv(rest.bones.get(bone)!.world));
@@ -158,20 +210,23 @@ function bound(bind: PaintedBind, rest: RigFrame, now: RigFrame, loose = 1): War
   const L1 = Math.hypot(ex - sx, ey - sy) || 1, L2 = Math.hypot(tx - ex, ty - ey) || 1, d1 = [(ex - sx) / L1, (ey - sy) / L1], d2 = [(tx - ex) / L2, (ty - ey) / L2], mu = move(bind.upper), ml = move(bind.lower), soft = bind.soft;
   const dirU = (m: AffineMatrix, d: number[]) => Math.atan2(m.b * d[0] + m.d * d[1], m.a * d[0] + m.c * d[1]), a1 = dirU(mu, d1);
   let a2 = dirU(ml, d2); while (a2 - a1 > Math.PI) a2 -= 2 * Math.PI; while (a2 - a1 < -Math.PI) a2 += 2 * Math.PI;
-  const scale = Math.hypot(mu.a, mu.b), mirror = mu.a * mu.d - mu.b * mu.c < 0 ? -1 : 1, base = bind.root && move(bind.root.bone), grow = bind.root?.soft ?? 1, sewn = base && bind.root!.hole && sewing(bind.root!.hole, grow, base, mu, [sx, sy], d1), tuck = 0.6 * smooth((Math.abs(a2 - a1) - 1.1) / 1.2);
+  const scale = Math.hypot(mu.a, mu.b), mirror = mu.a * mu.d - mu.b * mu.c < 0 ? -1 : 1, base = bind.root && move(bind.root.bone), grow = bind.root?.soft ?? 1, sewn = base && bind.root!.hole && sewing(bind.root!.hole, grow, base, mu, [sx, sy], d1), line = outlined(bind, rest, now), tuck = 0.5 * smooth((Math.abs(a2 - a1) - 1.5) / 1.1), tight = 0.2 * smooth((Math.abs(a2 - a1) - 1.8) / 0.9), firm = 1 + 1.6 * smooth((Math.abs(a2 - a1) - 0.35) / 1.1);
+  const p0 = put(mu, ex - d1[0] * soft, ey - d1[1] * soft), elbow = put(ml, ex, ey), p2 = put(ml, ex + d2[0] * soft, ey + d2[1] * soft);
   return (x, y) => {
     const s1 = (x - sx) * d1[0] + (y - sy) * d1[1], s2 = L1 + (x - ex) * d2[0] + (y - ey) * d2[1];
     // which bone a point belongs to changes over the joint, not at it
     const k = smooth((s1 - (L1 - soft)) / (2 * soft)), n1 = -(x - sx) * d1[1] + (y - sy) * d1[0], n2 = -(x - ex) * d2[1] + (y - ey) * d2[0], s = lerp(s1, s2, k), n = lerp(n1, n2, k);
-    const w = smooth((s - (L1 - soft)) / (2 * soft)); // how far round the bend
-    // the inside of a tight bend folds in: at its full width it would come out on the other side of the limb
-    const fold = n * (a2 - a1) * mirror > 0 ? tuck * Math.max(0, 1 - ((s - L1) / (2.2 * soft)) ** 2) ** 2 : 0, m = n * (1 - fold) * scale * mirror;
-    const [ax, ay] = put(mu, sx + d1[0] * s, sy + d1[1] * s), [bx, by] = put(ml, ex + d2[0] * (s - L1), ey + d2[1] * (s - L1)), ang = lerp(a1, a2, w);
-    const X = lerp(ax, bx, w) - Math.sin(ang) * m, Y = lerp(ay, by, w) + Math.cos(ang) * m;
-    if (sewn) return sewn(x, y, X, Y);
-    if (!base || s1 >= grow) return [X, Y];
+    // Round the joint the line is a curve that leaves one bone and comes into the other: what goes over from one straight line to the other would swing out before the joint and after it, and the limb would look like a hose. The more it bends, the nearer the line comes to the joint (`firm`): an elbow has a bone at its point.
+    const w = Math.min(1, Math.max(0, (s - L1 + soft) / (2 * soft))), v = 1 - w, round = w > 0 && w < 1, f = 2 * v * w * firm, q = v * v + f + w * w, [cx, cy] = round ? [(v * v * p0[0] + f * elbow[0] + w * w * p2[0]) / q, (v * v * p0[1] + f * elbow[1] + w * w * p2[1]) / q] : w ? put(ml, ex + d2[0] * (s - L1), ey + d2[1] * (s - L1)) : put(mu, sx + d1[0] * s, sy + d1[1] * s);
+    const along = (i: 0 | 1) => firm * v * v * (elbow[i] - p0[i]) + v * w * (p2[i] - p0[i]) + firm * w * w * (p2[i] - elbow[i]), ang = round ? Math.atan2(along(1), along(0)) : w ? a2 : a1;
+    // the inside of a tight bend folds in: at its full width it would come out on the other side of the limb. The cloth is tight over the point of the elbow
+    const fold = n * (a2 - a1) * mirror > 0 ? tuck * Math.max(0, 1 - ((s - L1) / (2.2 * soft)) ** 2) ** 2 : tight * Math.max(0, 1 - ((s - L1) / (3 * soft)) ** 2) ** 2, m = n * (1 - fold) * scale * mirror;
+    const X = cx - Math.sin(ang) * m, Y = cy + Math.cos(ang) * m;
+    const to: PaintedPoint = line ? line.at(s, n) : [X, Y], mixed = (px: number, py: number): [number, number] => (line ? [lerp(px, to[0], line.in), lerp(py, to[1], line.in)] : [px, py]);
+    if (sewn) return mixed(...sewn(x, y, X, Y));
+    const [ox, oy] = mixed(X, Y); if (!base || s1 >= grow) return [ox, oy];
     const [rx, ry] = put(base, x, y), g = smooth((s1 + grow) / (2 * grow));
-    return [lerp(rx, X, g), lerp(ry, Y, g)];
+    return [lerp(rx, ox, g), lerp(ry, oy, g)];
   };
 }
 
@@ -192,6 +247,13 @@ function pulled(p: PaintedPatch, to: readonly PaintedPoint[]): Warp {
     return [x + (wx / sum) * edge, y + (wy / sum) * edge];
   };
 }
+
+/** How far a painted head turns in depth, degrees: to a side, up, down. One flat painting has no more of the side of a face than was painted, so past this the ears stand still while the face slides off them. Eyes, chest and a tilt of the head carry the rest, or another view does. */
+export const PAINTED_TURN = { side: 15, up: 5, down: 7 } as const;
+/** Straight up to 0.6 of `most`, then ever slower, and never over it. */
+const eased = (v: number, most: number) => { const u = Math.abs(v) / most; return u <= 0.6 ? v : Math.sign(v) * most * (0.6 + 0.4 * Math.tanh((u - 0.6) / 0.4)); };
+/** The turn that a painted head shows when `turn` is asked of it. */
+export const paintedTurn = (turn: PaintedPoint): PaintedPoint => [eased(turn[0], PAINTED_TURN.side), eased(turn[1], turn[1] < 0 ? PAINTED_TURN.up : PAINTED_TURN.down)];
 
 /** Turn of a round head: what is nearest to the viewer moves most, and its outline stays. Up and down, the face goes as one across its width, so that a tilt does not slant the brows. `relief` is what stands out from the round (a nose). */
 function turnWarp(round: PaintedFace["round"], turn: PaintedPoint | undefined, relief?: (x: number, y: number) => number): Warp {
@@ -227,7 +289,7 @@ const bump = (x: number, y: number, at: PaintedPoint, r: PaintedPoint) => { cons
 /** The figure at a frame of its rig: meshes back to front. `rest` is the rig without acting (the pose that was painted). */
 export function paintedMeshes(art: PaintedArt, spec: RigSpec, now: RigFrame, state: PaintedState = {}): PaintedMesh[] {
   const rest = paintedRest(art, spec), out: PaintedMesh[] = [], hidden = new Set(state.hidden), face = art.face, fs = state.face ?? {}, alpha = state.opacity ?? 1, mirrored = now.root.facing < 0;
-  const turn = face ? turnWarp(face.round, fs.turn, face.mesh && faceRelief(face.mesh)) : same, jaw = face ? jawWarp(face, fs) : same, trunk = art.trunk && state.trunk ? turnWarp(art.trunk, [state.trunk, 0]) : same;
+  const turn = face ? turnWarp(face.round, fs.turn && paintedTurn(fs.turn), face.mesh && faceRelief(face.mesh)) : same, jaw = face ? jawWarp(face, fs) : same, trunk = art.trunk && state.trunk ? turnWarp(art.trunk, [state.trunk, 0]) : same;
   const shows = face?.shows ?? 1, mixed = fs.look ? (fs.mix ?? 1) : 1, acts = face?.mesh ? expressWarp(face.mesh, [[lookOf(face, fs.look)?.units ?? {}, mixed * shows], [(fs.from !== undefined && lookOf(face, fs.from)?.units) || {}, (1 - mixed) * shows], [fs.units ?? {}, shows], [browUnits(fs.brow ?? 0), shows]]) : null;
   const shade = (t?: readonly [number, number, number]): readonly [number, number, number] | undefined => (state.tint && t ? [t[0] * state.tint[0], t[1] * state.tint[1], t[2] * state.tint[2]] : (t ?? state.tint));
   const drawnOf = (l: PaintedLayer) => { const name = state.hands?.[l.id], variant = name ? l.variants?.[name] : undefined; return { variant, order: l.z + (state.lift?.[l.id] ?? 0) + (variant?.over ?? 0) }; };

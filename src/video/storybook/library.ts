@@ -6,7 +6,9 @@
  */
 import { composeStory, joinStories } from "../../../registry/video/storybook/story-play";
 import type { PlayLibrary, StoryPlay, StoryStage, TeachStage } from "../../../registry/video/storybook/story-play";
-import type { StoryBurst, StoryDrift, StoryProp, StorySet, StorySetLayer, StorySound, StorybookFilm } from "../../../registry/video/storybook/storybook-film";
+import { moraeOf, parseRuby, rubyReading } from "../../../registry/video/storybook/japanese-text";
+import { estimateSpeech } from "../../../registry/video/storybook/speech-mouth";
+import type { StoryBurst, StoryDrift, StoryLine, StoryProp, StorySet, StorySetLayer, StorySound, StorybookFilm } from "../../../registry/video/storybook/storybook-film";
 import { propView, setLayer, spokenLines, sprite } from "./art";
 import { everyone } from "./cast";
 
@@ -17,7 +19,7 @@ interface PlaceData {
   stages?: Readonly<Record<string, StoryStage>>; props?: Readonly<Record<string, { name: string; piece: PieceName; views?: Readonly<Record<string, PieceName>>; hangs?: StoryProp["hangs"]; shadow?: number }>>;
   sounds?: Readonly<Record<string, { file: string } & Omit<StorySound, "src" | "at">>>; drifts?: Readonly<Record<string, Omit<StoryDrift, "sprites"> & { sprites: readonly PieceName[] }>>; bursts?: Readonly<Record<string, Omit<StoryBurst, "spark" | "glow"> & { spark: PieceName; glow?: PieceName }>>; teach?: TeachStage;
 }
-interface PlayData extends StoryPlay { /** Where its recordings are, when it has none of its own. */ voice?: string }
+interface PlayData extends StoryPlay { /** Where its recordings are, when it has none of its own. */ voice?: string; lines?: readonly { id: string; speaker: string; ja: string; en?: string }[] }
 interface EpisodeData { id: string; title: string; parts: readonly (string | { play: string; scenes: readonly string[] })[] }
 
 const PLACES = import.meta.glob("./places/*.json", { eager: true, import: "default" }) as Record<string, PlaceData>, PLAYS = import.meta.glob("./plays/*.json", { eager: true, import: "default" }) as Record<string, PlayData>, EPISODES = import.meta.glob("./episodes/*.json", { eager: true, import: "default" }) as Record<string, EpisodeData>;
@@ -44,11 +46,15 @@ export function storyLibrary(): Omit<PlayLibrary, "lines"> {
 }
 export const playNames = (): string[] => Object.entries(of(PLAYS)).filter(([, p]) => p.scenes?.length).map(([id]) => id);
 export const episodeNames = (): string[] => Object.keys(of(EPISODES));
+/** Lines that nobody has spoken yet: silent, as long as a slow voice needs. A film can be planned and looked at before it is recorded. */
+const drafted = (lines: PlayData["lines"]): Record<string, StoryLine> => Object.fromEntries((lines ?? []).map(({ id, speaker, ja, en }) => { const tokens = parseRuby(ja); return [id, { speaker, ja, en, track: estimateSpeech(tokens, 0.5 + moraeOf(rubyReading(tokens)).length / 4.6) }]; }));
+/** Lines of a play that have no recording, or a recording of another text. */
+export function unspokenLines(id: string): string[] { const play = of(PLAYS)[id], spoken = spokenLines(play?.voice ?? id); return (play?.lines ?? []).filter(l => spoken[l.id]?.ja !== l.ja).map(l => l.id); }
 /** The film of a play, or of some of its scenes. */
 export function playFilm(id: string, scenes?: readonly string[]): StorybookFilm {
   const play = of(PLAYS)[id]; if (!play?.scenes) throw new Error(`There is no play "${id}" with scenes.`);
   const some = scenes ? scenes.map(s => { const q = play.scenes.find(x => x.id === s); if (!q) throw new Error(`The play "${id}" has no scene "${s}".`); return q; }) : play.scenes;
-  return composeStory({ id: scenes ? `${id}-${scenes[0]}` : id, title: play.title, scenes: some }, { ...storyLibrary(), lines: spokenLines(play.voice ?? id) });
+  return composeStory({ id: scenes ? `${id}-${scenes[0]}` : id, title: play.title, scenes: some }, { ...storyLibrary(), lines: { ...drafted(play.lines), ...spokenLines(play.voice ?? id) } });
 }
 export function episodeFilm(id: string, others: (name: string) => StorybookFilm | undefined): StorybookFilm {
   const e = of(EPISODES)[id]; if (!e) throw new Error(`There is no episode "${id}".`);

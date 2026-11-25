@@ -4,11 +4,15 @@ import { describe, expect, it } from "vitest";
 import { solveArm, turnBetween } from "../registry/rig/rig-arm";
 import type { ArmBuild } from "../registry/rig/rig-arm";
 import { actFrame } from "../registry/rig/rig-acting";
-import { inspectPainted, paintedRest, paintedSocket } from "../registry/rig/rig-look-painted";
+import { JOINTS } from "../registry/anatomy/anatomy-pose";
+import { JOINT_RANGES } from "../registry/rig/rig-comfort";
+import { inspectPainted, outlined, paintedRest, paintedSocket } from "../registry/rig/rig-look-painted";
+import type { RigFrame } from "../registry/rig/rig-evaluate";
 import { inspectRuby, moraeOf, parseRuby, phonesOf, rubyReading } from "../registry/video/storybook/japanese-text";
 import { mouthAt, mouthKeys } from "../registry/video/storybook/speech-mouth";
 import type { SpeechTrack } from "../registry/video/storybook/speech-mouth";
 import { inspectStorybook, planStorybook, storybookFrame } from "../registry/video/storybook/storybook-film";
+import { checkStory } from "../registry/video/storybook/story-check";
 import { StorybookFilmPlayer, StorybookFilmStage } from "../registry/video/storybook/storybook-film-react";
 import { figure, figureIds } from "../src/video/storybook/art";
 import { filmNames, filmOf } from "../src/video/storybook/films";
@@ -20,6 +24,49 @@ const tip = (arm: ArmBuild, shoulder: readonly [number, number], p: ReturnType<t
   const step = (angle: number, length: number) => [-Math.sin(angle * RAD) * length, Math.cos(angle * RAD) * length], u = step(p.upper, arm.upper * p.upperScale), l = step(p.lower, arm.lower * p.lowerScale), [px, py] = arm.palm ?? [0, 0], c = Math.cos(p.hand * RAD), s = Math.sin(p.hand * RAD);
   return [shoulder[0] + p.shift[0] + u[0] + l[0] + px * c - py * s, shoulder[1] + p.shift[1] + u[1] + l[1] + px * s + py * c];
 };
+
+describe("a sleeve", () => {
+  // an arm of 100 and 90 that hangs, with the folds that cloth has there: its edges go in and out
+  const frame = (upper: number, lower: number): RigFrame => {
+    const bone = (x: number, y: number, deg: number, length: number) => { const c = Math.cos(deg * RAD), n = Math.sin(deg * RAD); return { world: { a: c, b: n, c: -n, d: c, e: x, f: y }, length }; };
+    const elbow = [-Math.sin(upper * RAD) * 100, Math.cos(upper * RAD) * 100];
+    return { bones: new Map([["u", bone(0, 0, upper, 100)], ["l", bone(elbow[0], elbow[1], lower, 90)]]) } as unknown as RigFrame;
+  };
+  const sides = Array.from({ length: 96 }, (_, i): [number, number, number] => [i * 2, -14 + 4 * Math.sin(i / 3), 14 + 4 * Math.sin(i / 4 + 1)]), edge = (s: number, j: 1 | 2) => sides[Math.min(95, Math.round(s / 2))][j];
+  const limb = { kind: "limb", upper: "u", lower: "l", soft: 16, sides } as const;
+  const off = (points: readonly (readonly number[])[]) => { const a = points[0], b = points[points.length - 1], n = Math.hypot(b[0] - a[0], b[1] - a[1]); return Math.max(...points.map(p => Math.abs((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])) / n)); };
+  const way = (a: readonly number[], b: readonly number[]) => Math.atan2(b[1] - a[1], b[0] - a[0]) / RAD;
+  it("is drawn as it was painted while it hangs", () => { expect(outlined(limb, frame(0, 0), frame(0, 0))).toBeUndefined(); });
+  for (const [upper, lower] of [[-85, -178], [-40, -140], [-20, -118], [85, 178]] as const) it(`is two straight parts with a corner at the elbow at ${upper}° and ${lower}°`, () => {
+    const line = outlined(limb, frame(0, 0), frame(upper, lower))!, at = (s: number, j: 1 | 2) => line.at(s, edge(s, j));
+    for (const j of [1, 2] as const) {
+      expect(off([20, 28, 36, 44, 52, 60, 68].map(s => at(s, j))), `upper part, edge ${j}`).toBeLessThan(2.2);
+      expect(off([122, 128, 134, 140].map(s => at(s, j))), `forearm, edge ${j}`).toBeLessThan(2.2);
+    }
+    // outside, the whole turn is between the last quarter of one part and the first of the other: no curve over the length of the arm
+    const bend = turnBetween(upper, lower), turns = ([1, 2] as const).map(j => Math.abs(turnBetween(way(at(56, j), at(72, j)), way(at(124, j), at(140, j)))));
+    for (const t of turns) expect(Math.abs(t - Math.abs(bend))).toBeLessThan(14);
+    const wide = (s: number) => Math.hypot(at(s, 1)[0] - at(s, 2)[0], at(s, 1)[1] - at(s, 2)[1]);
+    expect(wide(40), "thinner than the cloth").toBeGreaterThan(22); expect(wide(130)).toBeGreaterThan(19);
+  });
+});
+
+describe("joints", () => {
+  it("can do what the anatomy says", () => {
+    const of = (id: string, dof: "flex" | "abduct" | "twist") => { const d = JOINTS.find(j => j.id === id)!.dofs[dof]!; return [d.min, d.max]; };
+    const can = JOINT_RANGES, bend = of("elbow", "flex");
+    expect(can.raise.can[1]).toBe(of("shoulder", "flex")[1]); expect(can.aside.can[1]).toBe(of("shoulder", "abduct")[1]); expect(can.behind.can[1]).toBe(-of("shoulder", "flex")[0]);
+    expect(can.bend.can).toEqual([0, bend[1]]); expect(can.turn.can).toEqual(of("forearm", "twist")); expect(can["wrist-flex"].can).toEqual(of("wrist", "flex")); expect(can["wrist-side"].can).toEqual(of("wrist", "abduct"));
+    expect(can["neck-nod"].can).toEqual(of("neck", "flex")); expect(can["neck-tilt"].can).toEqual(of("neck", "abduct")); expect(can["neck-turn"].can).toEqual(of("neck", "twist"));
+    expect(can["back-bend"].can).toEqual(of("spine", "flex")); expect(can["back-tilt"].can).toEqual(of("spine", "abduct")); expect(can["back-turn"].can).toEqual(of("spine", "twist"));
+  });
+  it("are those of a person, and no elbow jumps, while hands wave and shrug", () => {
+    for (const [name, shots] of [["hello", ["bye-bye"]], ["station", ["arrive-3"]]] as const) {
+      const plan = planStorybook(filmOf(name)), got = checkStory(plan, { shots }); expect(plan.shots.filter(s => (shots as readonly string[]).includes(s.shot.id)), name).toHaveLength(shots.length);
+      expect(got.joints.filter(j => j.level === "can"), name).toEqual([]); expect(got.jumps, name).toEqual([]); expect(got.unstudied, name).toEqual([]);
+    }
+  }, 20_000);
+});
 
 describe("arms", () => {
   const arm = (side: "f" | "b"): ArmBuild => ({ side, upper: 26, lower: 23, facing: 45, palm: [0, 7] });
@@ -115,9 +162,9 @@ describe("the film", () => {
 
 describe("translations", () => {
   const order = 200, words = 846, stage = (frame: number, glosses?: boolean) => renderToStaticMarkup(createElement(StorybookFilmStage, { film: KONBINI_FILM, frame, glosses }));
-  it("are hidden until they are asked for", () => {
-    expect(stage(order)).toContain("すみません"); expect(stage(order)).not.toContain('lang="en"'); expect(stage(words)).not.toContain('lang="en"');
-    expect(stage(order, true)).toContain("One rice ball, please."); expect(stage(words, true)).toContain("rice ball");
+  it("are hidden until they are asked for, but a word to learn has its meaning", () => {
+    expect(stage(order)).toContain("すみません"); expect(stage(order)).not.toContain('lang="en"'); expect(stage(words)).toContain("rice ball"); expect(stage(words)).not.toContain("Today’s words");
+    expect(stage(order, true)).toContain("One rice ball, please."); expect(stage(words, true)).toContain("Today’s words");
   });
   it("have a switch that is off, and none in a film without translations", () => {
     const player = (film: typeof KONBINI_FILM) => renderToStaticMarkup(createElement(StorybookFilmPlayer, { film })), japanese = { ...KONBINI_FILM, lines: Object.fromEntries(Object.entries(KONBINI_FILM.lines).map(([id, l]) => [id, { ...l, en: undefined }])), shots: KONBINI_FILM.shots.map(s => ({ ...s, words: s.words?.map(w => ({ ...w, gloss: undefined })) })) };

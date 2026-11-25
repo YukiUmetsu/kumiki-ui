@@ -27,5 +27,6 @@ export function storyFigure(cut: PaintedCut, url: (file: string) => string): Sto
   // limbs hang at ease; a loose part stays as it was painted, or hangs by itself
   const loose = Object.fromEntries((cut.extra ?? []).map(e => [e.id, e.hang ? 0 : (person.pose[e.id] ?? 0)]));
   const follow = cut.body?.follow ?? (cut.extra ?? []).filter(e => !e.hang).map(e => ({ bone: e.id, of: e.parent === "head" || e.parent === "neck" ? "head" : "torso", gain: 0.55, lag: 0.22, limit: 9, ...e.sway }));
-  return { art, person, walk: cut.walk, body: { spec: person.spec, height: person.height, facing: cut.body?.facing ?? person.facing, stance: { ...loose, ...(cut.body?.stance ?? AT_EASE) }, limits: cut.body?.limits ?? LIMITS, follow, ...(cut.body?.sits === false ? { sits: false as const } : {}), ...(cut.body?.palm ? { palm: cut.body.palm } : {}) } };
+  const hands = Object.fromEntries(cut.art.layers.filter(l => /^hand-[fb]$/.test(l.id)).flatMap(l => Object.entries(l.variants ?? {}).flatMap(([n, v]) => (v.shows ? [[n, { shows: v.shows, ...(v.as ? { as: v.as } : {}) }] as const] : []))));
+  return { art, person, walk: cut.walk, body: { spec: person.spec, height: person.height, facing: cut.body?.facing ?? person.facing, stance: { ...loose, ...(cut.body?.stance ?? AT_EASE) }, limits: cut.body?.limits ?? LIMITS, follow, hands, ...(cut.body?.sits === false ? { sits: false as const } : {}), ...(cut.body?.palm ? { palm: cut.body.palm } : {}) } };
 }

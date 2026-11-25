@@ -61,7 +61,7 @@
    "bed": [{"sound": "birds", "gain": -30}],
    "frames": {"all": {"at": [-34, -140], "tall": 212}},
    "spots": {
-    "clerk": {"at": [-36, -40], "scale": 1.15, "raise": [{"layers": ["arm-f", "hand-f", "arm-b", "hand-b"], "z": -2}], "pose": [{"act": "fold"}], "toward": [-40, -130]},
+    "clerk": {"at": [-36, -40], "scale": 1.15, "raise": [{"layers": ["arm-f", "hand-f", "arm-b", "hand-b"], "z": -2, "edge": -112}], "pose": [{"act": "fold"}], "toward": [-40, -130]},
     "ask-1": {"at": [-132, 10], "view": "rear", "toward": [-36, -150]},
     "ask-2": {"at": [56, 16], "view": "rear", "toward": [-36, -150]}
    },
@@ -73,8 +73,8 @@
      "bounds": [-182, -216, 178, -30],
      "frames": {"both": {"at": [4, -114], "tall": 112}},
      "spots": {
-      "ask-1": {"at": [40, -2], "view": "front", "raise": [{"layers": ["arm-f", "hand-f", "arm-b", "hand-b"], "z": 40}], "toward": [26, -146]},
-      "ask-2": {"at": [-34, 2], "view": "front", "raise": [{"layers": ["arm-f", "hand-f", "arm-b", "hand-b"], "z": 41}], "toward": [-22, -122]}
+      "ask-1": {"at": [40, -2], "view": "front", "raise": [{"layers": ["arm-f", "hand-f", "arm-b", "hand-b"], "z": 40, "edge": -90}], "toward": [26, -146]},
+      "ask-2": {"at": [-34, 2], "view": "front", "raise": [{"layers": ["arm-f", "hand-f", "arm-b", "hand-b"], "z": 41, "edge": -90}], "toward": [-22, -122]}
      }
     }
    }

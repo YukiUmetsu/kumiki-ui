@@ -6,7 +6,7 @@
   {"id": "ema-came", "speaker": "ema", "ja": "{家族|かぞく}で {京都|きょうと}に {来|き}ました。", "en": "I came to Kyoto with my family."},
   {"id": "daniel", "speaker": "daniel", "ja": "ダニエルです。 {写真|しゃしん}が {好|す}きです。", "en": "I’m Daniel. I like photos."},
   {"id": "sophie", "speaker": "sophie", "ja": "ソフィーです。 {花|はな}が {好|す}きです。", "en": "I’m Sophie. I like flowers."},
-  {"id": "leo", "speaker": "leo", "ja": "レオです！ たこ{焼|や}きが {食|た}べたいです！", "en": "I’m Leo! I want to eat takoyaki!"},
+  {"id": "leo", "speaker": "leo", "ja": "レオです！ たこ{焼|や}きが {食|た}べたいです！", "speak": "レオです。たこ焼きが、食べたいです！", "en": "I’m Leo! I want to eat takoyaki!"},
   {"id": "ema-please", "speaker": "ema", "ja": "よろしく お{願|ねが}いします。", "en": "Please treat us kindly."},
   {"id": "ema-fun", "speaker": "ema", "ja": "{今日|きょう}[は|わ] {楽|たの}しかったですね。", "en": "Today was fun."},
   {"id": "daniel-again", "speaker": "daniel", "ja": "また {来|き}ましょう。", "en": "Let’s come again."},

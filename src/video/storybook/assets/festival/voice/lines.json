@@ -93,22 +93,22 @@
   "ja": "はい！ {千|せん}{円|えん}です。",
   "en": "Sure! That’s 1,000 yen.",
   "track": {
-   "seconds": 2.193,
+   "seconds": 2.273,
    "precision": "aligned",
    "phones": [
-    { "p": "h", "start": 0.042, "end": 0.133, "token": 0, "level": 0.57 },
-    { "p": "a", "start": 0.133, "end": 0.313, "token": 0, "level": 1 },
-    { "p": "i", "start": 0.313, "end": 0.453, "token": 0, "level": 0.41 },
-    { "p": "sp", "start": 0.453, "end": 1.133, "token": 1, "level": 0.04 },
-    { "p": "s", "start": 1.133, "end": 1.373, "token": 2, "level": 0.22 },
-    { "p": "e", "start": 1.373, "end": 1.542, "token": 2, "level": 0.86 },
-    { "p": "N", "start": 1.542, "end": 1.573, "token": 2, "level": 0.64 },
-    { "p": "e", "start": 1.573, "end": 1.643, "token": 3, "level": 0.69 },
-    { "p": "N", "start": 1.643, "end": 1.813, "token": 3, "level": 0.64 },
-    { "p": "d", "start": 1.813, "end": 1.853, "token": 4, "level": 0.41 },
-    { "p": "e", "start": 1.853, "end": 1.942, "token": 4, "level": 0.37 },
-    { "p": "s", "start": 1.942, "end": 2.123, "token": 4, "level": 0.12 },
-    { "p": "u", "start": 2.123, "end": 2.153, "token": 4, "level": 0.01 }
+    { "p": "h", "start": 0.042, "end": 0.153, "token": 0, "level": 0.49 },
+    { "p": "a", "start": 0.153, "end": 0.353, "token": 0, "level": 0.93 },
+    { "p": "i", "start": 0.353, "end": 0.573, "token": 0, "level": 0.41 },
+    { "p": "sp", "start": 0.573, "end": 1.222, "token": 1, "level": 0.01 },
+    { "p": "s", "start": 1.222, "end": 1.442, "token": 2, "level": 0.14 },
+    { "p": "e", "start": 1.442, "end": 1.603, "token": 2, "level": 0.83 },
+    { "p": "N", "start": 1.603, "end": 1.673, "token": 2, "level": 1 },
+    { "p": "e", "start": 1.673, "end": 1.722, "token": 3, "level": 0.85 },
+    { "p": "N", "start": 1.722, "end": 1.883, "token": 3, "level": 0.63 },
+    { "p": "d", "start": 1.883, "end": 1.923, "token": 4, "level": 0.36 },
+    { "p": "e", "start": 1.923, "end": 2.023, "token": 4, "level": 0.27 },
+    { "p": "s", "start": 2.023, "end": 2.203, "token": 4, "level": 0.12 },
+    { "p": "u", "start": 2.203, "end": 2.233, "token": 4, "level": 0.03 }
    ]
   }
  },

@@ -128,7 +128,7 @@
    "grade": {"tint": [1, 0.97, 0.94]},
    "props": [{"prop": "takoyaki-3", "holds": [{"t": 0, "at": "boat-3"}]}, {"prop": "takoyaki-4", "holds": [{"t": 0, "at": "boat-4"}]}],
    "spots": {
-    "cook": {"at": [-6, -20], "view": "front", "raise": [{"layers": ["arm-f", "hand-f", "arm-b", "hand-b"], "z": -3}], "toward": "plate"},
+    "cook": {"at": [-6, -20], "view": "front", "raise": [{"layers": ["arm-f", "hand-f", "arm-b", "hand-b"], "z": -3, "edge": -104}], "toward": "plate"},
     "ask-1": {"at": [-112, 14], "view": "rear", "toward": "daichi"},
     "ask-2": {"at": [-66, 12], "view": "rear", "toward": "daichi"},
     "ask-3": {"at": [62, 14], "view": "rear", "toward": "daichi"},

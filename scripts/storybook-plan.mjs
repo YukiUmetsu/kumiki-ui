@@ -8,7 +8,7 @@ import { createServer } from "vite";
 
 const [name, kind, only] = process.argv.slice(2), KINDS = ["people", "stages", "props", "sounds", "acts"];
 if (!name || (name === "--library" && kind && !KINDS.includes(kind))) { console.error(`usage: storybook-plan.mjs <film> | --all | --library [${KINDS.join("|")}] [name]`); process.exit(2); }
-const server = await createServer({ root: process.cwd(), configFile: false, logLevel: "error", server: { middlewareMode: true }, appType: "custom", optimizeDeps: { noDiscovery: true, include: [] } });
+const server = await createServer({ root: process.cwd(), configFile: false, logLevel: "error", server: { middlewareMode: true, hmr: false, ws: false }, appType: "custom", optimizeDeps: { noDiscovery: true, include: [] } });
 const some = o => Object.entries(o ?? {}).filter(([k]) => !only || k === only), list = o => Object.keys(o ?? {}).join(" ");
 try {
   const load = (...paths) => Promise.all(paths.map(p => server.ssrLoadModule(p)));

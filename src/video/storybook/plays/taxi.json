@@ -9,10 +9,10 @@
   {"id": "how-long", "speaker": "daniel", "ja": "どのくらい かかりますか。", "en": "How long does it take?"},
   {"id": "minutes", "speaker": "sato", "ja": "{十五|じゅうご}{分|ふん}ぐらいです。", "en": "About fifteen minutes."},
   {"id": "what", "speaker": "daniel", "ja": "あれ[は|わ] {何|なん}ですか。", "en": "What is that?"},
-  {"id": "temple", "speaker": "sato", "ja": "あれ[は|わ] お{寺|てら}です。 {五重塔|ごじゅうのとう}ですよ。", "en": "That’s a temple. It’s a five-story pagoda."},
+  {"id": "temple", "speaker": "sato", "ja": "あれ[は|わ] お{寺|てら}です。 {五重塔|ごじゅうのとう}ですよ。", "speak": "あれは、お寺です。五重の塔ですよ。", "en": "That’s a temple. It’s a five-story pagoda."},
   {"id": "pretty", "speaker": "daniel", "ja": "きれいですね。", "en": "It’s beautiful.", "speed": 0.6},
   {"id": "stop", "speaker": "daniel", "ja": "ここで {止|と}めてください。 いくらですか。", "en": "Please stop here. How much is it?", "speak": "ここで、とめてください。いくらですか？"},
-  {"id": "price", "speaker": "sato", "ja": "{千|せん}{八百|はっぴゃく}{円|えん}です。", "en": "It’s 1,800 yen."},
+  {"id": "price", "speaker": "sato", "ja": "{千|せん}{八百|はっぴゃく}{円|えん}です。", "speak": "千、八百円です。", "en": "It’s 1,800 yen."},
   {"id": "card", "speaker": "daniel", "ja": "カードで お{願|ねが}いします。", "en": "By card, please."},
   {"id": "thanks", "speaker": "sato", "ja": "ありがとうございました。", "en": "Thank you very much."}
  ],

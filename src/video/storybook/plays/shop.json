@@ -114,7 +114,7 @@
     {
      "shot": {"id": "hands", "on": "emi", "size": "waist"},
      "seconds": 1.7,
-     "do": [{"who": "emi", "act": "offer", "to": [-36, -139], "under": 23, "side": 5, "grip": "bar", "in": 0.5, "at": 0, "for": 2.4}],
+     "do": [{"who": "emi", "act": "offer", "to": [-36, -133], "under": 23, "side": 5, "grip": "bar", "in": 0.5, "at": 0, "for": 2.4}],
      "give": [{"prop": "paper-bag", "to": "emi:bar-f"}, {"prop": "fan", "to": "goods", "hidden": true}, {"prop": "fan-2", "to": "goods", "hidden": true}],
      "look": {"emi": "sophie"},
      "after": 0
@@ -125,7 +125,7 @@
      "to": "emi",
      "mood": "happy",
      "react": {"ema": "happy"},
-     "do": [{"who": "sophie", "act": "receive", "to": [-34, -95], "under": 20, "side": 5, "grip": "bar", "in": 0.4, "at": -1, "for": 3.6}, {"who": "ema", "act": "thank", "arms": false, "at": 0.8}],
+     "do": [{"who": "sophie", "act": "receive", "to": [-34, -101], "under": 20, "side": 5, "grip": "bar", "in": 0.4, "at": -1, "for": 5.4}, {"who": "ema", "act": "thank", "arms": false, "at": 0.8}],
      "give": [{"prop": "paper-bag", "to": "sophie:bar-f"}],
      "sounds": [{"sound": "bag-taken", "at": 0.2, "gain": -18}],
      "after": 0.5

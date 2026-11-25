@@ -204,6 +204,18 @@
      ]
     ]
    ]
+  },
+  "kit-index": {
+   "file": "kit/kit_index.png"
+  },
+  "kit-back": {
+   "file": "kit/kit_back.png"
+  },
+  "kit-wave": {
+   "file": "kit/kit_wave.png"
+  },
+  "kit-wave-back": {
+   "file": "kit/kit_wave_back.png"
   }
  },
  "both": {
@@ -265,7 +277,8 @@
      474
     ]
    ],
-   "mirror": true
+   "mirror": true,
+   "shows": "palm"
   },
   "under": {
    "source": "kit-open",
@@ -375,7 +388,8 @@
      560,
      272
     ]
-   ]
+   ],
+   "shows": "thumb"
   },
   "grip": {
    "source": "kit-grip",
@@ -542,7 +556,8 @@
      456
     ]
    ],
-   "mirror": true
+   "mirror": true,
+   "shows": "palm"
   },
   "hold": {
    "source": "kit-hold",
@@ -812,7 +827,8 @@
      430,
      360
     ]
-   ]
+   ],
+   "shows": "thumb"
   },
   "point": {
    "source": "kit-point",
@@ -844,7 +860,8 @@
      372,
      750
     ]
-   ]
+   ],
+   "shows": "palm"
   },
   "guide": {
    "source": "kit-guide",
@@ -876,7 +893,8 @@
      372,
      750
     ]
-   ]
+   ],
+   "shows": "palm"
   },
   "card": {
    "source": "kit-card",
@@ -908,7 +926,8 @@
      286,
      750
     ]
-   ]
+   ],
+   "shows": "thumb"
   },
   "fist": {
    "source": "kit-fist",
@@ -940,7 +959,8 @@
      378,
      750
     ]
-   ]
+   ],
+   "shows": "palm"
   },
   "bar": {
    "source": "kit-bar",
@@ -1303,14 +1323,155 @@
      440,
      504
     ]
-   ]
+   ],
+   "shows": "back"
+  },
+  "index": {
+   "source": "kit-index",
+   "soft": 22,
+   "wrist": [
+    400,
+    380
+   ],
+   "knuckle": [
+    660,
+    380
+   ],
+   "length": 9.1,
+   "mirror": false,
+   "poly": [
+    [
+     372,
+     20
+    ],
+    [
+     1010,
+     20
+    ],
+    [
+     1010,
+     750
+    ],
+    [
+     372,
+     750
+    ]
+   ],
+   "shows": "back",
+   "as": "point"
+  },
+  "back": {
+   "source": "kit-back",
+   "soft": 22,
+   "wrist": [
+    400,
+    382
+   ],
+   "knuckle": [
+    660,
+    382
+   ],
+   "length": 9.1,
+   "mirror": false,
+   "poly": [
+    [
+     372,
+     20
+    ],
+    [
+     1010,
+     20
+    ],
+    [
+     1010,
+     750
+    ],
+    [
+     372,
+     750
+    ]
+   ],
+   "shows": "back"
+  },
+  "wave": {
+   "source": "kit-wave",
+   "soft": 22,
+   "wrist": [
+    400,
+    382
+   ],
+   "knuckle": [
+    660,
+    382
+   ],
+   "length": 9.1,
+   "mirror": false,
+   "poly": [
+    [
+     372,
+     20
+    ],
+    [
+     1010,
+     20
+    ],
+    [
+     1010,
+     750
+    ],
+    [
+     372,
+     750
+    ]
+   ],
+   "shows": "palm"
+  },
+  "wave-back": {
+   "source": "kit-wave-back",
+   "soft": 22,
+   "wrist": [
+    400,
+    382
+   ],
+   "knuckle": [
+    660,
+    382
+   ],
+   "length": 9.1,
+   "mirror": false,
+   "poly": [
+    [
+     372,
+     20
+    ],
+    [
+     1010,
+     20
+    ],
+    [
+     1010,
+     750
+    ],
+    [
+     372,
+     750
+    ]
+   ],
+   "shows": "back",
+   "as": "wave"
   }
  },
  "sockets": {
   "pen": {
    "hand": "hold",
-   "at": [765, 392],
-   "to": [858, 428]
+   "at": [
+    765,
+    392
+   ],
+   "to": [
+    858,
+    428
+   ]
   },
   "palm": {
    "hand": "open",

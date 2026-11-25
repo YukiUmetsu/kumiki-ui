@@ -289,6 +289,18 @@ def likeness(canvas, cover, own, base, px):
     far = cv2.distanceTransform((~ring(there)).astype(np.uint8), cv2.DIST_L2, 5); return float(ssim[both].mean()), float(np.abs(canvas - want).mean(2)[both].mean()), float(np.percentile(far[ring(cover > 0.5) & (own > 0.5)], 95)), float(both.sum() / (cover > 0.5).sum())
 
 
+def sides(alpha, at, soft, limb, n=22):
+    """Where a painted limb has its two edges: [along, edge, edge] from the line of its bones, in the units of `at` (x, y, width, height). The engine evens them out as the limb leaves the pose of the painting. As `bound` in rig-look-painted.ts measures it."""
+    (sx, sy), (ex, ey), (tx, ty) = limb["top"], limb["mid"], limb["end"]; L1, L2 = math.dist((sx, sy), (ex, ey)), math.dist((ex, ey), (tx, ty)); d1, d2 = ((ex - sx) / L1, (ey - sy) / L1), ((tx - ex) / L2, (ty - ey) / L2)
+    ys, xs = np.nonzero(alpha > 0.5); x, y = at[0] + (xs + 0.5) * at[2] / alpha.shape[1], at[1] + (ys + 0.5) * at[3] / alpha.shape[0]
+    s1, s2 = (x - sx) * d1[0] + (y - sy) * d1[1], L1 + (x - ex) * d2[0] + (y - ey) * d2[1]; u = np.clip((s1 - L1 + soft) / (2 * soft), 0, 1); k = u * u * (3 - 2 * u); n1, n2 = -(x - sx) * d1[1] + (y - sy) * d1[0], -(x - ex) * d2[1] + (y - ey) * d2[0]; s, off = s1 + (s2 - s1) * k, n1 + (n2 - n1) * k
+    rows = []
+    for c in np.linspace(0.02 * L1, L1 + L2, n):
+        m = np.abs(s - c) < 0.55 * (L1 + L2) / n
+        if m.sum() > 12: rows.append([round(float(c), 2), round(float(np.percentile(off[m], 1.5)), 2), round(float(np.percentile(off[m], 98.5)), 2)])
+    return rows
+
+
 def resized(rgb, shape): return rgb if rgb.shape[:2] == shape[:2] else cv2.resize(rgb, (shape[1], shape[0]), interpolation=cv2.INTER_CUBIC)
 
 
@@ -337,6 +349,8 @@ def build(recipe, root, out):
         else: arm = recipe["joints"]["armF" if layer.endswith("-f") else "armB"]; f = R @ np.linalg.inv(s.M[:, :2]) @ (np.array(arm["end"], float) - arm["mid"]); v["wrist"] = round(math.degrees(math.atan2(-f[0], f[1])), 2)
         if h.get("front"): v["front"] = one({"poly": h["front"]}, f"{name}-front")
         if h.get("over"): v["over"] = h["over"]
+        for k in ("shows", "as"):
+            if h.get(k): v[k] = h[k]
         return v
     hand.M = {}
 
@@ -348,6 +362,8 @@ def build(recipe, root, out):
             s = sources[L["source"]]; rgb, a = cut(s, L); o.update(placed(L.get("image", L["id"]), rgb, a, s.M, s.k, L.get("density", recipe.get("density", 16))))
         for key in ("grid", "turns", "tint", "keepReading"):
             if key in L: o[key] = L[key]
+        # a sleeve that hangs free (slack) has no second edge
+        if o["bind"]["kind"] == "limb" and o["bind"]["upper"].startswith("arm") and "slack" not in o["bind"] and "image" in o: o["bind"]["sides"] = sides(plates[L["id"]][0][..., 3] / 255, (o["x"], o["y"], o["width"], o["height"]), o["bind"]["soft"], {k: P(J["armF" if o["bind"]["upper"].endswith("-f") else "armB"][k]) for k in ("top", "mid", "end")})
         for n, q in L.get("alt", {}).items(): o.setdefault("variants", {})[n] = {**placed(f"{L['id']}-{n}", q["rgb"], q["a"], whole, q["k"], L.get("density", recipe.get("density", 16))), "rest": True}; plates.pop(f"{L['id']}-{n}")
         vs = hands.get(L["id"])
         if vs:
