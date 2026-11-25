@@ -85,18 +85,18 @@ A rear view is a card with `"view": "rear"`. `"body": { "sits": false }` says th
 
 ## What a scene costs
 
-Measured on the demo scenes, in the order in which they were made. New paintings are those that no earlier scene had.
+Measured on the demo scenes, in the order in which they were made. New pictures are those that no earlier scene had: a figure brings all its looks, hands and feet at once.
 
-| Scene | Length | Shots | Lines | Screenplay | New paintings | New acts |
+| Scene | Length | Shots | Lines | Screenplay | New pictures | New acts |
 |---|---|---|---|---|---|---|
-| Convenience store (phase 1) | 36 s | 9 | 7 | 16.5 KB of code | 123 | 12 |
-| Station | 88 s | 17 | 12 | 5.4 KB of JSON | 410 | hop, point, shrug, look-around, explain; perspective walk, turns, rear views |
-| Taxi | 74 s | 17 | 13 | 4.5 KB | 57 | raise, steer; driving behind glass |
-| Souvenir shop | 66 s | 17 | 11 | 6.6 KB | 63 | fold, unfold, fan, offer, thank, pack, receive |
-| Inn | 79 s | 19 | 12 | 6.5 KB | 74 | deep-bow; socks, two-handed handover |
-| Festival | 67 s | 19 | 12 | 7.8 KB | 67 | cook, call, eat; fireworks |
-| Pages of the episode | 81 s | 16 | 16 | 6.0 KB | 3 | none |
-| **Episode** `first-trip` | **485 s** | **114** | **83** | **0.5 KB** | **0** | **none** |
+| Convenience store (phase 1) | 36 s | 9 | 7 | 16.5 KB of code | 119 | 12 |
+| Station | 90 s | 18 | 12 | 7.4 KB of JSON | 411 | hop, point, shrug, look-around, explain; perspective walk, turns, rear views |
+| Taxi | 75 s | 17 | 13 | 6.3 KB | 63 | raise, steer; driving behind glass |
+| Souvenir shop | 66 s | 17 | 11 | 8.3 KB | 63 | fold, unfold, fan, offer, thank, pack, receive |
+| Inn | 79 s | 19 | 12 | 8.3 KB | 76 | deep-bow; socks, two-handed handover |
+| Festival | 67 s | 19 | 12 | 9.6 KB | 65 | cook, call, eat; fireworks |
+| Pages of the episode | 81 s | 16 | 16 | 7.8 KB | 3 | none |
+| **Episode** `first-trip` | **487 s** | **115** | **83** | **0.4 KB** | **0** | **none** |
 
 The large cost of a scene is now its place and its props. The people, the acts, the camera and the sound are there. Painting 100 sprites on this machine is slow (one local image model at a time); a compile takes a second, and a look at 20 frames of the whole episode takes 24 s.
 
@@ -104,7 +104,7 @@ The large cost of a scene is now its place and its props. The people, the acts, 
 
 - The tool drafts front and rear figures. Side and three-quarter views are cut by hand (Emma, Riku).
 - A seated figure that is seen from the front reads as short legs. Long skirts and aprons only stand.
-- A kimono sleeve keeps the cloth of its painting: its corner hangs and its inner cloth is drawn in, but it does not swing. A deep bow from the front is shown by a shorter back, not by a turned body.
+- A kimono sleeve keeps the cloth of its painting: its corner hangs and its inner cloth is drawn in, but it does not swing. A deep bow from the front is shown by a shorter back, not by a turned body. From the front the arms of a walk swing in depth, which is small. A bent puffy sleeve bulges at the elbow.
 - Rear, side and three-quarter figures have no `bar`, `tray` or `pen` grip.
 - Shoes are not taken off in the picture. Backpacks stay on in a room. Payment at the festival is not shown.
 - The mixed sound of a film is made in the browser when it opens. A whole episode takes some seconds.

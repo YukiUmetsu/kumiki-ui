@@ -36,7 +36,7 @@ The whole unit suite and the whole story suite were not run.
 | A joint turns in one frame | 20.4° (frame 663) | 40° |
 | A hand moves against the hips | 1.51 m/s (frame 663) | 2.6 m/s |
 | Mouth against recording, lag | −20 to +20 ms, seven lines | 70 ms |
-| Vowels that the mouth shows | 37 of 37 | all |
+| Long open vowels whose time falls on the sound | 37 of 37 | all |
 
 ## Film, from the pictures
 
