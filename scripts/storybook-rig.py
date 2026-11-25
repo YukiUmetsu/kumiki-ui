@@ -340,6 +340,9 @@ def draft(card, root, models):
     hs = cv2.imread(str(root / card["head"]["sharp"]), cv2.IMREAD_COLOR)[:, :, ::-1].astype(np.float32) if card["head"].get("sharp") else cv2.resize(square(b.over, x, y, s), (1024, 1024), interpolation=cv2.INTER_CUBIC); hk = hs.shape[1] / s; to = lambda m, f=cv2.INTER_LINEAR: cv2.resize(cut(m), hs.shape[1::-1], interpolation=f)
     gap = (to(b.holes) > 0.05).astype(np.uint8); hs = cv2.inpaint(np.clip(hs, 0, 255).astype(np.uint8), cv2.dilate(gap, np.ones((int(3 * hk) | 1,) * 2, np.uint8)), 4 * hk, cv2.INPAINT_TELEA).astype(np.float32) if gap.any() else hs
     head = {"rgb": plain(hs, hk, (x, y), card.get("badges", [])), "a": np.clip(to(b.a, cv2.INTER_CUBIC), 0, 1), "cut": np.clip(cv2.GaussianBlur(to(b.head | (grow(b.head, 4) & ~b.solid)), (0, 0), 0.5 * hk) * 2 - 0.5, 0, 1), "k": hk, "at": (float(x), float(y))}
+    # hair that the square of the head leaves out comes from the whole painting (a pony tail)
+    past = b.head & ((b.xx < x + 3) | (b.xx >= x + s - 3) | (b.yy >= y + s - 3)); past &= grow(b.head & ((b.xx < x - 1) | (b.xx >= x + s + 1) | (b.yy >= y + s + 1)), 6)
+    if past.sum() > 60: layers.append({"id": "head-past", "z": 20.05, "grid": [6, 12], "turns": True, "bind": {"kind": "rigid", "bone": "head"}, "plate": plate(paint, alpha * mask(past, 1.5))})
     for q in card.get("loose", []):
         extra.append({"id": q["id"], "parent": q["parent"], "at": q["at"], "to": q["to"], **({"sway": q["sway"]} if "sway" in q else {})}); m = filled((b.h, b.w), q["poly"]); d = np.array(q["to"], float) - q["at"]
         layers.append({"id": q["id"], "z": q["z"], "grid": [8, 12], **({"turns": True} if q["parent"] == "head" else {}), "bind": {"kind": "skin", "bone": q["parent"], "pulls": [{"bone": q["id"], "from": q["at"], "to": [float(q["at"][0] + 0.4 * d[0]), float(q["at"][1] + 0.4 * d[1])]}]}, "plate": plate(paint, alpha * mask(m, 3))})

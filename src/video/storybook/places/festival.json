@@ -157,12 +157,12 @@
    "bounds": [-256, -290, 284, 14],
    "bed": [{"sound": "crickets", "gain": -28}],
    "grade": {"tint": [1, 0.96, 0.92]},
-   "frames": {"all": {"at": [0, -114], "tall": 160}, "leo": {"at": [66, -84], "tall": 82}},
+   "frames": {"all": {"at": [0, -114], "tall": 160}, "leo": {"at": [88, -82], "tall": 82}},
    "spots": {
     "by-1": {"at": [-72, 4], "view": "front", "toward": "leo"},
     "by-2": {"at": [-26, 10], "view": "front", "toward": "leo"},
-    "by-3": {"at": [16, 14], "view": "front", "toward": "ema"},
-    "by-4": {"at": [74, 8], "view": "front", "toward": "ema"}
+    "by-3": {"at": [15, 10], "view": "front", "toward": "ema"},
+    "by-4": {"at": [96, 16], "view": "front", "toward": "ema"}
    }
   },
   "festival-sky": {

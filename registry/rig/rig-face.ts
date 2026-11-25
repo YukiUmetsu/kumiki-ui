@@ -26,8 +26,9 @@ function latticeOf(pts: FacePoints): Lattice {
   const oval = OVAL.map(i => pts[i]), x0 = Math.min(...oval.map(p => p[0])), x1 = Math.max(...oval.map(p => p[0])), y0 = Math.min(...oval.map(p => p[1])), y1 = Math.max(...oval.map(p => p[1]));
   const W = x1 - x0, pad = 0.2 * W, nx = 36, ny = 44, x = x0 - pad, y = y0 - pad * 1.4, dx = (W + 2 * pad) / (nx - 1), dy = (y1 - y0 + pad * 2.2) / (ny - 1);
   const near = new Uint16Array(nx * ny * NEAR), weight = new Float32Array(nx * ny * NEAR), count = Math.min(468, pts.length), sigma = 0.032 * W;
-  // how far each point stands out from the skin round it: the nose, the lips, the chin; eyes lie in
-  const out = Float32Array.from({ length: count }, (_, i) => { let s = 0, n = 0; for (let k = 0; k < count; k++) { const d = Math.hypot(pts[k][0] - pts[i][0], pts[k][1] - pts[i][1]) / (0.2 * W); if (d < 1) { const w = (1 - d * d) ** 2; s += w * pts[k][2]; n += w; } } return pts[i][2] - s / n; });
+  // how far each point stands out from the skin round it: the nose, the lips, the chin; eyes lie in. Toward the ears it is none: there the skin goes round the head, and to count that twice would fold a turned cheek.
+  const bridge = pts[168][0], middle = (i: number) => { const d = pts[i][0] - bridge, t = Math.min(1, Math.max(0, (Math.abs(d) / Math.max(1e-6, d > 0 ? x1 - bridge : bridge - x0) - 0.42) / 0.36)); return 1 - t * t * (3 - 2 * t); };
+  const out = Float32Array.from({ length: count }, (_, i) => { let s = 0, n = 0; for (let k = 0; k < count; k++) { const d = Math.hypot(pts[k][0] - pts[i][0], pts[k][1] - pts[i][1]) / (0.2 * W); if (d < 1) { const w = (1 - d * d) ** 2; s += w * pts[k][2]; n += w; } } return (pts[i][2] - s / n) * middle(i); });
   const relief = new Float32Array(nx * ny), order = Array.from({ length: count }, (_, i) => i);
   for (let j = 0, node = 0; j < ny; j++) for (let i = 0; i < nx; i++, node++) {
     const X = x + i * dx, Y = y + j * dy, d = order.map(k => Math.hypot(pts[k][0] - X, pts[k][1] - Y)), best = [...order].sort((a, b) => d[a] - d[b]).slice(0, NEAR);

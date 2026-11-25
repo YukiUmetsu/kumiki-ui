@@ -207,6 +207,11 @@
     "width": 338,
     "height": 338
    },
+   "head-past": {
+    "src": "head-past.webp",
+    "width": 55,
+    "height": 252
+   },
    "head": {
     "src": "head.webp",
     "width": 825,
@@ -773,6 +778,24 @@
     "height": 26.0,
     "wrist": 1.44,
     "space": "bone"
+   },
+   {
+    "id": "head-past",
+    "z": 20.05,
+    "bind": {
+     "kind": "rigid",
+     "bone": "head"
+    },
+    "image": "head-past",
+    "x": -21.724,
+    "y": -128.398,
+    "width": 3.929,
+    "height": 18.0,
+    "grid": [
+     6,
+     12
+    ],
+    "turns": true
    },
    {
     "id": "head",

@@ -45,7 +45,7 @@
      "say": "how-about",
      "to": "viewer",
      "mood": "happy",
-     "pose": {"daichi": [{"act": "cook", "hand": "f", "to": [-30, -112], "wide": 34}, {"act": "cook", "hand": "b", "to": [32, -112], "wide": 30, "late": 0.5}]},
+     "pose": {"daichi": [{"act": "cook", "hand": "f", "to": [-30, -112], "wide": 34}, {"act": "cook", "hand": "b", "to": [28, -112], "wide": 24, "late": 0.5}]},
      "give": [{"prop": "pick-2", "to": "daichi:pen-b", "hidden": true}],
      "do": [{"who": "daichi", "act": "call", "hand": "b", "at": -0.2, "for": 3.4}]
     },
@@ -101,7 +101,7 @@
       "leo": [{"act": "carry", "hand": "f", "chest": [-0.045, 0.175], "grip": "under"}, {"act": "carry", "hand": "b", "chest": [0.06, 0.15], "angle": -150, "grip": "hold"}],
       "ema": [{"act": "offer", "grip": "under", "apart": 7}]
      },
-     "do": [{"who": "leo", "act": "eat", "hand": "b", "x": 0.026, "y": 0.08, "at": 0.5, "for": 2.2, "bite": 0.5}],
+     "do": [{"who": "leo", "act": "eat", "hand": "b", "x": 0.054, "y": 0.083, "at": 0.5, "for": 2.2, "bite": 0.5}],
      "give": [{"prop": "bite", "to": "leo:pen-b", "at": 1.6, "view": "eaten", "over": 0, "angle": 90, "scale": 0.9}],
      "look": {"leo": "viewer"},
      "after": 0.3
@@ -121,7 +121,7 @@
      "say": "thanks",
      "to": "leo",
      "mood": "happy",
-     "pose": {"daichi": [{"act": "cook", "hand": "f", "to": [-30, -112], "wide": 34}, {"act": "cook", "hand": "b", "to": [32, -112], "wide": 30, "late": 0.5}]}
+     "pose": {"daichi": [{"act": "cook", "hand": "f", "to": [-30, -112], "wide": 34}, {"act": "cook", "hand": "b", "to": [28, -112], "wide": 24, "late": 0.5}]}
     },
     {"shot": {"id": "again", "on": ["leo", "sophie"], "size": "waist", "from": "door"}, "say": "again", "to": "daichi", "mood": "happy", "do": [{"who": "leo", "act": "wave", "at": 0.1, "for": 2.2}]}
    ]
