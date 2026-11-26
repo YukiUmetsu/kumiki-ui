@@ -20,6 +20,8 @@ Recipe (all points are pixels of the painting they belong to; "base" is the pain
                          { fold: [x, y] it turns about, from: [a, b], to: [a, b] degrees from straight up, clockwise: what is between two angles comes between two others, what is outside turns with its side (a fan that is half shut), past?: px from the point, of?: poly, the only paint that stays }
                        bind uses base pixels too and is written out in centimetres
   hands.<layer>.<name> { source, poly?, wrist: [x,y], knuckle: [x,y], length?: cm from wrist to knuckle (else its own size), front?: poly, over?: how far it comes in front of its own cuff, mirror?, cuff?: degrees that the forearm is turned from the hand in a drawing of a hand alone (0) }
+  kit?                 { file: the kit of hands beside the recipe (cards/kit-hands.json), skin: [r, g, b] of the lit skin of the figure, size: cm from its wrist to its finger tip }: every drawing of the kit,
+                         in the size and the skin of the figure, under its own hands. A figure without them has no drawing for an act that names one (`back`, `bar`)
   sockets.<name>       { bone, hand?: variant it was measured on, at: point of that source or of the base, to?: a point that the top of a held thing goes toward }
   body, walk           how it stands and walks (story-figure.ts), copied as they are
   face                 { layer, source, round, eyes, brows, regions: {name: polygon}, patches: {name: {file, region, marks?, steps?, squeeze?: { at, by: [sx, sy], radius }}},
@@ -95,6 +97,29 @@ def bleed(rgb, a):
     ys, xs = np.nonzero(solid); table = np.zeros((lab.max() + 1, 3), np.float32); table[lab[ys, xs]] = rgb[ys, xs]
     near = table[lab]
     return np.where(a[..., None] > 0.6, rgb, near)
+
+
+def fair(rgb, m):
+    """The colour of lit skin: what is painted and is neither ink nor paper."""
+    v = rgb[m]; lum = v.mean(1); v = v[(lum > 96) & (lum < 250)]; lum = v.mean(1); return np.median(v[lum > np.percentile(lum, 40)], 0)
+
+
+def hand_kit(kit, root, own, size):
+    """Hand drawings of a cast, in the size and with the skin of one figure."""
+    sources = {}
+    for n, q in kit["sources"].items():
+        rgb = load(root / q["file"]); ink = np.abs(rgb - 255).max(2) > 26; sources[n] = {**q, "skin": [*([round(float(t), 1) for t in c] for c in (fair(rgb, ink), own)), kit.get("calm", 0.55)]}
+    k = size / kit["of"]; hands = {n: {**h, "length": h["length"] * k} for n, h in kit["both"].items()}
+    return sources, hands, {f"{n}-{s}": {"bone": f"hand-{s}", "layer": f"hand-{s}", **q} for n, q in kit.get("sockets", {}).items() for s in "fb"}
+
+
+def with_kit(recipe, root):
+    """A figure of a recipe with every drawing of its `kit` under its own hands, the back hand mirrored: as `storybook-rig.py` gives a card."""
+    q = recipe.get("kit")
+    if not q: return recipe
+    sources, both, sockets = hand_kit(q["file"], root, q["skin"], q["size"]); own = recipe.get("hands", {})
+    hands = {f"hand-{s}": {**{n: {**h, "mirror": bool(h.get("mirror")) != (s == "b")} for n, h in both.items()}, **own.get(f"hand-{s}", {})} for s in "fb"}
+    return {**recipe, "sources": {**sources, **recipe["sources"]}, "hands": {**own, **hands}, "sockets": {**sockets, **recipe.get("sockets", {})}}
 
 
 def reskin(rgb, old, new, calm=0.0):
@@ -306,6 +331,7 @@ def resized(rgb, shape): return rgb if rgb.shape[:2] == shape[:2] else cv2.resiz
 
 def build(recipe, root, out):
     """Paintings to layers. `storybook-rig.py` gives layers that are cut already: a `plate` of colour and alpha, `k` pixels for each base pixel."""
+    recipe = with_kit(recipe, root)
     rid = recipe["id"]; dest = out / rid; dest.mkdir(parents=True, exist_ok=True)
     sources = {n: Source(s, root) for n, s in recipe["sources"].items()}
     J = recipe["joints"]; top, ground = J["crown"][1], J["ground"]; cm = recipe["height"] / (ground - top)  # centimetres a base pixel
@@ -428,4 +454,7 @@ def build(recipe, root, out):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("recipes", nargs="+"); ap.add_argument("--src", required=True); ap.add_argument("--out", required=True); o = ap.parse_args()
-    for r in o.recipes: spec = json.loads(Path(r).read_text()); (build if "joints" in spec else pieces)(spec, Path(o.src), Path(o.out))
+    for r in o.recipes:
+        spec = json.loads(Path(r).read_text())
+        if spec.get("kit"): spec["kit"] = {**spec["kit"], "file": json.loads((Path(r).parent / spec["kit"]["file"]).read_text())}
+        (build if "joints" in spec else pieces)(spec, Path(o.src), Path(o.out))

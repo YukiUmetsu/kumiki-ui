@@ -304,18 +304,7 @@ def grain(shape, amount, seed=7): g = cv2.GaussianBlur(np.random.default_rng(see
 def fade(v, lo, hi): t = np.clip((v - lo) / (hi - lo), 0, 1); return t * t * (3 - 2 * t)
 
 
-def fair(rgb, m):
-    """The colour of lit skin: what is painted and is neither ink nor paper."""
-    v = rgb[m]; lum = v.mean(1); v = v[(lum > 96) & (lum < 250)]; lum = v.mean(1); return np.median(v[lum > np.percentile(lum, 40)], 0)
-
-
-def hand_kit(kit, root, own, size):
-    """Hand drawings of a cast, in the size and with the skin of one figure."""
-    sources = {}
-    for n, q in kit["sources"].items():
-        rgb = art.load(root / q["file"]); ink = np.abs(rgb - 255).max(2) > 26; sources[n] = {**q, "skin": [*([round(float(t), 1) for t in c] for c in (fair(rgb, ink), own)), kit.get("calm", 0.55)]}
-    k = size / kit["of"]; hands = {n: {**h, "length": h["length"] * k} for n, h in kit["both"].items()}
-    return sources, hands, {f"{n}-{s}": {"bone": f"hand-{s}", "layer": f"hand-{s}", **q} for n, q in kit.get("sockets", {}).items() for s in "fb"}
+fair, hand_kit = art.fair, art.hand_kit
 
 
 def foot_kit(feet, root, joints, ground, cm, rear):

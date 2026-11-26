@@ -21,6 +21,7 @@ export interface ArmAim {
   /** Angle of the hand in the picture. Default: in line with the forearm. */ angle?: number;
   /** 0–1: how far the elbow points at the viewer. */ out?: number; /** 0–1: how far the elbow is held out from the side of the body; down to -1 it is kept in before the body. */ aside?: number; /** 0–1: the shortest that a part is drawn when it points at the viewer. Default 0.62. */ shortest?: number;
   /** How near to its shoulder a hand can be, 0–1 of the arm: 0.68 in front of the body, less at the face. */ near?: number;
+  /** The longest that the arm reaches, 0–1 of its length. Default `MOST`: an elbow is never locked. An arm that points in one line reaches further. */ most?: number;
 }
 export interface ArmPose {
   /** Moves the shoulder. */ shift: [number, number];
@@ -46,13 +47,13 @@ const AWAY = 0.26, BESIDE = 0.8;
 const MOST = 0.975, SHORTEST = 0.62;
 
 /** Shoulder, elbow and wrist for a hand at (dx, dy) from its shoulder. From behind, an arm shows as it does from the front. */
-function bend(arm: ArmBuild, dx: number, dy: number, o: { out: number; near: number; aside: number; shortest: number; halves: number }): Omit<ArmPose, "shift" | "hand"> {
+function bend(arm: ArmBuild, dx: number, dy: number, o: { out: number; near: number; aside: number; shortest: number; halves: number; most: number }): Omit<ArmPose, "shift" | "hand"> {
   const { upper: U, lower: V } = arm, L = U + V, flat = Math.hypot(dx, dy), phi = arm.facing * RAD, c = Math.cos(phi), s = Math.abs(Math.sin(phi)), stretch = flat / L;
-  if (stretch > MOST) { const k = (MOST * L) / flat; dx *= k; dy *= k; }
-  const d2 = Math.min(flat, MOST * L), least = Math.sqrt(U * U + V * V - 2 * U * V * Math.cos(FOLD * RAD));
+  if (stretch > o.most) { const k = (o.most * L) / flat; dx *= k; dy *= k; }
+  const d2 = Math.min(flat, o.most * L), least = Math.sqrt(U * U + V * V - 2 * U * V * Math.cos(FOLD * RAD));
   const forward: Vec = [c, 0, s], outward: Vec = arm.side === "f" ? [-s, 0, c] : [s, 0, -c];
   // where an elbow rests: down, a little back, away from the ribs; with the hand overhead it comes forward
-  const high = 0.15 - dy / L, turned = smooth((s - 0.7) / 0.3), back = 0.35 - 0.95 * smooth(high / 0.45) * (1 - turned) - 0.75 * smooth(high) * turned, depth = o.near * L * s * Math.sqrt(Math.max(0, 1 - (d2 / (MOST * L)) ** 2));
+  const high = 0.15 - dy / L, turned = smooth((s - 0.7) / 0.3), back = 0.35 - 0.95 * smooth(high / 0.45) * (1 - turned) - 0.75 * smooth(high) * turned, depth = o.near * L * s * Math.sqrt(Math.max(0, 1 - (d2 / (o.most * L)) ** 2));
   // a body that faces the viewer holds a near hand under its shoulder with the elbow out, not over the chest
   const out = dx * outward[0], steep = dy > 0 ? out / dy : 9, tuck = (1 + Math.min(0, o.aside)) * smooth((s - 0.8) / 0.2) * smooth((steep + 0.12) / 0.12) * (1 - smooth((steep - 0.3) / 0.25)) * (1 - smooth((stretch - 0.4) / 0.12)), beside = AWAY + BESIDE * smooth((s - 0.8) / 0.2) * Math.max(0, out / L) + Math.max(0, o.aside);
   const away = beside + tuck * Math.max(0, Math.max(0, steep) + 0.4 - beside), rests: Vec = [-forward[0] * back + outward[0] * away, 1, -forward[2] * back + outward[2] * away + o.out * 1.6];
@@ -77,13 +78,15 @@ function handOf(arm: ArmBuild, goal: ArmAim) {
 
 /** `rough` is near enough to say where the elbow is. It costs a fifth, and it goes over smoothly from place to place: what is found by going round and round jumps where the forearm points at the viewer. */
 export function solveArm(arm: ArmBuild, goal: ArmAim, rough = false): ArmPose {
-  const L = arm.upper + arm.lower, o = { out: goal.out ?? 0, near: goal.near ?? 0.68, aside: goal.aside ?? 0, shortest: goal.shortest ?? SHORTEST, halves: rough ? 7 : 14 }, { wristFor, held } = handOf(arm, goal), [sx, sy] = goal.shoulder;
+  const L = arm.upper + arm.lower, o = { out: goal.out ?? 0, near: goal.near ?? 0.68, aside: goal.aside ?? 0, shortest: goal.shortest ?? SHORTEST, halves: rough ? 7 : 14, most: goal.most ?? MOST }, { wristFor, held } = handOf(arm, goal), [sx, sy] = goal.shoulder;
   const straight = aim(goal.to[0] - sx, goal.to[1] - sy);
   let hand = goal.angle ?? straight, wrist = wristFor(hand), got = bend(arm, wrist[0] - sx, wrist[1] - sy, o); const stretch = got.stretch;
   // the shoulder goes with the arm: out to a far hand, up with a high elbow
   const dx = wrist[0] - sx, dy = wrist[1] - sy, d = Math.hypot(dx, dy) || 1, far = 0.075 * L * smooth((stretch - 0.74) / 0.24), up = 0.055 * L * smooth((Math.abs(turnBetween(0, got.upper)) - 50) / 80), shift: [number, number] = [(dx / d) * far, (dy / d) * far * 0.35 - up];
-  if (rough) got = bend(arm, wrist[0] - sx - shift[0], wrist[1] - sy - shift[1], o);
-  else for (let i = 0; i < 8; i++) { got = bend(arm, wrist[0] - sx - shift[0], wrist[1] - sy - shift[1], o); hand += turnBetween(hand, held(got.lower)) * 0.7; wrist = wristFor(hand); }
+  // a hand that is out of reach stays out of reach from the shoulder that goes with it: the shoulder adds to the reach, and the arm stays in one line
+  const beyond = smooth((stretch - 0.96) / 0.06), to = (w: readonly number[]): [number, number] => [w[0] - sx - shift[0] * (1 - beyond), w[1] - sy - shift[1] * (1 - beyond)];
+  if (rough) got = bend(arm, ...to(wrist), o);
+  else for (let i = 0; i < 8; i++) { got = bend(arm, ...to(wrist), o); hand += turnBetween(hand, held(got.lower)) * 0.7; wrist = wristFor(hand); }
   return { ...got, shift, hand, stretch };
 }
 
@@ -99,20 +102,21 @@ export interface ArmBands { upper: readonly [number, number]; lower: readonly [n
  */
 export function armInBands(arm: ArmBuild, goal: ArmAim, bands: ArmBands, way: number): ArmPose & { off: number } {
   const { upper: U, lower: V } = arm, L = U + V, least = goal.shortest ?? SHORTEST, { wristFor, held } = handOf(arm, goal), [sx, sy] = goal.shoulder, s = Math.abs(Math.sin(arm.facing * RAD));
-  const off = ([lo, hi]: readonly [number, number], v: number) => Math.max(0, lo - v, v - hi), mid = (b: readonly [number, number]) => (b[0] + b[1]) / 2;
+  const off = ([lo, hi]: readonly [number, number], v: number) => Math.max(0, lo - v, v - hi), mid = (b: readonly [number, number]) => (b[0] + b[1]) / 2, width = (b: readonly [number, number]) => Math.max(10, b[1] - b[0]);
   const find = (wx: number, wy: number) => {
     let best = { cost: Infinity, a: mid(bands.upper), k: 1, ex: 0, ey: U, ls: 1, lower: 0, off: 0 };
     for (let a = bands.upper[0] - 40; a <= bands.upper[1] + 40; a += 1) for (let k = 1; k >= least - 1e-9; k -= 0.01) {
       const ex = -Math.sin(way * a * RAD) * U * k, ey = Math.cos(way * a * RAD) * U * k, fx = wx - ex, fy = wy - ey, ls = Math.hypot(fx, fy) / V;
       // a painted forearm drawn much shorter than it is becomes a lump as wide as its elbow: a picture cannot show it pointing at the viewer. 0.1 under `least` costs as much as 16° off a band, 0.2 under as much as 32°; squared, so that the arm goes over from one way to the other smoothly.
       // A hand that the arm in its bands does not reach stops short: 2 % of the arm costs as much as 8° off a band. A way that reaches exactly but out of the bands flips with the next way out of them from frame to frame
-      const b = way * aim(fx, fy), cost = (off(bands.upper, a) / 8) ** 2 + (off(bands.lower, b) / 8) ** 2 + (Math.max(0, least - ls) / 0.05) ** 2 + (Math.max(0, ls - 1) * V / (0.02 * L)) ** 2 + 1.5 * (1 - k) + 0.002 * Math.abs(b - mid(bands.lower));
+      // Inside the bands many elbows reach the hand at almost the same cost. Of those, the one nearest the middle of both bands, where the photographs have the arm most: squared, so that one elbow is the nearest and it moves smoothly with the hand. A pull to one band only has its least at one end of the elbows that reach in one frame and at the other end in the next. At the edge of a band it costs less than 1 % of the arm drawn short
+      const b = way * aim(fx, fy), cost = (off(bands.upper, a) / 8) ** 2 + (off(bands.lower, b) / 8) ** 2 + (Math.max(0, least - ls) / 0.05) ** 2 + (Math.max(0, ls - 1) * V / (0.02 * L)) ** 2 + 1.5 * (1 - k) + 0.02 * (((a - mid(bands.upper)) / width(bands.upper)) ** 2 + ((b - mid(bands.lower)) / width(bands.lower)) ** 2);
       if (cost < best.cost) best = { cost, a, k, ex, ey, ls: Math.min(1, ls), lower: aim(fx, fy), off: Math.max(off(bands.upper, a), off(bands.lower, b)) };
     }
     return best;
   };
   // a place out of reach: the arm points there, as long as it is
-  const reach = (x: number, y: number): [number, number] => { const d = Math.hypot(x, y); return d > MOST * L ? [(x * MOST * L) / d, (y * MOST * L) / d] : [x, y]; };
+  const most = (goal.most ?? MOST) * L, reach = (x: number, y: number): [number, number] => { const d = Math.hypot(x, y); return d > most ? [(x * most) / d, (y * most) / d] : [x, y]; };
   let hand = goal.angle ?? aim(goal.to[0] - sx, goal.to[1] - sy), [wx, wy] = wristFor(hand), got = find(...reach(wx - sx, wy - sy));
   for (let i = 0; i < 4; i++) { hand += turnBetween(hand, held(got.lower)) * 0.7; [wx, wy] = wristFor(hand); got = find(...reach(wx - sx, wy - sy)); }
   // depth as the parts are drawn short: the elbow comes to the viewer, the hand stays before the body
@@ -140,7 +144,7 @@ export function armFrom(arm: ArmBuild, goal: ArmAim, from: ArmPose, least = 0.15
   let hand = held(aim(...forearm(goal.to[0] - sx, goal.to[1] - sy, e0))), e: ArmPoint = e0, x = 0, y = 0;
   for (let i = 0; i < 3; i++) {
     [x, y] = wristFor(hand); x -= sx; y -= sy; e = e0;
-    const far = Math.hypot(x, y); if (far > MOST * (U + V)) { x *= (MOST * (U + V)) / far; y *= (MOST * (U + V)) / far; }
+    const far = Math.hypot(x, y), most = (goal.most ?? MOST) * (U + V); if (far > most) { x *= most / far; y *= most / far; }
     for (let j = 0; j < 4; j++) {
       const r = Math.hypot(x - e[0], y - e[1]);
       if (r > V) e = [x - ((x - e[0]) / r) * V, y - ((y - e[1]) / r) * V];

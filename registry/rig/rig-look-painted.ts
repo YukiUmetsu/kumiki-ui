@@ -21,7 +21,7 @@ export interface PaintedPlace { image: string; x: number; y: number; width: numb
 export type PaintedBind =
   | { kind: "rigid"; bone: string }
   /** One painting over two bones: it bends smoothly over `soft` rig units on each side of the joint and keeps its width. */
-  | { kind: "limb"; upper: string; lower: string; soft: number; /** Where the painted limb has its two edges: along the bones, and off them on each side, rig units. Cloth that hangs in its folds has no straight edges: with them the limb is drawn in a line of its own (`outlined`) as it leaves the pose of the painting. */ sides?: readonly (readonly [number, number, number])[]; /** Round its first joint it hands over to what it grows from (a shoulder to the chest), over `soft` rig units on each side. With `hole`, a line of points in the rest pose (the seam of a sleeve, from the top of the shoulder to the armpit), it stays sewn to that line, and is all limb `soft` away from it: each point goes round the joint as far as it is the limb's, so a raised arm keeps its shoulder. */ root?: { bone: string; soft: number; hole?: readonly PaintedPoint[] }; slack?: PaintedSlack }
+  | { kind: "limb"; upper: string; lower: string; soft: number; /** Where the painted limb has its two edges: along the bones, and off them on each side, rig units. Cloth that hangs in its folds has no straight edges: with them the limb is drawn in a line of its own (`outlined`) as it leaves the pose of the painting. A short sleeve, whose width falls at a hem above the joint, keeps its painted line. */ sides?: readonly (readonly [number, number, number])[]; /** Round its first joint it hands over to what it grows from (a shoulder to the chest), over `soft` rig units on each side. With `hole`, a line of points in the rest pose (the seam of a sleeve, from the top of the shoulder to the armpit), it stays sewn to that line, and is all limb `soft` away from it: each point goes round the joint as far as it is the limb's, so a raised arm keeps its shoulder. */ root?: { bone: string; soft: number; hole?: readonly PaintedPoint[] }; slack?: PaintedSlack }
   /** Follows `bone`; each pull hands over to another bone from `from` (none) to `to` (all), inside a round patch if given. */
   | { kind: "skin"; bone: string; pulls: readonly { bone: string; from: PaintedPoint; to: PaintedPoint; within?: { at: PaintedPoint; radius: number } }[]; slack?: PaintedSlack };
 /** Cloth that hangs from an arm on one side, as a wide sleeve does. While the joint of `lower` bends to that side, what is farther than `past` from the bone line is drawn in, and so is what hangs beyond `cuff` along the lower bone: without it the cloth would stand up at the elbow. `side`: 1 when the cloth is on the left of somebody who walks along the bone in the picture (y down), else -1. */
@@ -139,11 +139,21 @@ function sewing(hole: readonly PaintedPoint[], soft: number, base: AffineMatrix,
     return [lerp(bx, lx, g) + Math.cos(to) * r, lerp(by, ly, g) + Math.sin(to) * r];
   };
 }
+/** The cloth ends on the upper part of the limb, not at its joint: the widest row there is 1.3 times the middle width of the forearm or more, and the width falls to halfway between the two before the last 5 % of the upper part. */
+function hemmed(sides: readonly (readonly [number, number, number])[], L1: number, L2: number): boolean {
+  const span = L1 + L2, w = sides.map(r => r[2] - r[1]), fore = w.filter((_, i) => sides[i][0] >= L1 + 0.05 * span && sides[i][0] <= L1 + 0.25 * span).sort((a, b) => a - b), mid = fore[fore.length >> 1];
+  let top = -1; sides.forEach((r, i) => { if (r[0] < L1 && (top < 0 || w[i] > w[top])) top = i; });
+  if (top < 0 || mid === undefined || w[top] < 1.3 * mid) return false;
+  const half = (w[top] + mid) / 2, i = w.findIndex((v, j) => j > top && v < half);
+  return i > 0 && sides[i - 1][0] + ((sides[i][0] - sides[i - 1][0]) * (w[i - 1] - half)) / (w[i - 1] - w[i] || 1) < L1 - 0.05 * span;
+}
 /** The line round a limb that has left the pose of its painting. Cloth on an arm that is up or bent does not lie in the folds of an arm that hangs: those make a line like a hose. Here both edges are straight from the armhole to the elbow and from the elbow to the hand, the limb is as wide at its root as the armhole, and the elbow has a corner on its outside and a crease on its inside. The hand end stays as it was painted. */
 export function outlined(bind: Extract<PaintedBind, { kind: "limb" }>, rest: RigFrame, now: RigFrame): { in: number; at: (s: number, n: number) => PaintedPoint } | undefined {
   const sides = bind.sides; if (!sides) return undefined;
   const move = (bone: string) => mul(now.bones.get(bone)!.world, inv(rest.bones.get(bone)!.world)), u = rest.bones.get(bind.upper)!, l = rest.bones.get(bind.lower)!;
   const S = put(u.world, 0, 0), E0 = put(l.world, 0, 0), T = put(l.world, 0, l.length || 1), L1 = Math.hypot(E0[0] - S[0], E0[1] - S[1]) || 1, L2 = Math.hypot(T[0] - E0[0], T[1] - E0[1]) || 1, d1 = [(E0[0] - S[0]) / L1, (E0[1] - S[1]) / L1], d2 = [(T[0] - E0[0]) / L2, (T[1] - E0[1]) / L2];
+  // a short sleeve over a bare arm keeps the line it was painted with: straight edges would go across the step of its hem, and the arm under it has the line of the body
+  if (hemmed(sides, L1, L2)) return undefined;
   const mu = move(bind.upper), ml = move(bind.lower), base = bind.root && move(bind.root.bone), far = (m: AffineMatrix, d: number[]): PaintedPoint => [m.a * d[0] + m.c * d[1], m.b * d[0] + m.d * d[1]], f1 = far(mu, d1), f2 = far(ml, d2), k1 = Math.hypot(...f1) || 1e-6, k2 = Math.hypot(...f2) || 1e-6;
   const mirror = mu.a * mu.d - mu.b * mu.c < 0 ? -1 : 1, a1 = Math.atan2(f1[1], f1[0]), turn = wrapped(Math.atan2(f2[1], f2[0]) - a1), root = far(base ?? mu, d1), up = Math.abs(wrapped(a1 - Math.atan2(root[1], root[0])));
   const gone = smooth((Math.max(up, Math.abs(turn - mirror * wrapped(Math.atan2(d2[1], d2[0]) - Math.atan2(d1[1], d1[0])))) - 0.2) / 0.6); if (gone <= 0) return undefined;

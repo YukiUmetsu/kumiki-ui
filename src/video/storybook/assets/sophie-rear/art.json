@@ -115,7 +115,7 @@
    "hand-b-card": {
     "src": "hand-b-card.webp",
     "width": 468,
-    "height": 520
+    "height": 546
    },
    "hand-b-fist": {
     "src": "hand-b-fist.webp",
@@ -210,7 +210,7 @@
    "hand-f-card": {
     "src": "hand-f-card.webp",
     "width": 468,
-    "height": 520
+    "height": 546
    },
    "hand-f-fist": {
     "src": "hand-f-fist.webp",
@@ -251,6 +251,16 @@
     "src": "head.webp",
     "width": 875,
     "height": 891
+   },
+   "hand-b-cup": {
+    "src": "hand-b-cup.webp",
+    "width": 260,
+    "height": 494
+   },
+   "hand-f-cup": {
+    "src": "hand-f-cup.webp",
+    "width": 260,
+    "height": 494
    }
   },
   "layers": [
@@ -705,7 +715,7 @@
       "x": -11.0,
       "y": -4.0,
       "width": 18.0,
-      "height": 20.0,
+      "height": 21.0,
       "wrist": 0,
       "shows": "thumb"
      },
@@ -772,6 +782,15 @@
       "wrist": 0,
       "shows": "back",
       "as": "wave"
+     },
+     "cup": {
+      "image": "hand-b-cup",
+      "x": -4.0,
+      "y": -4.0,
+      "width": 10.0,
+      "height": 19.0,
+      "wrist": 0,
+      "shows": "thumb"
      }
     },
     "image": "hand-b-easy",
@@ -1033,7 +1052,7 @@
       "x": -7.0,
       "y": -4.0,
       "width": 18.0,
-      "height": 20.0,
+      "height": 21.0,
       "wrist": 0,
       "shows": "thumb"
      },
@@ -1100,6 +1119,15 @@
       "wrist": 0,
       "shows": "back",
       "as": "wave"
+     },
+     "cup": {
+      "image": "hand-f-cup",
+      "x": -6.0,
+      "y": -4.0,
+      "width": 10.0,
+      "height": 19.0,
+      "wrist": 0,
+      "shows": "thumb"
      }
     },
     "image": "hand-f-easy",

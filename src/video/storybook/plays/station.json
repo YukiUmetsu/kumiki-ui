@@ -50,7 +50,7 @@
      "look": {"leo": [300, -210], "sophie": [300, -210]}
     },
     {"shot": {"on": ["daniel", "ema"], "size": "waist"}, "say": "where", "to": "daniel", "do": [{"who": "ema", "act": "look-around", "for": 1.1}]},
-    {"say": "ask", "to": "ema", "do": [{"who": "daniel", "act": "shrug", "at": 0.1}]}
+    {"say": "ask", "to": "ema", "do": [{"who": "daniel", "act": "shrug", "hand": "f", "at": 0.1}]}
    ]
   },
   {

@@ -38,6 +38,12 @@ describe("a sleeve", () => {
   const off = (points: readonly (readonly number[])[]) => { const a = points[0], b = points[points.length - 1], n = Math.hypot(b[0] - a[0], b[1] - a[1]); return Math.max(...points.map(p => Math.abs((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])) / n)); };
   const way = (a: readonly number[], b: readonly number[]) => Math.atan2(b[1] - a[1], b[0] - a[0]) / RAD;
   it("is drawn as it was painted while it hangs", () => { expect(outlined(limb, frame(0, 0), frame(0, 0))).toBeUndefined(); });
+  it("is drawn as it was painted when it ends above the elbow, as a short sleeve does", () => {
+    const short = { ...limb, sides: sides.map(([s]): [number, number, number] => (s < 70 ? [s, -18, 18] : [s, -9, 9])) };
+    expect(outlined(short, frame(0, 0), frame(-40, -140))).toBeUndefined();
+    // a sleeve that ends at the elbow is still drawn straight
+    expect(outlined({ ...limb, sides: sides.map(([s]): [number, number, number] => (s < 100 ? [s, -18, 18] : [s, -9, 9])) }, frame(0, 0), frame(-40, -140))).toBeDefined();
+  });
   for (const [upper, lower] of [[-85, -178], [-40, -140], [-20, -118], [85, 178]] as const) it(`is two straight parts with a corner at the elbow at ${upper}° and ${lower}°`, () => {
     const line = outlined(limb, frame(0, 0), frame(upper, lower))!, at = (s: number, j: 1 | 2) => line.at(s, edge(s, j));
     for (const j of [1, 2] as const) {
