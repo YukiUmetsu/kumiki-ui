@@ -206,6 +206,16 @@ describe("lesson pages", () => {
   });
   it("keep the reveal when the switch is on", () => { expect(english(said, comes(said, line.ja) + 0.5, true)).not.toContain(line.en); });
   it("say a phrase as many times as asked", () => { expect(said.shots.flatMap(s => s.says ?? []).filter(s => s.line === first)).toHaveLength(2); });
+  it("make a card from a title and up to three lines", () => {
+    const card = (lines: readonly (string | { text: string; gloss?: string })[], seconds?: number) => lesson({ id: "goal", card: { title: "{今日|きょう}の もくひょう", gloss: "Today’s goal", lines, ...(seconds ? { seconds } : {}) } });
+    const three = [first, { text: "{水|みず}を ください。", gloss: "Water, please." }, { text: "いくらですか。", gloss: "How much is it?" }], film = card(three), shot = film.shots[0];
+    expect(film.shots).toHaveLength(1); expect(shot.layout).toBe("full"); expect(shot.roles ?? []).toHaveLength(0);
+    expect(shot.seconds - card(three, 4).shots[0].seconds).toBeCloseTo(3 + 2.5 * 3 - 4, 1);
+    const shown = english(film, planStorybook(film).shots[0].start + shot.seconds / 2);
+    expect(shown).toEqual(expect.arrayContaining([line.en, "Water, please.", "How much is it?"])); expect(shown).not.toContain("Today’s goal");
+    expect(() => card([...three, first])).toThrow('Card "goal" has 4 lines; a card has 3 at most.');
+    expect(() => card(["no-such-line"])).toThrow('Card "goal": there is no line "no-such-line".');
+  });
   it("put the picture of a line below the title and beside the speaker", () => {
     const lib = storyLibrary(), prop = Object.keys(lib.props).find(k => lib.props[k].width > lib.props[k].height)!, second = Object.keys(KONBINI_LINES)[1];
     const film = lesson({ id: "say", practice: { lines: [first, second], pictures: { [first]: prop } } }), shot = film.shots.find(s => s.id.endsWith(`practice-${first}`))!;

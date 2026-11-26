@@ -9,6 +9,7 @@
  */
 import type { EasingSpec } from "../../motion/types";
 import { floorOf } from "../../rig/rig-walk";
+import { parseRuby, rubyPlain } from "./japanese-text";
 import { storyLineSeconds } from "./storybook-film";
 import type { StoryAct, StoryActor, StoryAttend, StoryBurst, StoryCameraKey, StoryDrift, StoryFiredBurst, StoryHold, StoryLine, StoryPlace, StoryRole, StorySay, StorySet, StoryShot, StorySound, StoryStagedProp, StoryTransition, StoryWords, StorybookFilm } from "./storybook-film";
 
@@ -62,7 +63,9 @@ export interface TeachStage { stage: string; /** Someone who asks, and someone w
 export interface PlayPractice { lines: readonly string[]; title?: string; gloss?: string; /** Seconds for the viewer, times the length of the line. */ slack?: number; /** A painted picture of the moment for a line, by line id, beside it. */ pictures?: Readonly<Record<string, string | { prop: string; view?: string }>>; /** A review page: the English of a line comes this many seconds after its Japanese. */ reveal?: number; /** How many times each line is said, each with a pause to say it after. Default 1. */ times?: number }
 export interface PlayRecap { words: readonly { text: string; gloss?: string; prop?: string; /** Another drawing of it. */ view?: string }[]; title?: string; gloss?: string; seconds?: number; /** The English of each word comes this many seconds after it. */ reveal?: number }
 export interface PlayQuiz { ask: string; items: readonly { prop: string; view?: string; answer: string; word: string; gloss?: string }[]; /** Seconds to think. */ think?: number }
-export type PlayLesson = { id: string; join?: PlayShot["join"] } & ({ practice: PlayPractice } | { recap: PlayRecap } | { quiz: PlayQuiz });
+/** A page with a title and up to three lines: the goal of a story, or the name of a chapter. A line is a line id or words. */
+export interface PlayCard { title: string; gloss?: string; lines?: readonly (string | { text: string; gloss?: string })[]; seconds?: number }
+export type PlayLesson = { id: string; join?: PlayShot["join"] } & ({ practice: PlayPractice } | { recap: PlayRecap } | { quiz: PlayQuiz } | { card: PlayCard });
 export interface StoryPlay { id: string; title: string; scenes: readonly (PlayScene | PlayLesson)[] }
 /** What screenplays are made from. */
 export interface PlayLibrary {
@@ -342,7 +345,14 @@ function quizScene(id: string, o: PlayQuiz, at: TeachStage, lib: PlayLibrary): P
   });
   return { id, stage: at.stage, cast: { [who]: near(at.asker) }, cover: "none", beats };
 }
+/** A title and up to three lines on a page of its own. The English of the lines shows; that of the title needs the switch. */
+function cardScene(id: string, o: PlayCard, at: TeachStage, lib: PlayLibrary): PlayScene {
+  const lines = (o.lines ?? []).map(l => { if (typeof l !== "string") return l; const said = lib.lines[l]; if (!said) throw new Error(`Card "${id}": there is no line "${l}".`); return { text: said.ja, gloss: said.en }; });
+  if (lines.length > 3) throw new Error(`Card "${id}" has ${lines.length} lines; a card has 3 at most.`);
+  const page = pageOf(at, lib, "full"), title = titled(at, lib, page, { text: o.title, gloss: o.gloss, tone: "title", place: [960, 260], size: 84 }, 900);
+  return { id, stage: at.stage, layout: "full", cast: {}, props: title.give, cover: "none", beats: [{ shot: { id: "card", size: "wide", move: "hold", about: `A page: ${[o.title, ...lines.map(l => l.text)].map(t => rubyPlain(parseRuby(t))).join(" · ")}` }, seconds: o.seconds ?? 3 + 2.5 * lines.length, sounds: lib.sounds?.["page-turns"] ? [{ sound: "page-turns", at: 0.34 }] : [], words: [...title.words, ...lines.map((l, i): PlayWords => ({ text: l.text, gloss: l.gloss, means: true, place: [960, 470 + 150 * i], size: 60, at: 0.6 + 0.5 * i }))] }] };
+}
 function lessonScene(s: PlayLesson, lib: PlayLibrary): PlayScene {
   const at = lib.teach; if (!at) throw new Error(`"${s.id}" is a lesson, and the library has no place for lessons.`);
-  return { ...("practice" in s ? practiceScene(s.id, s.practice, at, lib) : "recap" in s ? recapScene(s.id, s.recap, at, lib) : quizScene(s.id, s.quiz, at, lib)), join: s.join ?? "page" };
+  return { ...("practice" in s ? practiceScene(s.id, s.practice, at, lib) : "recap" in s ? recapScene(s.id, s.recap, at, lib) : "card" in s ? cardScene(s.id, s.card, at, lib) : quizScene(s.id, s.quiz, at, lib)), join: s.join ?? "page" };
 }
