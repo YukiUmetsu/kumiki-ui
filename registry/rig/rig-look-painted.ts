@@ -154,10 +154,13 @@ export function outlined(bind: Extract<PaintedBind, { kind: "limb" }>, rest: Rig
   const paint = (s: number, n: number): PaintedPoint => (s < L1 ? [S[0] + d1[0] * s - d1[1] * n, S[1] + d1[1] * s + d1[0] * n] : [E0[0] + d2[0] * (s - L1) - d2[1] * n, E0[1] + d2[1] * (s - L1) + d2[0] * n]);
   const wide = (s: number) => calm(s, 0.07 * (L1 + L2), r => r[2] - r[1]), he = (calm(L1, 0.14 * (L1 + L2), r => r[2] - r[1]) * scale) / 2;
   const hole = bind.root?.hole, pit = hole && hole[hole.length - 1], inner = pit ? Math.sign(-(pit[0] - S[0]) * d1[1] + (pit[1] - S[1]) * d1[0]) || 1 : 0, first = sides[0][0], at0 = pit ? Math.min(0.8 * L1, (pit[0] - S[0]) * d1[0] + (pit[1] - S[1]) * d1[1]) : first;
-  // the joint: a corner outside, a crease inside, both where the edges of the two parts meet
-  const half = Math.abs(turn) / 2, sum = [n1[0] + n2[0], n1[1] + n2[1]], len = Math.hypot(...sum) || 1e-6, mid = [sum[0] / len, sum[1] / len], inside = Math.sign(turn) || 1, crease = Math.min(he / Math.max(0.05, Math.cos(half)), (0.55 * Math.min(l1, l2)) / Math.max(1e-3, Math.sin(half))), tip = Math.min(0.24, 0.45 * (1 / Math.max(0.3, Math.cos(half)) - 1)), d = Math.min((he / scale) * half, 0.3 * Math.min(L1, L2));
-  const J: PaintedPoint = [E[0] + mid[0] * inside * crease, E[1] + mid[1] * inside * crease], c = crease * Math.sin(half), low = crease * Math.cos(half);
-  const corner = (x: number): PaintedPoint => { const a = half * x * inside, r = -inside * he * (1 + tip * (1 - x * x) ** 2), vx = mid[0] * Math.cos(a) - mid[1] * Math.sin(a), vy = mid[0] * Math.sin(a) + mid[1] * Math.cos(a); return [E[0] + vx * r, E[1] + vy * r]; };
+  // the joint: a crease inside where the edges of the two parts meet; outside, the point of the elbow. In photographs of a bent arm the two outer edges go on straight and meet in a point that is round only at its tip, not far past the joint: an arc round the joint looks like a ball.
+  const half = Math.abs(turn) / 2, sum = [n1[0] + n2[0], n1[1] + n2[1]], len = Math.hypot(...sum) || 1e-6, mid = [sum[0] / len, sum[1] / len], inside = Math.sign(turn) || 1, crease = Math.min(he / Math.max(0.05, Math.cos(half)), (0.55 * Math.min(l1, l2)) / Math.max(1e-3, Math.sin(half)));
+  const J: PaintedPoint = [E[0] + mid[0] * inside * crease, E[1] + mid[1] * inside * crease], c = crease * Math.sin(half), low = crease * Math.cos(half), out = [-inside * mid[0], -inside * mid[1]], reach = he * (1 + 0.8 * (Math.min(1 / Math.max(0.05, Math.cos(half)), 1.45) - 1));
+  const tip: PaintedPoint = [E[0] + out[0] * reach, E[1] + out[1] * reach], across = [-out[1], out[0]], o1 = [-inside * n1[0] * he, -inside * n1[1] * he], o2 = [-inside * n2[0], -inside * n2[1]];
+  const meet = (p: PaintedPoint, e: readonly number[]): PaintedPoint => { const den = e[0] * across[1] - e[1] * across[0], t = Math.abs(den) < 1e-9 ? 0 : ((tip[0] - p[0]) * across[1] - (tip[1] - p[1]) * across[0]) / den; return [p[0] + e[0] * t, p[1] + e[1] * t]; };
+  const bezier = (a: PaintedPoint, m: PaintedPoint, b: PaintedPoint, t: number): PaintedPoint => [(1 - t) ** 2 * a[0] + 2 * (1 - t) * t * m[0] + t * t * b[0], (1 - t) ** 2 * a[1] + 2 * (1 - t) * t * m[1] + t * t * b[1]];
+  const run = (a: PaintedPoint, m: PaintedPoint, b: PaintedPoint) => (Math.hypot(b[0] - a[0], b[1] - a[1]) + Math.hypot(m[0] - a[0], m[1] - a[1]) + Math.hypot(b[0] - m[0], b[1] - m[1])) / 2 / scale;
   // the root: the armhole on the body, its top carried along by the shoulder
   const on = (q: PaintedPoint): PaintedPoint => put(base ?? mu, ...q), Sn = put(mu, ...S), Sb = on(S), shift = [Sn[0] - Sb[0], Sn[1] - Sb[1]], carried = (q: PaintedPoint, w: number): PaintedPoint => { const r = on(q); return [r[0] + shift[0] * w, r[1] + shift[1] * w]; };
   const armpit = pit && carried(paint(at0, row(at0, inner < 0 ? 1 : 2)), 0.3), q0 = inner * mirror;
@@ -169,14 +172,21 @@ export function outlined(bind: Extract<PaintedBind, { kind: "limb" }>, rest: Rig
     return [r[0] - n1[0] * q0 * more, r[1] - n1[1] * q0 * more];
   };
   const edges = ([1, 2] as const).map(j => {
-    const q = (j === 1 ? -1 : 1) * mirror, bent = q === inside, R = rootOf(j), from = inner && (j === 1) === inner < 0 ? at0 : first, chordA = row(from, j), chordB = row(L1, j), P1: PaintedPoint = bent ? J : corner(-1);
+    const q = (j === 1 ? -1 : 1) * mirror, bent = q === inside, R = rootOf(j), from = inner && (j === 1) === inner < 0 ? at0 : first, chordA = row(from, j), chordB = row(L1, j);
+    // outside: straight from the root to where the point of the elbow starts, a curve to its tip and on to the forearm, each curve tangent to its straight edge
+    const P1: PaintedPoint = bent ? J : [E[0] + o1[0], E[1] + o1[1]], m1 = meet(P1, u1), full = (P1[0] - R[0]) * u1[0] + (P1[1] - R[1]) * u1[1], back = Math.max(-0.7 * full, (m1[0] - P1[0]) * u1[0] + (m1[1] - P1[1]) * u1[1] - Math.hypot(tip[0] - m1[0], tip[1] - m1[1])), P: PaintedPoint = [P1[0] + u1[0] * back, P1[1] + u1[1] * back];
+    const m2 = meet([E[0] + o2[0] * he, E[1] + o2[1] * he], u2), aQ = (m2[0] - E[0]) * u2[0] + (m2[1] - E[1]) * u2[1] + Math.hypot(tip[0] - m2[0], tip[1] - m2[1]), Q: PaintedPoint = [E[0] + u2[0] * aQ + o2[0] * he, E[1] + u2[1] * aQ + o2[1] * he];
+    const sP = Math.max(from + 0.25 * (L1 - from), L1 - run(P, m1, tip)), vQ = Math.min(0.5 * L2, Math.max(1e-3, run(tip, m2, Q)));
+    const thick = (v: number) => lerp(bent ? low : he, (wide(L1 + v) * scale) / 2, smooth((v - (bent ? 0 : vQ)) / (0.35 * L2)));
     // the round of the shoulder stays on the outside
     const round = (s: number) => (inner && (j === 1) !== inner < 0 ? Math.max(0, Math.min(0.07 * L1, (calm(s, 0.1 * (L1 + L2), r => r[j]) - lerp(chordA, chordB, (s - from) / (L1 - from))) * (j === 1 ? -1 : 1))) * Math.sin(Math.PI * Math.min(1, (s - from) / (L1 - from))) * scale : 0);
     return (s: number): PaintedPoint => {
       if (s < from) return inner && (j === 1) === inner < 0 ? carried(paint(s, row(s, j)), lerp(1, 0.3, Math.max(0, s / at0))) : R;
-      if (s <= L1 - (bent ? 0 : d)) { const f = (s - from) / (L1 - (bent ? 0 : d) - from || 1), b = round(s) * q; return [lerp(R[0], P1[0], f) + n1[0] * b, lerp(R[1], P1[1], f) + n1[1] * b]; }
-      const v = s - L1; if (!bent && v < d) return corner(v / (d || 1));
-      const a = bent ? v * k2 + c * Math.max(0, 1 - v / (0.7 * L2)) : ((v - d) / (L2 - d || 1)) * l2, h = lerp(bent ? low : he, (wide(s) * scale) / 2, smooth(v / (0.35 * L2))), X = E[0] + u2[0] * a + n2[0] * q * h, Y = E[1] + u2[1] * a + n2[1] * q * h, w = smooth((v - 0.72 * L2) / (0.22 * L2)); if (w <= 0) return [X, Y];
+      const end = bent ? L1 : sP;
+      if (s <= end) { const f = (s - from) / (end - from || 1), b = round(s) * q, to = bent ? P1 : P; return [lerp(R[0], to[0], f) + n1[0] * b, lerp(R[1], to[1], f) + n1[1] * b]; }
+      const v = s - L1; if (!bent && v < 0) return bezier(P, m1, tip, (s - sP) / (L1 - sP || 1));
+      if (!bent && v < vQ) return bezier(tip, m2, Q, v / vQ);
+      const a = bent ? v * k2 + c * Math.max(0, 1 - v / (0.7 * L2)) : aQ + ((v - vQ) / (L2 - vQ || 1)) * (l2 - aQ), h = thick(v), X = E[0] + u2[0] * a + n2[0] * q * h, Y = E[1] + u2[1] * a + n2[1] * q * h, w = smooth((v - 0.72 * L2) / (0.22 * L2)); if (w <= 0) return [X, Y];
       const r = put(ml, ...paint(s, row(s, j))); return [lerp(X, r[0], w), lerp(Y, r[1], w)];
     };
   });
