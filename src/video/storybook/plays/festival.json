@@ -47,7 +47,7 @@
      "mood": "happy",
      "pose": {"daichi": [{"act": "cook", "hand": "f", "to": [-11, -117], "wide": 10, "angle": -82, "grip": "bar"}, {"act": "cook", "hand": "b", "to": [0, -117], "wide": 10, "late": 0.5, "angle": 82, "grip": "bar"}]},
      "give": [{"prop": "pick-2", "to": "daichi:bar-b", "hidden": true}],
-     "do": [{"who": "daichi", "act": "call", "hand": "b", "at": -0.2, "for": 3.4, "grip": "easy"}]
+     "do": [{"who": "daichi", "act": "call", "hand": "b", "at": -0.2, "for": 3.4}]
     },
     {
      "shot": {"id": "look", "on": ["leo", "sophie"], "size": "chest", "from": "door"},

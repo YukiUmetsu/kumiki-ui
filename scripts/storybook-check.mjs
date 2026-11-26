@@ -27,12 +27,13 @@ for (const f of checked.faults) console.log(`FAULT ${f}`);
 for (const j of checked.joints.filter(j => j.level === "can")) console.log(`FAULT ${say(j)}`);
 for (const c of checked.counters) console.log(`FAULT ${c}`);
 for (const c of checked.jumps) console.log(`FAULT ${c}`);
+for (const c of checked.palms) console.log(`FAULT ${c}`);
 for (const j of checked.joints.filter(j => j.level === "easy")) console.log(`LOOK  ${say(j)}`);
 for (const h of checked.hidden) console.log(`LOOK  ${h}`);
 for (const g of checked.grips) console.log(`LOOK  ${g}`);
 for (const l of checked.short) console.log(`LOOK  ${l}`);
 for (const a of checked.unstudied) console.log(`STUDY "${a}" has no photograph in ACT_STUDIES (registry/rig/rig-act-studies.ts): look at one before its joints are set.`);
-const wrong = checked.faults.length + checked.counters.length + checked.jumps.length + checked.joints.filter(j => j.level === "can").length;
+const wrong = checked.faults.length + checked.counters.length + checked.jumps.length + checked.palms.length + checked.joints.filter(j => j.level === "can").length;
 console.log(`${name}: ${wrong} faults, ${checked.hidden.length + checked.grips.length + checked.short.length + checked.joints.filter(j => j.level !== "can").length} to look at, ${checked.acts.length} acts of arms, ${checked.unstudied.length} without a study.`);
 if (opt.out) {
   const worst = a => checked.joints.filter(j => j.shot === a.shot && j.actor === a.actor && j.acts.includes(a.act)).reduce((w, j) => Math.max(w, j.level === "can" ? 1000 : 0) + Math.max(j.range[0] - j.angle, j.angle - j.range[1]), 0), one = new Map();

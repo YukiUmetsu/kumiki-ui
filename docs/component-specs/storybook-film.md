@@ -57,10 +57,10 @@ const film = {
 | basic | `look` `sway` `lean` `breathe` `turn` `sit` |
 | talk | `speak` `listen` `nod` `shake` `explain` `invite` `point` `wave` `call` `greet` `bow` `deep-bow` `thank` `apologise` |
 | feel | `think` `react` `laugh` `puzzled` `shrug` `clap` `hop` `look-around` `feel` |
-| hands | `reach` `place` `take` `carry` `offer` `receive` `raise` `rest` `beckon` `drink` `eat` `phone` |
+| hands | `reach` `place` `show` `take` `carry` `offer` `receive` `raise` `rest` `beckon` `drink` `eat` `phone` |
 | work | `scan` `pack` `press` `fold` `unfold` `fan` `steer` `cook` |
 
-An act is a function of time. It can be drawn at any frame, cut off by the next one or blended with it.
+An act is a function of time. It can be drawn at any frame, cut off by the next one or blended with it. An act at `to` with no `hand` uses the hand on the side of `to` when the figure faces the viewer. `point` turns the eyes and the head to `to`: an act that holds the eyes is not mixed with other looks.
 
 Walking comes from the role's `path`. Breath, sway, eye movement and seeded blinks are there without an act.
 
@@ -75,9 +75,10 @@ A pose passes three questions, in this order.
 A range is no pose. A hand on a wheel can be inside all ranges and still hold it as nobody does.
 
 - **A hand has a side.** The kit has palms, backs, thumbs and little fingers. A drawing says what it shows (`shows`) and which grip it stands for (`as`). The solver takes the one that the forearm can show.
-- **An arm has bones.** A sleeve is drawn (`outlined`) with straight parts, a corner outside the elbow, a crease inside, and a root as wide as its armhole. The lines come from photographs of sleeves. A sleeve that was bent smoothly looked like a hose.
+- **A palm faces where the photographs show it.** `sides` of an act in `ACT_STUDIES` names the sides of the hand that its photographs show: the thumb side of a cupped hand at the mouth for `call` (a palm to the viewer covers the face), the back or the thumb side of a hand that gives over a counter or holds a bag up by its handles. The solver takes a drawing of another side only when the grip has no drawing of these. `story:check` reports a hand that is drawn with the wrong side. After a hand gives a thing, it goes back to ease (`easy`, the default `after` of `place`): an open palm turned up asks for something (the owner's finding on Riku).
+- **An arm has bones.** A sleeve is drawn (`outlined`) with straight parts, a corner outside the elbow, a crease inside, and a root as wide as its armhole. The lines come from photographs of sleeves. A sleeve that was bent smoothly looked like a hose. A short sleeve (its hem above the elbow) keeps the line it was painted with: straight edges went across the step of its hem and tore it open at a bent elbow.
 - **A hand goes over a counter at its far edge.** `raise.edge` of a spot is where that edge is.
-- **A forearm keeps its length in the picture.** A bare painted forearm drawn shorter than half its length points at the viewer, and a flat painting of it is a lump as wide as its elbow (the owner's finding on Daichi). `armInBands` costs a short forearm, and a hand that the arm does not reach in its bands stops short. It does not take a pose that reaches exactly out of the bands: that pose flipped with the next one from frame to frame.
+- **A forearm keeps its length in the picture.** A bare painted forearm drawn shorter than half its length points at the viewer, and a flat painting of it is a lump as wide as its elbow (the owner's finding on Daichi). `armInBands` costs a short forearm, and a hand that the arm does not reach in its bands stops short. It does not take a pose that reaches exactly out of the bands: that pose flipped with the next one from frame to frame. Of the elbows that reach the hand in the bands, it takes the one nearest the middle of both bands. A pull to one band only put the elbow at one end of the elbows that reach in one frame and at the other end in the next.
 - **A hand joins its arm smoothly.** The paint of a forearm fades out over its last part under the hand drawing (`PaintedMesh.fade`), and most at the sides of the wrist. A hard edge of the sleeve or the skin did not show there.
 
 ## Add a figure
@@ -85,7 +86,7 @@ A range is no pose. A hand on a wheel can be inside all ranges and still hold it
 A new person, front view: follow [Add a person](storybook-character.md). One command paints the missing faces, proposes the card, cuts and checks the figure. A rear figure: write a card (see [storybook-episode](storybook-episode.md#a-figure)). A side or three-quarter figure, by hand:
 
 1. Get a front, three-quarter, side or rear painting of the figure on plain paper, and paintings of its hands and faces. Keep the paintings in `local-assets/`, which git ignores. The cut art goes into the host's assets.
-2. Write a recipe (the head of `storybook-art.py` gives each field): the joints in pixels, one polygon for each layer, steps that paint what lies hidden, hand drawings, face patches with marks on the lips, sockets.
+2. Write a recipe (the head of `storybook-art.py` gives each field): the joints in pixels, one polygon for each layer, steps that paint what lies hidden, hand drawings, face patches with marks on the lips, sockets. `kit` gives the figure every hand of the cast's kit in its size and skin (`{ file, skin, size }`), so that each act finds the drawing of the side it needs.
 3. Run `python scripts/storybook-art.py recipe.json --src paintings --out assets`. It removes the paper, cuts, registers each face patch and prints how well each one fits. It writes `_assembled.png`, the layers put back together, and prints the likeness with the painting. Delete that picture after you look at it.
 4. Look at the figure in `Views`, `Joints and grips`, `Shoulders and elbows`, `Walk` and `Expressions`.
 

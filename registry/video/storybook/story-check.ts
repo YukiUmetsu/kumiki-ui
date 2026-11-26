@@ -4,7 +4,7 @@
  * a counter only while it is over its far edge, does an elbow go its way without a jump, and is a hand that does something seen. It also gives each act of an arm with the moment and the part of the picture where it
  * is seen best, so that one sheet shows every pose of a film. A range is no pose: look at the sheet. Pure.
  */
-import { ACTS, actParams, type Act, type ActHand } from "../../rig/rig-acting";
+import { ACTS, OTHER_SIDE, actParams, type Act, type ActHand } from "../../rig/rig-acting";
 import { ACT_STUDIES } from "../../rig/rig-act-studies";
 import { JOINT_RANGES, type JointId } from "../../rig/rig-comfort";
 import type { PaintedMesh } from "../../rig/rig-look-painted";
@@ -12,7 +12,7 @@ import { playRole, storyDepth, storyRaised, storyView, type PlannedShot, type St
 
 export interface JointFound { shot: string; actor: string; /** What the actor does then. */ acts: readonly string[]; hand?: ActHand; joint: JointId; /** Degrees, at the worst moment. */ angle: number; range: readonly [number, number]; /** `can`: no person can. `easy`: it looks strained. */ level: "can" | "easy"; /** Seconds of the film: the worst moment. */ t: number; /** How long. */ seconds: number; /** Past the band of the wrist that the study of the act shows (`ACT_STUDIES` hand), not past what is easy. */ studied?: boolean }
 export interface ArmActSeen { shot: string; actor: string; view: string; act: string; hands: readonly ActHand[]; /** Seconds of the film. */ t: number; /** Left, top, width, height: parts of the picture. */ box: readonly [number, number, number, number]; /** The act has no study. */ unstudied: boolean }
-export interface StoryChecked { joints: JointFound[]; counters: string[]; /** Elbows that jump from one frame to the next. */ jumps: string[]; /** Hands that do something behind someone else. */ hidden: string[]; /** Hands drawn with a grip that the study of the act does not show. */ grips: string[]; /** Forearms drawn so short that a painting shows a lump. */ short: string[]; acts: ArmActSeen[]; /** Acts of arms that nobody has looked at a photograph for. */ unstudied: string[] }
+export interface StoryChecked { joints: JointFound[]; counters: string[]; /** Elbows that jump from one frame to the next. */ jumps: string[]; /** Hands that do something behind someone else. */ hidden: string[]; /** Hands drawn with a grip that the study of the act does not show. */ grips: string[]; /** Hands whose drawing shows a side that the photographs of the act do not: the palm faces the wrong way. */ palms: string[]; /** Forearms drawn so short that a painting shows a lump. */ short: string[]; acts: ArmActSeen[]; /** Acts of arms that nobody has looked at a photograph for. */ unstudied: string[] }
 
 const ARM = /^(arm|hand)-/, BODY = /^(torso|trunk|arm-|head|leg-|skirt|coat)/, RAD = Math.PI / 180;
 const turnOf = (p: StoryPlayed, bone: string) => { const w = p.frame.bones.get(bone)?.world; return w ? Math.atan2(w.b, w.a) / RAD : 0; };
@@ -59,7 +59,7 @@ function handsOf(act: Act | undefined, params: Readonly<Record<string, unknown>>
 
 export interface StoryCheckOptions { /** Only these shots. */ shots?: readonly string[]; /** Moments a second. Default 12. */ rate?: number }
 export function checkStory(plan: StoryPlan, o: StoryCheckOptions = {}): StoryChecked {
-  const { film } = plan, library: Readonly<Record<string, Act>> = film.acts ? { ...ACTS, ...film.acts } : ACTS, out: StoryChecked = { joints: [], counters: [], jumps: [], hidden: [], grips: [], short: [], acts: [], unstudied: [] }, missing = new Set<string>();
+  const { film } = plan, library: Readonly<Record<string, Act>> = film.acts ? { ...ACTS, ...film.acts } : ACTS, out: StoryChecked = { joints: [], counters: [], jumps: [], hidden: [], grips: [], palms: [], short: [], acts: [], unstudied: [] }, missing = new Set<string>();
   for (const planned of plan.shots) if (!o.shots || o.shots.includes(planned.shot.id)) for (const role of planned.shot.roles ?? []) checkRole(planned, role);
   out.unstudied = [...missing].sort();
   return out;
@@ -114,6 +114,9 @@ export function checkStory(plan: StoryPlan, o: StoryCheckOptions = {}): StoryChe
       const grips = ACT_STUDIES[a.act]?.hand?.grips, drawings = p.figure.body.hands ?? {};
       // another act that has the hand now (one without a study, or one that holds it so) draws it
       for (const h of a.hands) { const drawn = p.hands[`hand-${h}`], of = drawn && (drawings[drawn]?.as ?? drawn), now = timed.filter(o => o.hands.includes(h) && t >= o.at && t <= o.at + o.d); if (grips && of && now.every(o => !ACT_STUDIES[o.act]?.hand?.grips.includes(of) && !!ACT_STUDIES[o.act]?.hand)) out.grips.push(`${shot.id} ${(start + t).toFixed(2)} s: hand ${h} of "${role.actor}" (${a.act}) is drawn "${drawn}"; the study of the act holds it ${grips.map(g => `"${g}"`).join(" or ")}.`); }
+      // the side of the hand that the viewer sees is where its palm faces: an act whose photographs show other sides has it the wrong way
+      const behind = Math.sin(((p.figure.body.facing ?? 45) * Math.PI) / 180) < -0.3;
+      for (const h of a.hands) { const drawn = p.hands[`hand-${h}`], shows = drawn ? drawings[drawn]?.shows : undefined, side = shows && behind ? OTHER_SIDE[shows] : shows, now = timed.filter(o => o.hands.includes(h) && t >= o.at && t <= o.at + o.d); if (side && ACT_STUDIES[a.act]?.sides && now.every(o => !!ACT_STUDIES[o.act]?.sides && !ACT_STUDIES[o.act]!.sides!.includes(side))) out.palms.push(`${shot.id} ${(start + t).toFixed(2)} s: hand ${h} of "${role.actor}" (${a.act}) is drawn "${drawn}", which shows its ${side}; the photographs of the act show its ${ACT_STUDIES[a.act]!.sides!.join(" or ")}: the palm faces the wrong way.`); }
       for (const h of a.hands) { const q = storyRaised(p, `hand-${h}`, t) ? null : boxOf(p.meshes.filter(m => m.id.split("/")[0] === `hand-${h}`), (x, y) => [x, y]); if (q && over(front, (q[0] + q[2]) / 2, (q[1] + q[3]) / 2)) out.hidden.push(`${shot.id} ${(start + t).toFixed(2)} s: hand ${h} of "${role.actor}" (${a.act}) is behind someone.`); }
       const pad = 0.12 * Math.max(b[2] - b[0], b[3] - b[1]), x0 = Math.max(r.x, b[0] - pad), y0 = Math.max(r.y, b[1] - pad), x1 = Math.min(r.x + r.width, b[2] + pad), y1 = Math.min(r.y + r.height, b[3] + pad); if (x1 - x0 < 24 || y1 - y0 < 24) continue;
       out.acts.push({ shot: shot.id, actor: role.actor, view: role.view ?? Object.keys(p.actor.figures)[0], act: a.act, hands: a.hands, t: start + t, box: [x0 / W, y0 / H, (x1 - x0) / W, (y1 - y0) / H], unstudied });
