@@ -22,7 +22,8 @@ export const JOINT_RANGES: Readonly<Record<JointId, JointRange>> = {
   across: { can: [0, 60], easy: [0, 35], about: "Upper arm over the chest, past straight ahead." },
   bend: { can: [0, 150], easy: [0, 135], about: "Elbow; 0 is straight." },
   turn: { can: [-85, 80], easy: [-80, 75], about: "Forearm; 0 has the thumb up at a bent elbow, plus turns the palm down." },
-  "wrist-flex": { can: [-70, 80], easy: [-48, 48], about: "Wrist; plus bends to the palm." },
+  // the tasks of daily life that Gates et al. 2016 measured need no more than 38° to the palm and 40° back (https://pmc.ncbi.nlm.nih.gov/articles/PMC4690598/)
+  "wrist-flex": { can: [-70, 80], easy: [-40, 40], about: "Wrist; plus bends to the palm." },
   "wrist-side": { can: [-20, 30], easy: [-18, 28], about: "Wrist; minus to the thumb, plus to the little finger." },
   "neck-turn": { can: [-60, 60], easy: [-45, 45], about: "Head to a side." },
   "neck-nod": { can: [-45, 45], easy: [-20, 30], about: "Head; plus looks down." },
@@ -76,9 +77,9 @@ export function armEffort(got: ArmAngles): number {
   const over = (v: number | undefined, free: number, unit: number) => Math.max(0, Math.abs(v ?? 0) - free) / unit;
   return over(got.raise, 10, 35) ** 2 + over(got.behind, 5, 20) ** 2 + over(got.aside, 12, 14) ** 2 + over(got.across, 5, 25) ** 2 + over((got.bend ?? 80) - 80, 30, 60) ** 2 + over(got["wrist-flex"], 15, 25) ** 2 + over(got["wrist-side"], 8, 15) ** 2 + over(got.turn, 45, 35) ** 2 + armStrain(got) / 10;
 }
-/** How far a hand bends from its forearm in the picture, clockwise: to the thumb and to the little finger when its palm or its back is seen, to the palm and back when it is seen from its edge. */
-export function wristRange(side: "f" | "b", shows: HandView): readonly [number, number] {
-  const [lo, hi] = JOINT_RANGES[shows === "palm" || shows === "back" ? "wrist-side" : "wrist-flex"].easy, { palm, thumb } = handAxes(side, [0, 1, 0], shows);
+/** How far a hand bends from its forearm in the picture, clockwise: to the thumb and to the little finger when its palm or its back is seen, to the palm and back when it is seen from its edge. `studied`: what the study of the act shows (`ACT_STUDIES` hand), in place of what is easy. */
+export function wristRange(side: "f" | "b", shows: HandView, studied?: Partial<Record<JointId, readonly [number, number]>>): readonly [number, number] {
+  const joint = shows === "palm" || shows === "back" ? "wrist-side" : "wrist-flex", { can, easy } = JOINT_RANGES[joint], own = studied?.[joint], [lo, hi] = own ? [Math.max(can[0], own[0]), Math.min(can[1], own[1])] : easy, { palm, thumb } = handAxes(side, [0, 1, 0], shows);
   // to its right in the picture is against the clock for a hand that points down
   const first = shows === "palm" || shows === "back" ? -thumb[0] : palm[0];
   return first > 0 ? [-hi, -lo] : [lo, hi];

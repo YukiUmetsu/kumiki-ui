@@ -50,7 +50,7 @@
      "shot": {"on": "daniel", "size": "chest", "pace": 0},
      "say": "ryokan",
      "to": "sato",
-     "do": [{"who": "daniel", "act": "place", "hand": "f", "to": [16, -52], "grip": "hold", "release": 1, "in": 0.9, "away": 0.7, "at": 0.05, "for": 3.2}],
+     "do": [{"who": "daniel", "act": "place", "hand": "f", "to": [16, -52], "grip": "open", "release": 1, "in": 0.9, "away": 0.7, "at": 0.05, "for": 3.2}],
      "give": [{"prop": "phone", "to": "daniel:palm-f", "view": "inn", "angle": 196}]
     },
     {"shot": {"on": "sato", "size": "chest", "pace": 0}, "say": "belt", "to": "daniel", "look": {"sato": "mirror"}, "do": [{"who": "sato", "act": "nod", "at": 0.1}]},

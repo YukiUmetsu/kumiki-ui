@@ -118,9 +118,9 @@ export const KONBINI_FILM: StorybookFilm = {
     },
     {
       id: "bag", label: "Riku holds up a bag and asks if one is needed.", set: "till", seconds: 2.9,
-      camera: [{ t: 0, at: [-38, -143], tall: 74 }, { t: 2.9, at: [-40, -144], tall: 70, ease: "ease-in-out-quad" }],
-      // the bag comes up from under the counter
-      roles: [{ ...RIKU, acts: [{ act: "rest", at: -1, for: 3, ease: [0.1, 0.5], params: { hand: "f", to: [-72, -96], grip: "grip", angle: 36, lean: 0 } }, { act: "rest", at: -0.1, for: 6, ease: [1.2, 0.3], params: { hand: "f", to: [-62, -138], grip: "grip", angle: 66, lean: 0 } }] }],
+      camera: [{ t: 0, at: [-34, -140], tall: 80 }, { t: 2.9, at: [-36, -141], tall: 76, ease: "ease-in-out-quad" }],
+      // the bag comes up from under the counter and its bottom on the counter top: the hand at the height of the chest, toward the customer, the elbow bent near a right angle and not higher than the ribs
+      roles: [{ ...RIKU, acts: [{ act: "rest", at: -1, for: 3, ease: [0.1, 0.5], params: { hand: "f", to: [-56, -98], grip: "grip", angle: 36, lean: 0 } }, { act: "rest", at: -0.1, for: 6, ease: [1.2, 0.3], params: { hand: "f", to: [-46, -130], grip: "grip", angle: 66, lean: 0 } }] }],
       props: [{ prop: "bag", holds: [{ t: 0, by: "riku", socket: "fist-f", view: "empty" }] }, PRICED],
       says: [{ line: "bag", at: 0.3 }],
       sounds: [{ src: bagOpens, at: 0.02, lead: 0.06, for: 0.9, gain: -15, fade: [0, 0.4] }],
