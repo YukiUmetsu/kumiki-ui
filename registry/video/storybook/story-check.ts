@@ -12,7 +12,7 @@ import { playRole, storyDepth, storyRaised, storyView, type PlannedShot, type St
 
 export interface JointFound { shot: string; actor: string; /** What the actor does then. */ acts: readonly string[]; hand?: ActHand; joint: JointId; /** Degrees, at the worst moment. */ angle: number; range: readonly [number, number]; /** `can`: no person can. `easy`: it looks strained. */ level: "can" | "easy"; /** Seconds of the film: the worst moment. */ t: number; /** How long. */ seconds: number; /** Past the band of the wrist that the study of the act shows (`ACT_STUDIES` hand), not past what is easy. */ studied?: boolean }
 export interface ArmActSeen { shot: string; actor: string; view: string; act: string; hands: readonly ActHand[]; /** Seconds of the film. */ t: number; /** Left, top, width, height: parts of the picture. */ box: readonly [number, number, number, number]; /** The act has no study. */ unstudied: boolean }
-export interface StoryChecked { joints: JointFound[]; counters: string[]; /** Elbows that jump from one frame to the next. */ jumps: string[]; /** Hands that do something behind someone else. */ hidden: string[]; /** Hands drawn with a grip that the study of the act does not show. */ grips: string[]; acts: ArmActSeen[]; /** Acts of arms that nobody has looked at a photograph for. */ unstudied: string[] }
+export interface StoryChecked { joints: JointFound[]; counters: string[]; /** Elbows that jump from one frame to the next. */ jumps: string[]; /** Hands that do something behind someone else. */ hidden: string[]; /** Hands drawn with a grip that the study of the act does not show. */ grips: string[]; /** Forearms drawn so short that a painting shows a lump. */ short: string[]; acts: ArmActSeen[]; /** Acts of arms that nobody has looked at a photograph for. */ unstudied: string[] }
 
 const ARM = /^(arm|hand)-/, BODY = /^(torso|trunk|arm-|head|leg-|skirt|coat)/, RAD = Math.PI / 180;
 const turnOf = (p: StoryPlayed, bone: string) => { const w = p.frame.bones.get(bone)?.world; return w ? Math.atan2(w.b, w.a) / RAD : 0; };
@@ -37,6 +37,10 @@ const STEADY = 3;
 const SURE: Partial<Record<JointId, number>> = { turn: 20 };
 /** Seconds that a joint has to be there. The drawing of a hand changes at once, while a forearm would turn. */
 const LASTS = { can: 0.1, drawing: 0.25, easy: 0.4 };
+/** Of its length, the shortest that a forearm is drawn: shorter, it points at the viewer, and a flat painting of it is a lump as wide as its elbow. Looked at in six films: sleeves drawn at 30–46 % read as cloth, a bare forearm at 35–38 % as a lump (the owner's finding on Daichi). */
+const LUMP = { bare: 0.5, sleeve: 0.3 };
+/** The cutter (`scripts/storybook-rig.py`) puts a hand over a bare forearm and under a sleeve. */
+const bareArm = (p: StoryPlayed, h: ActHand) => { const z = (id: string) => p.figure.art.layers.find(l => l.id === id)?.z, arm = z(`arm-${h}`), hand = z(`hand-${h}`); return arm !== undefined && hand !== undefined && hand > arm; };
 /** The joints of one figure at one moment. */
 function jointsOf(p: StoryPlayed): { joint: JointId; hand?: ActHand; angle: number }[] {
   const found: { joint: JointId; hand?: ActHand; angle: number }[] = [];
@@ -55,14 +59,14 @@ function handsOf(act: Act | undefined, params: Readonly<Record<string, unknown>>
 
 export interface StoryCheckOptions { /** Only these shots. */ shots?: readonly string[]; /** Moments a second. Default 12. */ rate?: number }
 export function checkStory(plan: StoryPlan, o: StoryCheckOptions = {}): StoryChecked {
-  const { film } = plan, library: Readonly<Record<string, Act>> = film.acts ? { ...ACTS, ...film.acts } : ACTS, out: StoryChecked = { joints: [], counters: [], jumps: [], hidden: [], grips: [], acts: [], unstudied: [] }, missing = new Set<string>();
+  const { film } = plan, library: Readonly<Record<string, Act>> = film.acts ? { ...ACTS, ...film.acts } : ACTS, out: StoryChecked = { joints: [], counters: [], jumps: [], hidden: [], grips: [], short: [], acts: [], unstudied: [] }, missing = new Set<string>();
   for (const planned of plan.shots) if (!o.shots || o.shots.includes(planned.shot.id)) for (const role of planned.shot.roles ?? []) checkRole(planned, role);
   out.unstudied = [...missing].sort();
   return out;
 
   function checkRole({ shot, start }: PlannedShot, role: StoryRole) {
     const fps = film.fps, every = Math.max(1, Math.round(fps / (o.rate ?? 12))), timed = (role.acts ?? []).map(a => ({ ...a, d: a.for ?? library[a.act]?.seconds ?? 1 })).map(a => ({ ...a, hands: handsOf(library[a.act], a.params ?? {}, a.d) }));
-    const worst = new Map<string, JointFound>(), was: Partial<Record<ActHand, boolean>> = {}, way: Record<ActHand, [number, number][]> = { f: [], b: [] }, jump = new Map<ActHand, { by: number; t: number; acts: readonly string[] }>();
+    const worst = new Map<string, JointFound>(), lump = new Map<string, { least: number; t: number; seconds: number; hand: ActHand; acts: readonly string[] }>(), was: Partial<Record<ActHand, boolean>> = {}, way: Record<ActHand, [number, number][]> = { f: [], b: [] }, jump = new Map<ActHand, { by: number; t: number; acts: readonly string[] }>();
     for (let n = 0; n <= Math.floor(shot.seconds * fps); n++) {
       const t = n / fps, p = playRole(film, shot, role, t), view = storyView(film, shot, t), on = timed.filter(a => t >= a.at && t <= a.at + a.d), acts = on.map(a => a.act);
       const seen = (id: string) => { const b = p.frame.bones.get(id)?.world; if (!b) return false; const [x, y] = view.put(b.e, b.f), r = view.rect; return x > r.x && y > r.y && x < r.x + r.width && y < r.y + r.height; };
@@ -86,6 +90,12 @@ export function checkStory(plan: StoryPlan, o: StoryCheckOptions = {}): StoryChe
           worst.set(key, past > before ? { shot: shot.id, actor: role.actor, acts, hand, joint, angle: Math.round(angle), range: [lo, hi], level, t: start + t, seconds: long, ...(level === "easy" && held.length ? { studied: true } : {}) } : { ...w!, seconds: long });
         }
       }
+      if (n % every === 0) for (const h of ["f", "b"] as const) {
+        const e = p.frame.bones.get(`fore-${h}`), w = p.frame.bones.get(`hand-${h}`)?.world, k = e && w ? Math.hypot(w.e - e.world.e, w.f - e.world.f) / (e.length * Math.hypot(p.frame.toScene.c, p.frame.toScene.d) || 1) : 1;
+        if (k >= LUMP[bareArm(p, h) ? "bare" : "sleeve"] || !seen(`fore-${h}`)) continue;
+        const key = `${h}/${acts.join("+")}`, was = lump.get(key), long = (was?.seconds ?? 0) + every / fps;
+        lump.set(key, !was || k < was.least ? { least: k, t: start + t, seconds: long, hand: h, acts } : { ...was, seconds: long });
+      }
       if (role.raise) for (const h of ["f", "b"] as const) {
         const rule = role.raise.find(r => r.layers.includes(`hand-${h}`)), up = !!storyRaised(p, `hand-${h}`, t), before = was[h]; was[h] = up;
         if (!rule || before === undefined || before === up) continue;
@@ -94,6 +104,7 @@ export function checkStory(plan: StoryPlan, o: StoryCheckOptions = {}): StoryChe
         else if (low !== undefined && low > rule.edge + 3) out.counters.push(`${moment} while it is ${Math.round(low - rule.edge)} cm under its edge.`);
       }
     }
+    for (const l of lump.values()) if (l.seconds >= LASTS.easy) out.short.push(`${shot.id} ${l.t.toFixed(2)} s, ${role.actor}${l.acts.length ? ` (${l.acts.join(", ")})` : ""}: forearm ${l.hand} is drawn at ${Math.round(100 * l.least)} % of its length for ${l.seconds.toFixed(1)} s. A painted forearm that points at the viewer is a lump as wide as its elbow: put the hand where its act's photographs show the forearm across (ACT_STUDIES seen).`);
     for (const [h, j] of jump) out.jumps.push(`${shot.id} ${j.t.toFixed(2)} s, ${role.actor} (${j.acts.join(", ")}): elbow ${h} jumps ${j.by.toFixed(1)} cm.`);
     for (const w of worst.values()) if (w.seconds >= LASTS[w.level === "can" && w.joint === "turn" ? "drawing" : w.level] && !(w.level === "easy" && [...worst.values()].some(c => c.level === "can" && c.joint === w.joint && c.hand === w.hand && c.acts.join() === w.acts.join()))) out.joints.push(w);
     for (const a of timed) if (a.hands.length) {

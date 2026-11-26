@@ -68,7 +68,7 @@ Walking comes from the role's `path`. Breath, sway, eye movement and seeded blin
 
 A pose passes three questions, in this order.
 
-1. **What do people do?** `ACT_STUDIES` holds the photographs of each act that moves an arm, with the angles read off them. A new act gets its entry first. `story:check` names an act that has none. Its `hand` says how the hand does the act: the grip, the side that is seen, and the band of the wrist and the forearm, from photographs, the owner's sheets and measured studies (eating with a spoon and chopsticks, typing on a phone, the tasks of daily life). The solver keeps the wrist in that band. `story:check` asks about a hand drawn with another grip, or a wrist out of the band.
+1. **What do people do?** `ACT_STUDIES` holds the photographs of each act that moves an arm, with the angles read off them. A new act gets its entry first. `story:check` names an act that has none. Its `hand` says how the hand does the act: the grip, the side that is seen, and the band of the wrist and the forearm, from photographs, the owner's sheets and measured studies (eating with a spoon and chopsticks, typing on a phone, the tasks of daily life). The solver keeps the wrist in that band. `story:check` asks about a hand drawn with another grip, or a wrist out of the band. Its `seen` has the bands of the upper arm and the forearm that the photographs show from the front. The arm is drawn in them (`armInBands`) when its place is near their poses. A place farther away (a child that lifts a bag over a counter as high as her chest) is more than 15° out of a band (`SEEN_FITS`). Its arm goes over to the solved arm in the next 10°. The owner's action panels set the cook (elbows out, forearms across, picks down in a fist) and the call (the phone at the mouth).
 2. **What can a joint do?** `JOINT_RANGES` holds 14 joints: shoulder, elbow, forearm, wrist, neck and back. `can` is the range of the anatomy pack (ANAT1). `easy` is what reads as easy in a picture (RULA, widened by the photographs; the wrist bends 40° to the palm or back at most, as in the tasks of daily life that Gates et al. 2016 measured). The arm solver keeps to them: it solves the arm in depth, reads its joints as a viewer does, and takes the pose that costs least. A hand that is too hard to bring there turns, or the body leans.
 3. **Does the arm move as an arm does?** A hold is a pose of the joints, not a place, so that a breath does not shake an elbow. An act that stands free before the viewer (`wave`, `raise`, `explain`, `invite`, `shrug`, `beckon`) gives its arm as angles of the picture: `front` has the upper arm, the forearm, the hand, and how much of each length shows (`long`).
 
@@ -77,6 +77,8 @@ A range is no pose. A hand on a wheel can be inside all ranges and still hold it
 - **A hand has a side.** The kit has palms, backs, thumbs and little fingers. A drawing says what it shows (`shows`) and which grip it stands for (`as`). The solver takes the one that the forearm can show.
 - **An arm has bones.** A sleeve is drawn (`outlined`) with straight parts, a corner outside the elbow, a crease inside, and a root as wide as its armhole. The lines come from photographs of sleeves. A sleeve that was bent smoothly looked like a hose.
 - **A hand goes over a counter at its far edge.** `raise.edge` of a spot is where that edge is.
+- **A forearm keeps its length in the picture.** A bare painted forearm drawn shorter than half its length points at the viewer, and a flat painting of it is a lump as wide as its elbow (the owner's finding on Daichi). `armInBands` costs a short forearm, and a hand that the arm does not reach in its bands stops short. It does not take a pose that reaches exactly out of the bands: that pose flipped with the next one from frame to frame.
+- **A hand joins its arm smoothly.** The paint of a forearm fades out over its last part under the hand drawing (`PaintedMesh.fade`), and most at the sides of the wrist. A hard edge of the sleeve or the skin did not show there.
 
 ## Add a figure
 
@@ -136,6 +138,7 @@ npm run -s story:qa -- <film> --out dir [--shots a,b] [--frames --known file --p
 | A joint past what a person can do | data | 5° for 0.1 s; the turn of a forearm 20° for 0.25 s |
 | An elbow that jumps, in the frame of the body | data | 3 cm for a frame² |
 | A hand that goes through a counter | data | 3 cm past its far edge |
+| A forearm drawn short, of its length | data, the hand drawn over the arm for bare skin | bare 50 %, sleeve 30 %, for 0.4 s, named to look at |
 | A hand that does something behind a person; a pose that is not easy | data | named, to look at |
 | A joint turns in one frame, in the picture | data | 40° |
 | A hand moves against the hips, in the picture | data | 2.6 m/s |
