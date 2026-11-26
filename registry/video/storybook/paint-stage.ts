@@ -28,6 +28,8 @@ export interface PaintMesh {
   behind?: PaintPlace;
   /** How far `behind` counts, 0–1 for each vertex. Default 1. */
   veil?: Float32Array;
+  /** How much of it shows, 0–1 for each vertex: where a painting goes on in another one (a forearm in the drawing of its hand), it goes out softly under it. Default 1. */
+  fade?: Float32Array;
 }
 export interface PaintGrade { /** Multiplies the picture. */ tint?: readonly [number, number, number]; saturation?: number; /** 0–1: how far the picture is mixed into the paper (a memory, a title). */ wash?: number }
 export interface PaintSheet { layers: readonly PaintMesh[]; grade?: PaintGrade; /** Where the picture lies on the sheet, stage units: paint stops at an uneven wet edge. Without it the paint goes to the sheet's edge. */ frame?: PaintRect }
@@ -39,17 +41,18 @@ export interface PaintTransition { kind: PaintTransitionKind; /** 0–1 */ t: nu
 export interface PaintFrame { sheet: PaintSheet; next?: PaintSheet; transition?: PaintTransition; /** Drawing number: changing it redraws the line a little (line boil). */ drawing?: number }
 
 const MESH_VS = `#version 300 es
-in vec2 a_pos; in vec2 a_uv; layout(location=2) in float a_veil; uniform vec2 u_size; uniform float u_boil,u_drawing; out vec2 v_uv; out float v_veil;
+in vec2 a_pos; in vec2 a_uv; layout(location=2) in float a_veil; layout(location=3) in float a_fade; uniform vec2 u_size; uniform float u_boil,u_drawing; out vec2 v_uv; out float v_veil; out float v_fade;
 ${GLSL_NOISE}
-void main(){ v_uv=a_uv; v_veil=a_veil; vec2 p=a_pos; if(u_boil>0.) p+=(vec2(noise(p/38.+u_drawing*7.3),noise(p/38.+u_drawing*7.3+91.7))-.5)*2.*u_boil; gl_Position=vec4(p.x/u_size.x*2.-1.,1.-p.y/u_size.y*2.,0.,1.); }`;
+void main(){ v_uv=a_uv; v_veil=a_veil; v_fade=a_fade; vec2 p=a_pos; if(u_boil>0.) p+=(vec2(noise(p/38.+u_drawing*7.3),noise(p/38.+u_drawing*7.3+91.7))-.5)*2.*u_boil; gl_Position=vec4(p.x/u_size.x*2.-1.,1.-p.y/u_size.y*2.,0.,1.); }`;
 const MESH_FS = `#version 300 es
-precision highp float; in vec2 v_uv; in float v_veil; out vec4 o; uniform sampler2D u_image,u_body; uniform float u_opacity,u_lod,u_mark,u_behind; uniform vec3 u_tint;
+precision highp float; in vec2 v_uv; in float v_veil; in float v_fade; out vec4 o; uniform sampler2D u_image,u_body; uniform float u_opacity,u_lod,u_mark,u_behind; uniform vec3 u_tint;
 // out of focus: there is no paint outside the picture, so a blurred edge fades and does not stop
 vec4 tap(vec2 uv,vec2 px){ vec2 e=clamp(min(uv,1.-uv)/px+.5,0.,1.); return texture(u_image,uv,u_lod)*e.x*e.y; }
 void main(){
   vec4 c;
   if(u_lod<=0.) c=texture(u_image,v_uv);
   else { vec2 px=exp2(u_lod)/vec2(textureSize(u_image,0)); c=tap(v_uv,px)*.2; for(int i=0;i<8;i++){ float a=float(i)*.7853982; c+=tap(v_uv+vec2(cos(a),sin(a))*px*(i%2==0?1.:.6),px)*.1; } }
+  c*=v_fade;
   if(u_mark>=0.){ o=vec4(vec3(u_mark)*c.a,c.a)*u_opacity; return; } // where the body shows: 0, elsewhere 1
   o=vec4(c.rgb*u_tint,c.a)*u_opacity*(1.-u_behind*v_veil*(1.-texelFetch(u_body,ivec2(gl_FragCoord.xy),0).r));
 }`;
@@ -184,19 +187,19 @@ const rgb = (hex: string): [number, number, number] => { const n = parseInt(hex.
 
 export class PaintStage {
   private gl: WebGL2RenderingContext; private mesh: WebGLProgram; private joiner: WebGLProgram; private u: GlUniforms;
-  private vbo: WebGLBuffer; private ubo: WebGLBuffer; private veils: WebGLBuffer; private ibo: WebGLBuffer; private quad: WebGLBuffer; private vaoMesh: WebGLVertexArrayObject; private vaoFull: WebGLVertexArrayObject;
+  private vbo: WebGLBuffer; private ubo: WebGLBuffer; private veils: WebGLBuffer; private fades: WebGLBuffer; private ibo: WebGLBuffer; private quad: WebGLBuffer; private vaoMesh: WebGLVertexArrayObject; private vaoFull: WebGLVertexArrayObject;
   private textures = new Map<string, { tex: WebGLTexture; width: number; source: unknown }>(); private targets: GlTarget[] = []; /** Where a body shows, for paint behind it. */ private body: GlTarget | null = null;
   constructor(private canvas: HTMLCanvasElement, private o: PaintStageOptions) {
     const gl = canvas.getContext("webgl2", { alpha: false, antialias: false, preserveDrawingBuffer: true, depth: false });
     if (!gl) throw new Error("The painted stage needs WebGL2.");
     this.gl = gl; this.u = new GlUniforms(gl);
     this.mesh = glProgram(gl, MESH_VS, MESH_FS, "paint"); this.joiner = glProgram(gl, GLSL_FULL_VS, JOIN_FS, "paint");
-    this.vbo = gl.createBuffer()!; this.ubo = gl.createBuffer()!; this.veils = gl.createBuffer()!; this.ibo = gl.createBuffer()!; this.quad = gl.createBuffer()!;
+    this.vbo = gl.createBuffer()!; this.ubo = gl.createBuffer()!; this.veils = gl.createBuffer()!; this.fades = gl.createBuffer()!; this.ibo = gl.createBuffer()!; this.quad = gl.createBuffer()!;
     this.vaoFull = gl.createVertexArray()!; gl.bindVertexArray(this.vaoFull); gl.bindBuffer(gl.ARRAY_BUFFER, this.quad); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     this.vaoMesh = gl.createVertexArray()!; gl.bindVertexArray(this.vaoMesh);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.ubo); gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.veils); gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.veils); gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 0, 0); gl.bindBuffer(gl.ARRAY_BUFFER, this.fades); gl.vertexAttribPointer(3, 1, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibo); gl.bindVertexArray(null);
     this.resize();
   }
@@ -237,6 +240,7 @@ export class PaintStage {
       gl.uniform1f(this.u.at(p, "u_opacity"), a); gl.uniform3f(this.u.at(p, "u_tint"), ...((l.tint ?? [1, 1, 1]) as [number, number, number]));
       gl.uniform1f(this.u.at(p, "u_lod"), l.blur ? Math.log2(1 + l.blur * texels) : 0); gl.uniform1f(this.u.at(p, "u_boil"), l.steady ? 0 : (this.o.boil ?? 0)); gl.uniform1f(this.u.at(p, "u_behind"), behind ? 1 : 0);
       if (behind && l.veil) { gl.enableVertexAttribArray(2); gl.bindBuffer(gl.ARRAY_BUFFER, this.veils); gl.bufferData(gl.ARRAY_BUFFER, l.veil, gl.DYNAMIC_DRAW); } else { gl.disableVertexAttribArray(2); gl.vertexAttrib1f(2, 1); }
+      if (l.fade) { gl.enableVertexAttribArray(3); gl.bindBuffer(gl.ARRAY_BUFFER, this.fades); gl.bufferData(gl.ARRAY_BUFFER, l.fade, gl.DYNAMIC_DRAW); } else { gl.disableVertexAttribArray(3); gl.vertexAttrib1f(3, 1); }
       gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo); gl.bufferData(gl.ARRAY_BUFFER, l.positions, gl.DYNAMIC_DRAW); gl.bindBuffer(gl.ARRAY_BUFFER, this.ubo); gl.bufferData(gl.ARRAY_BUFFER, l.uvs, gl.DYNAMIC_DRAW); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, l.indices, gl.DYNAMIC_DRAW);
       gl.drawElements(gl.TRIANGLES, l.indices.length, gl.UNSIGNED_SHORT, 0);
     };

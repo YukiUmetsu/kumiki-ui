@@ -38,16 +38,16 @@
    "stage": "festival",
    "join": "dissolve",
    "cast": {"daichi": "cook", "daniel": "ask-1", "ema": "ask-2", "sophie": "ask-3", "leo": "ask-4"},
-   "props": [{"prop": "pick", "to": "daichi:pen-f", "angle": -90}, {"prop": "pick-2", "to": "daichi:pen-b", "angle": -90}, {"prop": "takoyaki", "to": "boat-1"}, {"prop": "takoyaki-2", "to": "boat-2"}],
+   "props": [{"prop": "pick", "to": "daichi:bar-f", "angle": 25}, {"prop": "pick-2", "to": "daichi:bar-b", "angle": 155}, {"prop": "takoyaki", "to": "boat-1"}, {"prop": "takoyaki-2", "to": "boat-2"}],
    "beats": [
     {
      "shot": {"id": "call", "frame": "all", "without": ["daniel", "ema", "sophie", "leo"]},
      "say": "how-about",
      "to": "viewer",
      "mood": "happy",
-     "pose": {"daichi": [{"act": "cook", "hand": "f", "to": [-17, -108], "wide": 14, "angle": 0}, {"act": "cook", "hand": "b", "to": [16, -108], "wide": 12, "late": 0.5, "angle": 0}]},
-     "give": [{"prop": "pick-2", "to": "daichi:pen-b", "hidden": true}],
-     "do": [{"who": "daichi", "act": "call", "hand": "b", "at": -0.2, "for": 3.4, "x": 0.068, "grip": "easy"}]
+     "pose": {"daichi": [{"act": "cook", "hand": "f", "to": [-11, -117], "wide": 10, "angle": -82, "grip": "bar"}, {"act": "cook", "hand": "b", "to": [0, -117], "wide": 10, "late": 0.5, "angle": 82, "grip": "bar"}]},
+     "give": [{"prop": "pick-2", "to": "daichi:bar-b", "hidden": true}],
+     "do": [{"who": "daichi", "act": "call", "hand": "b", "at": -0.2, "for": 3.4, "grip": "easy"}]
     },
     {
      "shot": {"id": "look", "on": ["leo", "sophie"], "size": "chest", "from": "door"},
@@ -60,7 +60,7 @@
     },
     {
      "shot": {"id": "turns", "frame": "plate", "without": ["daniel", "ema", "sophie", "leo"], "about": "Daichi turns takoyaki with two picks. Steam goes up."},
-     "give": [{"prop": "pick-2", "to": "daichi:pen-b", "angle": -90}],
+     "give": [{"prop": "pick-2", "to": "daichi:bar-b", "angle": 155}],
      "seconds": 3,
      "words": [{"text": "たこ{焼|や}き", "gloss": "octopus dumplings", "at": 0.4, "for": 2.4}],
      "after": 0
@@ -73,7 +73,7 @@
      "say": "careful",
      "to": "sophie",
      "do": [{"who": "daichi", "act": "offer", "to": [-6, -118], "grip": "under", "apart": 7, "in": 0.6, "at": 0.1, "for": 4.4}],
-     "give": [{"prop": "pick", "to": "daichi:pen-f", "hidden": true}, {"prop": "pick-2", "to": "daichi:pen-b", "hidden": true}, {"prop": "takoyaki", "to": "daichi:hands", "scale": 0.9, "at": 0.3, "over": 0.2}]
+     "give": [{"prop": "pick", "to": "daichi:bar-f", "hidden": true}, {"prop": "pick-2", "to": "daichi:bar-b", "hidden": true}, {"prop": "takoyaki", "to": "daichi:hands", "scale": 0.9, "at": 0.3, "over": 0.2}]
     },
     {
      "shot": {"id": "thanks", "on": ["ema", "sophie"], "size": "waist", "from": "door"},
@@ -114,14 +114,14 @@
    "stage": "festival",
    "join": "dissolve",
    "cast": {"daichi": "cook", "daniel": "ask-1", "ema": "ask-2", "sophie": "ask-3", "leo": "ask-4"},
-   "props": [{"prop": "pick", "to": "daichi:pen-f", "angle": -90}, {"prop": "pick-2", "to": "daichi:pen-b", "angle": -90}, {"prop": "takoyaki", "to": "boat-1"}, {"prop": "takoyaki-2", "to": "boat-2"}],
+   "props": [{"prop": "pick", "to": "daichi:bar-f", "angle": 25}, {"prop": "pick-2", "to": "daichi:bar-b", "angle": 155}, {"prop": "takoyaki", "to": "boat-1"}, {"prop": "takoyaki-2", "to": "boat-2"}],
    "beats": [
     {
      "shot": {"id": "arigatou", "frame": "cook", "without": ["daniel", "ema", "sophie", "leo"]},
      "say": "thanks",
      "to": "leo",
      "mood": "happy",
-     "pose": {"daichi": [{"act": "cook", "hand": "f", "to": [-17, -108], "wide": 14, "angle": 0}, {"act": "cook", "hand": "b", "to": [16, -108], "wide": 12, "late": 0.5, "angle": 0}]}
+     "pose": {"daichi": [{"act": "cook", "hand": "f", "to": [-11, -117], "wide": 10, "angle": -82, "grip": "bar"}, {"act": "cook", "hand": "b", "to": [0, -117], "wide": 10, "late": 0.5, "angle": 82, "grip": "bar"}]}
     },
     {"shot": {"id": "again", "on": ["leo", "sophie"], "size": "waist", "from": "door"}, "say": "again", "to": "daichi", "mood": "happy", "do": [{"who": "leo", "act": "wave", "at": 0.1, "for": 2.2}]}
    ]

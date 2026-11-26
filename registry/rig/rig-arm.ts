@@ -87,6 +87,39 @@ export function solveArm(arm: ArmBuild, goal: ArmAim, rough = false): ArmPose {
   return { ...got, shift, hand, stretch };
 }
 
+/** Bands of the picture, degrees out from hanging (plus away from the middle of the body), in which photographs of an act show the upper arm and the forearm of a body that faces the camera. */
+export interface ArmBands { upper: readonly [number, number]; lower: readonly [number, number] }
+/**
+ * An arm drawn as the photographs of its act show it (`bands`): the upper arm and the forearm in their bands of the picture, and each as
+ * short as it has to be to reach the place, never longer than it is. Of the ways that do, the one with the longest upper arm: an elbow
+ * comes to the viewer only as far as the place asks. A solver alone puts the elbow where it is easiest and that is not where people hold
+ * it: an elbow across the chest under a mouth, or one swung behind the back beside a face. `way`: 1 when out is the way the angles of
+ * the picture turn (`outward` of the acts), else -1. `off`: degrees that the upper arm or the forearm is out of its band, when the
+ * place is one that the photographs do not show (a child that lifts a bag over a counter as high as her chest).
+ */
+export function armInBands(arm: ArmBuild, goal: ArmAim, bands: ArmBands, way: number): ArmPose & { off: number } {
+  const { upper: U, lower: V } = arm, L = U + V, least = goal.shortest ?? SHORTEST, { wristFor, held } = handOf(arm, goal), [sx, sy] = goal.shoulder, s = Math.abs(Math.sin(arm.facing * RAD));
+  const off = ([lo, hi]: readonly [number, number], v: number) => Math.max(0, lo - v, v - hi), mid = (b: readonly [number, number]) => (b[0] + b[1]) / 2;
+  const find = (wx: number, wy: number) => {
+    let best = { cost: Infinity, a: mid(bands.upper), k: 1, ex: 0, ey: U, ls: 1, lower: 0, off: 0 };
+    for (let a = bands.upper[0] - 40; a <= bands.upper[1] + 40; a += 1) for (let k = 1; k >= least - 1e-9; k -= 0.01) {
+      const ex = -Math.sin(way * a * RAD) * U * k, ey = Math.cos(way * a * RAD) * U * k, fx = wx - ex, fy = wy - ey, ls = Math.hypot(fx, fy) / V;
+      // a painted forearm drawn much shorter than it is becomes a lump as wide as its elbow: a picture cannot show it pointing at the viewer. 0.1 under `least` costs as much as 16° off a band, 0.2 under as much as 32°; squared, so that the arm goes over from one way to the other smoothly.
+      // A hand that the arm in its bands does not reach stops short: 2 % of the arm costs as much as 8° off a band. A way that reaches exactly but out of the bands flips with the next way out of them from frame to frame
+      const b = way * aim(fx, fy), cost = (off(bands.upper, a) / 8) ** 2 + (off(bands.lower, b) / 8) ** 2 + (Math.max(0, least - ls) / 0.05) ** 2 + (Math.max(0, ls - 1) * V / (0.02 * L)) ** 2 + 1.5 * (1 - k) + 0.002 * Math.abs(b - mid(bands.lower));
+      if (cost < best.cost) best = { cost, a, k, ex, ey, ls: Math.min(1, ls), lower: aim(fx, fy), off: Math.max(off(bands.upper, a), off(bands.lower, b)) };
+    }
+    return best;
+  };
+  // a place out of reach: the arm points there, as long as it is
+  const reach = (x: number, y: number): [number, number] => { const d = Math.hypot(x, y); return d > MOST * L ? [(x * MOST * L) / d, (y * MOST * L) / d] : [x, y]; };
+  let hand = goal.angle ?? aim(goal.to[0] - sx, goal.to[1] - sy), [wx, wy] = wristFor(hand), got = find(...reach(wx - sx, wy - sy));
+  for (let i = 0; i < 4; i++) { hand += turnBetween(hand, held(got.lower)) * 0.7; [wx, wy] = wristFor(hand); got = find(...reach(wx - sx, wy - sy)); }
+  // depth as the parts are drawn short: the elbow comes to the viewer, the hand stays before the body
+  const ez = U * Math.sqrt(Math.max(0, 1 - got.k * got.k)), fz = V * Math.sqrt(Math.max(0, 1 - got.ls * got.ls)), want = (goal.near ?? 0.68) * L * s * 0.5, wz = Math.abs(ez + fz - want) <= Math.abs(ez - fz - want) ? ez + fz : ez - fz;
+  return { shift: [0, 0], upper: aim(got.ex, got.ey), upperScale: got.k, lower: got.lower, lowerScale: Math.min(1, got.ls), hand, depth: [ez, wz], stretch: Math.hypot(wx - sx, wy - sy) / L, off: got.off };
+}
+
 /** Several ways to hold an arm in one: the mean of their elbows and of their wrists. */
 export function meanArm(arm: ArmBuild, all: readonly { got: ArmPose; share: number }[]): ArmPose {
   const way = (deg: number, n: number): ArmPoint => [-Math.sin(deg * RAD) * n, Math.cos(deg * RAD) * n], mean = (of: (got: ArmPose) => number) => all.reduce((n, q) => n + of(q.got) * q.share, 0);

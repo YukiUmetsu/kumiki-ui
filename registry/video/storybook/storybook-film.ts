@@ -418,7 +418,7 @@ export function storySheet(film: StorybookFilm, shot: StoryShot, t: number, stil
     const positions = new Float32Array(m.positions.length); for (let i = 0; i < positions.length; i += 2) { const [X, Y] = view.put(m.positions[i], m.positions[i + 1]); positions[i] = X; positions[i + 1] = Y; }
     const id = m.id.split("/")[0], raised = storyRaised(p, id, t), least = Math.min(...p.meshes.filter(q => storyRaised(p, q.id.split("/")[0], t)).map(q => q.z)), bare = raised ? veilOf(p, id) : 1;
     const veil = !raised || bare >= 1 ? undefined : m.along ? m.along.map(s => 1 - (1 - bare) * smooth((s - 1.05) / 0.3)) : new Float32Array(m.positions.length / 2).fill(bare);
-    out.push({ z: (raised?.z ?? z) + m.z * 0.01, mesh: { image: p.figure.art.images[m.image].src, positions, uvs: m.uvs, indices: m.indices, opacity: m.opacity, tint: m.tint, veil, behind: raised && { body: p.role.actor, near: m.z }, own: !raised && m.z > least ? { body: p.role.actor, near: m.z } : undefined } });
+    out.push({ z: (raised?.z ?? z) + m.z * 0.01, mesh: { image: p.figure.art.images[m.image].src, positions, uvs: m.uvs, indices: m.indices, opacity: m.opacity, tint: m.tint, veil, fade: m.fade, behind: raised && { body: p.role.actor, near: m.z }, own: !raised && m.z > least ? { body: p.role.actor, near: m.z } : undefined } });
   } }
   for (const s of shot.props ?? []) {
     const p = propAt(film, shot, s, played, t); if (!p) continue;
