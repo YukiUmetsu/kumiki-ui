@@ -183,7 +183,7 @@ describe("people", () => {
   it("are data: each file is a person, a cast is made from it, and a voice is a Fish Audio id when there is one", () => {
     expect(Object.keys(PEOPLE)).toHaveLength(12);
     for (const [id, p] of Object.entries(PEOPLE)) {
-      expect(castOf(id)[id].name, id).toBe(p.name); if (p.voice) expect(p.voice.fish, id).toMatch(/^[0-9a-f]{32}$/); expect(p.height, id).toBeGreaterThan(80);
+      expect(castOf(id)[id].name, id).toBe(p.name); if (p.voice) expect(p.voice.fish, id).toMatch(/^[0-9a-f]{32}$/); if (p.voice?.pace !== undefined) expect(p.voice.pace, id).toBe(6.5); expect(p.height, id).toBeGreaterThan(80);
     }
   });
 });
