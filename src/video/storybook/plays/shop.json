@@ -85,7 +85,7 @@
      "shot": {"id": "two", "on": ["ema", "sophie"], "size": "waist", "from": "door"},
      "say": "two",
      "to": "emi",
-     "do": [{"who": "ema", "act": "point", "to": "goods-2", "grip": "guide", "at": 0.7, "for": 2.2}],
+     "do": [{"who": "ema", "act": "point", "to": "goods-2", "at": 0.7, "for": 2.2}],
      "react": {"sophie": "happy"},
      "look": {"sophie": "ema"}
     },
@@ -99,7 +99,7 @@
    "cast": {"emi": "clerk", "ema": "ask-1", "sophie": "ask-2"},
    "props": [
     {"prop": "paper-bag", "to": "bag", "scale": 0.82},
-    {"prop": "fan-2", "to": [-34, -117], "view": "closed", "angle": 8, "scale": 0.85, "z": -1.7},
+    {"prop": "fan-2", "to": [-24, -117], "view": "closed", "angle": 8, "scale": 0.85, "z": -1.7},
     {"prop": "fan", "to": "goods", "view": "closed", "angle": 82, "scale": 0.9}
    ],
    "beats": [
@@ -107,8 +107,8 @@
      "shot": {"id": "packs", "on": "emi", "size": "waist"},
      "say": "bag",
      "to": "sophie",
-     "do": [{"who": "emi", "act": "pack", "hand": "f", "from": [-72, -108], "to": [-44, -128], "grip": "bar", "at": 0.1, "for": 2.2}],
-     "give": [{"prop": "fan", "to": "emi:bar-f", "view": "closed", "at": 0.5, "over": 0.1}, {"prop": "fan", "to": [-44, -115], "view": "closed", "angle": -6, "z": -1.7, "at": 1.75, "over": 0.25}],
+     "do": [{"who": "emi", "act": "pack", "hand": "f", "from": [-72, -108], "to": [-27, -133], "lift": -12, "angle": -20, "grip": "bar", "release": "back", "at": 0.1, "for": 2.2}],
+     "give": [{"prop": "fan", "to": "emi:bar-f", "view": "closed", "at": 0.5, "over": 0.1}, {"prop": "fan", "to": [-29, -115], "view": "closed", "angle": -6, "z": -1.7, "at": 1.35, "over": 0.15}],
      "sounds": [{"sound": "bag-opens", "at": 1.7, "gain": -18}]
     },
     {

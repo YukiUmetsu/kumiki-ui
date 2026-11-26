@@ -99,14 +99,15 @@ export interface ArmBands { upper: readonly [number, number]; lower: readonly [n
  */
 export function armInBands(arm: ArmBuild, goal: ArmAim, bands: ArmBands, way: number): ArmPose & { off: number } {
   const { upper: U, lower: V } = arm, L = U + V, least = goal.shortest ?? SHORTEST, { wristFor, held } = handOf(arm, goal), [sx, sy] = goal.shoulder, s = Math.abs(Math.sin(arm.facing * RAD));
-  const off = ([lo, hi]: readonly [number, number], v: number) => Math.max(0, lo - v, v - hi), mid = (b: readonly [number, number]) => (b[0] + b[1]) / 2;
+  const off = ([lo, hi]: readonly [number, number], v: number) => Math.max(0, lo - v, v - hi), mid = (b: readonly [number, number]) => (b[0] + b[1]) / 2, width = (b: readonly [number, number]) => Math.max(10, b[1] - b[0]);
   const find = (wx: number, wy: number) => {
     let best = { cost: Infinity, a: mid(bands.upper), k: 1, ex: 0, ey: U, ls: 1, lower: 0, off: 0 };
     for (let a = bands.upper[0] - 40; a <= bands.upper[1] + 40; a += 1) for (let k = 1; k >= least - 1e-9; k -= 0.01) {
       const ex = -Math.sin(way * a * RAD) * U * k, ey = Math.cos(way * a * RAD) * U * k, fx = wx - ex, fy = wy - ey, ls = Math.hypot(fx, fy) / V;
       // a painted forearm drawn much shorter than it is becomes a lump as wide as its elbow: a picture cannot show it pointing at the viewer. 0.1 under `least` costs as much as 16° off a band, 0.2 under as much as 32°; squared, so that the arm goes over from one way to the other smoothly.
       // A hand that the arm in its bands does not reach stops short: 2 % of the arm costs as much as 8° off a band. A way that reaches exactly but out of the bands flips with the next way out of them from frame to frame
-      const b = way * aim(fx, fy), cost = (off(bands.upper, a) / 8) ** 2 + (off(bands.lower, b) / 8) ** 2 + (Math.max(0, least - ls) / 0.05) ** 2 + (Math.max(0, ls - 1) * V / (0.02 * L)) ** 2 + 1.5 * (1 - k) + 0.002 * Math.abs(b - mid(bands.lower));
+      // Inside the bands many elbows reach the hand at almost the same cost. Of those, the one nearest the middle of both bands, where the photographs have the arm most: squared, so that one elbow is the nearest and it moves smoothly with the hand. A pull to one band only has its least at one end of the elbows that reach in one frame and at the other end in the next. At the edge of a band it costs less than 1 % of the arm drawn short
+      const b = way * aim(fx, fy), cost = (off(bands.upper, a) / 8) ** 2 + (off(bands.lower, b) / 8) ** 2 + (Math.max(0, least - ls) / 0.05) ** 2 + (Math.max(0, ls - 1) * V / (0.02 * L)) ** 2 + 1.5 * (1 - k) + 0.02 * (((a - mid(bands.upper)) / width(bands.upper)) ** 2 + ((b - mid(bands.lower)) / width(bands.lower)) ** 2);
       if (cost < best.cost) best = { cost, a, k, ex, ey, ls: Math.min(1, ls), lower: aim(fx, fy), off: Math.max(off(bands.upper, a), off(bands.lower, b)) };
     }
     return best;

@@ -288,7 +288,7 @@ export function playRole(film: StorybookFilm, shot: StoryShot, role: StoryRole, 
   const turn: Pt = [p.headTurn[0] + (role.turn?.[0] ?? 0) + (turning.yaw ? Math.max(-TURNED, Math.min(TURNED, a.turn[0] + turning.yaw)) : a.turn[0]), p.headTurn[1] + (role.turn?.[1] ?? 0) + a.turn[1]];
   const meshes = paintedMeshes(art, acted.spec, acted.frame, {
     trunk: p.trunk + a.trunk + turning.trunk, hands, lift, hidden: role.hidden, tint: role.tint,
-    face: { look: p.look ?? undefined, from: p.lookFrom ?? undefined, mix: p.lookMix, blink: p.blink, gaze: [p.gaze[0] + (role.gaze?.[0] ?? 0) + a.gaze[0], p.gaze[1] + (role.gaze?.[1] ?? 0) + a.gaze[1]], brow: p.brow, turn, mouth: { ...mouth, weight: Math.max(0, speaking) } },
+    face: { look: p.look ?? undefined, from: p.lookFrom ?? undefined, mix: p.lookMix, blink: p.blink, gaze: [p.gaze[0] + (role.gaze?.[0] ?? 0) + a.gaze[0] * (1 - p.gazeHeld), p.gaze[1] + (role.gaze?.[1] ?? 0) + a.gaze[1] * (1 - p.gazeHeld)], brow: p.brow, turn, mouth: { ...mouth, weight: Math.max(0, speaking) } },
   });
   const at = (h: "f" | "b") => 1 - p.reach[h].reduce((w, r) => (r.to ? w * (1 - r.weight) : w), 1);
   return { role, actor, figure, spec: acted.spec, frame: acted.frame, meshes, turn, reaching: { f: at("f"), b: at("b") }, lift, arms: acted.arms, hands };

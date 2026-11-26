@@ -109,8 +109,8 @@ export const KONBINI_FILM: StorybookFilm = {
       camera: [{ t: 0, at: [-24, -137], tall: 104 }, { t: 4.6, at: [-20, -139], tall: 96, ease: "ease-in-out-quad" }],
       // the scanner comes to the rice ball and goes back under the counter; the rice ball goes down on the counter
       roles: [{ ...RIKU, gaze: [0.1, 0.4], turn: [2, 2], raise: [OVER("b")], acts: [
-        { act: "rest", at: -1, for: 3.4, params: { hand: "b", to: [-15, -125], grip: "hold", angle: 84, lean: 0 } }, { act: "place", at: 1.4, for: 1.75, params: { in: 0.95, away: 0.5, hand: "b", to: [-13.3, -94.8], grip: "hold", after: "open", release: 0.88, angle: 56, lean: 10 } }, { act: "invite", at: 2.75, for: 3, params: { hand: "b", to: [9, -107], angle: -62 } },
-        { act: "rest", at: -1, for: 2.4, params: { hand: "f", to: [-47, -117], grip: "gun", angle: -74, lean: 0 } }, { act: "scan", at: 0.05, for: 1.7, params: { hand: "f", to: [-37, -122], grip: "gun", angle: -86, lean: 0 } }, { act: "rest", at: 1.4, for: 1.6, ease: [0.7, 0.4], params: { hand: "f", to: [-44, -92], grip: "gun", angle: -20, lean: 0 } },
+        { act: "rest", at: -1, for: 3.4, params: { hand: "b", to: [-16, -149], grip: "hold", angle: 170, lean: 0 } }, { act: "place", at: 1.4, for: 1.75, params: { in: 0.95, away: 0.5, hand: "b", to: [-13.3, -94.8], grip: "hold", after: "open", release: 0.88, angle: 56, lean: 10 } }, { act: "invite", at: 2.75, for: 3, params: { hand: "b", to: [9, -107], angle: -62 } },
+        { act: "rest", at: -1, for: 2.4, params: { hand: "f", to: [-47, -106], grip: "gun", angle: -74, lean: 0 } }, { act: "scan", at: 0.05, for: 1.7, params: { hand: "f", to: [-19, -134], grip: "gun", angle: -100, lean: 0 } }, { act: "rest", at: 1.4, for: 1.6, ease: [0.7, 0.4], params: { hand: "f", to: [-44, -92], grip: "gun", angle: -20, lean: 0 } },
       ] }],
       props: [{ prop: "onigiri", z: 21, holds: [{ t: 0, by: "riku", socket: "ball-b" }, { t: 2.4, at: "till", over: 0.1, z: 27 }] }, { prop: "beam", holds: [{ t: 0.75, by: "riku", socket: "ball-b" }, { t: 1.2, by: "riku", socket: "ball-b", hidden: true }] }, { prop: "beep", holds: [{ t: 1.1, by: "riku", socket: "ball-b" }, { t: 1.5, by: "riku", socket: "ball-b", hidden: true }] }, { ...PRICED, holds: [{ t: 1.15, at: "screen" }] }],
       says: [{ line: "price", at: 1.5 }],
@@ -120,7 +120,7 @@ export const KONBINI_FILM: StorybookFilm = {
       id: "bag", label: "Riku holds up a bag and asks if one is needed.", set: "till", seconds: 2.9,
       camera: [{ t: 0, at: [-34, -140], tall: 80 }, { t: 2.9, at: [-36, -141], tall: 76, ease: "ease-in-out-quad" }],
       // the bag comes up from under the counter and its bottom on the counter top: the hand at the height of the chest, toward the customer, the elbow bent near a right angle and not higher than the ribs
-      roles: [{ ...RIKU, acts: [{ act: "rest", at: -1, for: 3, ease: [0.1, 0.5], params: { hand: "f", to: [-56, -98], grip: "grip", angle: 36, lean: 0 } }, { act: "rest", at: -0.1, for: 6, ease: [1.2, 0.3], params: { hand: "f", to: [-46, -130], grip: "grip", angle: 66, lean: 0 } }] }],
+      roles: [{ ...RIKU, acts: [{ act: "rest", at: -1, for: 3, ease: [0.1, 0.5], params: { hand: "f", to: [-56, -98], grip: "grip", angle: 36, lean: 0 } }, { act: "rest", at: -0.1, for: 6, ease: [1.2, 0.3], params: { hand: "f", to: [-21, -136], grip: "grip", angle: 66, lean: 0 } }] }],
       props: [{ prop: "bag", holds: [{ t: 0, by: "riku", socket: "fist-f", view: "empty" }] }, PRICED],
       says: [{ line: "bag", at: 0.3 }],
       sounds: [{ src: bagOpens, at: 0.02, lead: 0.06, for: 0.9, gain: -15, fade: [0, 0.4] }],

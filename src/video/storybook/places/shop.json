@@ -17,7 +17,7 @@
   "shop": {
    "home": {"at": [0, -164], "tall": 326},
    "ground": {"horizon": [-10, -182], "distance": 300},
-   "marks": {"goods": [-72, -106, -3], "goods-2": [-76, -100, -3], "bag": [-40, -106, -1.5]},
+   "marks": {"goods": [-72, -106, -3], "goods-2": [-76, -100, -3], "bag": [-30, -106, -1.5]},
    "layers": [{"piece": "shop/room", "z": -100}, {"piece": "shop/back-noren", "z": -95, "sway": {"pivot": [0.5, 0.05], "degrees": 0.4, "period": 5.2}}, {"piece": "shop/counter", "stands": -25}]
   },
   "shop-lane": {

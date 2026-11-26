@@ -4,7 +4,7 @@
  * a counter only while it is over its far edge, does an elbow go its way without a jump, and is a hand that does something seen. It also gives each act of an arm with the moment and the part of the picture where it
  * is seen best, so that one sheet shows every pose of a film. A range is no pose: look at the sheet. Pure.
  */
-import { ACTS, type Act, type ActHand } from "../../rig/rig-acting";
+import { ACTS, actParams, type Act, type ActHand } from "../../rig/rig-acting";
 import { ACT_STUDIES } from "../../rig/rig-act-studies";
 import { JOINT_RANGES, type JointId } from "../../rig/rig-comfort";
 import type { PaintedMesh } from "../../rig/rig-look-painted";
@@ -51,9 +51,9 @@ function jointsOf(p: StoryPlayed): { joint: JointId; hand?: ActHand; angle: numb
   return found;
 }
 /** The hands that an act moves. */
-function handsOf(act: Act | undefined, params: Readonly<Record<string, unknown>>, d: number): ActHand[] {
+function handsOf(act: Act | undefined, params: Readonly<Record<string, unknown>>, d: number, facing?: number): ActHand[] {
   if (!act) return [];
-  const pose = act.pose({ t: d / 2, d, u: 0.5, w: 1, params: { ...params, to: undefined, from: undefined }, voice: 0 });
+  const pose = act.pose({ t: d / 2, d, u: 0.5, w: 1, params: { ...actParams(params, facing), to: undefined, from: undefined }, voice: 0 });
   return (["f", "b"] as const).filter(h => pose.reach?.[h]);
 }
 
@@ -65,7 +65,7 @@ export function checkStory(plan: StoryPlan, o: StoryCheckOptions = {}): StoryChe
   return out;
 
   function checkRole({ shot, start }: PlannedShot, role: StoryRole) {
-    const fps = film.fps, every = Math.max(1, Math.round(fps / (o.rate ?? 12))), timed = (role.acts ?? []).map(a => ({ ...a, d: a.for ?? library[a.act]?.seconds ?? 1 })).map(a => ({ ...a, hands: handsOf(library[a.act], a.params ?? {}, a.d) }));
+    const fps = film.fps, every = Math.max(1, Math.round(fps / (o.rate ?? 12))), facing = playRole(film, shot, role, 0, true).figure.body.facing, timed = (role.acts ?? []).map(a => ({ ...a, d: a.for ?? library[a.act]?.seconds ?? 1 })).map(a => ({ ...a, hands: handsOf(library[a.act], a.params ?? {}, a.d, facing) }));
     const worst = new Map<string, JointFound>(), lump = new Map<string, { least: number; t: number; seconds: number; hand: ActHand; acts: readonly string[] }>(), was: Partial<Record<ActHand, boolean>> = {}, way: Record<ActHand, [number, number][]> = { f: [], b: [] }, jump = new Map<ActHand, { by: number; t: number; acts: readonly string[] }>();
     for (let n = 0; n <= Math.floor(shot.seconds * fps); n++) {
       const t = n / fps, p = playRole(film, shot, role, t), view = storyView(film, shot, t), on = timed.filter(a => t >= a.at && t <= a.at + a.d), acts = on.map(a => a.act);
