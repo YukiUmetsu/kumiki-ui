@@ -59,7 +59,7 @@ export interface PlayScene {
 /** A plain stage with a spot for one person, and where things are shown on it (centimetres of its home picture). */
 export interface TeachStage { stage: string; /** Someone who asks, and someone who answers. */ asker: string; other: string; /** Where things are shown: the middle, and the size of one. */ show: { at: Pt; width: number; height: number }; /** A thing under titles: a brush stroke. */ ribbon?: string }
 /** Lines once more, words with their pictures, and things to name: scenes that are made from a list. */
-export interface PlayPractice { lines: readonly string[]; title?: string; gloss?: string; /** Seconds for the viewer, times the length of the line. */ slack?: number; /** A review page: the English of a line comes this many seconds after its Japanese. */ reveal?: number; /** How many times each line is said, each with a pause to say it after. Default 1. */ times?: number }
+export interface PlayPractice { lines: readonly string[]; title?: string; gloss?: string; /** Seconds for the viewer, times the length of the line. */ slack?: number; /** A painted picture of the moment for a line, by line id, beside it. */ pictures?: Readonly<Record<string, string | { prop: string; view?: string }>>; /** A review page: the English of a line comes this many seconds after its Japanese. */ reveal?: number; /** How many times each line is said, each with a pause to say it after. Default 1. */ times?: number }
 export interface PlayRecap { words: readonly { text: string; gloss?: string; prop?: string; /** Another drawing of it. */ view?: string }[]; title?: string; gloss?: string; seconds?: number; /** The English of each word comes this many seconds after it. */ reveal?: number }
 export interface PlayQuiz { ask: string; items: readonly { prop: string; view?: string; answer: string; word: string; gloss?: string }[]; /** Seconds to think. */ think?: number }
 export type PlayLesson = { id: string; join?: PlayShot["join"] } & ({ practice: PlayPractice } | { recap: PlayRecap } | { quiz: PlayQuiz });
@@ -73,6 +73,8 @@ export interface PlayLibrary {
 }
 
 const GAP = 0.5, LEAD = 0.3, WALK = 92, STRIP = { place: [960, 962] as Pt, size: 70 }, TITLE = { place: [960, 948] as Pt, size: 84 };
+/** Film pixels of the picture on a practice page: under the title, right of the speaker. */
+const PICTURE = { at: [1298, 660] as Pt, width: 520, height: 280 };
 const SHARE: Record<Exclude<PlaySize, "wide">, number> = { face: 0.27, chest: 0.4, waist: 0.58, knee: 0.8, full: 1.12 };
 const ACTOR_KEYS = new Set(["who", "act", "at", "for", "strength", "ease"]);
 const lastOf = <T>(list: readonly T[] | undefined): T | undefined => list?.[list.length - 1];
@@ -291,21 +293,30 @@ function titled(at: TeachStage, lib: PlayLibrary, page: ReturnType<typeof pageOf
 }
 
 /** Lines once more, one after the other: someone says it to the viewer, then it stays on the page while the viewer says it. */
-function practiceScene(id: string, o: PlayPractice, at: TeachStage, lib: PlayLibrary): PlayScene {
+function practiceScene(scene: string, o: PlayPractice, at: TeachStage, lib: PlayLibrary): PlayScene {
+  let shown: PlayGive[] = [];
   const page = pageOf(at, lib, "page"), speakers = o.lines.map(l => lib.lines[l]?.speaker ?? ""), title = titled(at, lib, page, { text: o.title ?? "いっしょに {言|い}いましょう", gloss: o.gloss ?? "Say it together", tone: "title", place: [1298, 420], size: 60 }, 860), beats: PlayBeat[] = [];
   o.lines.forEach((id, n) => {
     const who = speakers[n], l = lib.lines[id]; if (!l) throw new Error(`There is no line "${id}" to practise.`);
+    const want = o.pictures?.[id], picture: PlayGive[] = [];
+    if (want) {
+      const { prop, view } = typeof want === "string" ? { prop: want, view: undefined } : want, p = lib.props[prop]; if (!p) throw new Error(`Practice "${scene}": there is no prop "${prop}" for the picture of "${id}".`);
+      const v = (view && p.views?.[view]) || p, scale = Math.min(PICTURE.width / page.unit / v.width, PICTURE.height / page.unit / v.height), [fx, fy] = v.foot ?? [0.5, 1], [x, y] = page.cm([PICTURE.at[0], PICTURE.at[1] + PICTURE.height / 2]);
+      // the bottom middle of the fitted picture is at the bottom middle of the box
+      picture.push({ prop, ...(view ? { view } : {}), to: [x + (fx - 0.5) * v.width * scale, y - (1 - fy) * v.height * scale], scale, z: 5 });
+    }
     const long = storyLineSeconds(l), own = long * (o.slack ?? 1.25) + 0.9, H = Object.values(lib.cast[who].figures)[0].body.height, scale = (1.5 * page.home.tall) / H, spot: PlaySpot = { at: [page.home.at[0] - 0.2 * page.width, page.home.at[1] - 0.41 * page.home.tall + H * scale], scale, toward: "viewer" };
     for (let r = 0; r < (o.times ?? 1); r++) {
       // on a review page the English comes after the Japanese the first time, and at once after that
       const said: PlayWords = o.reveal === undefined ? { text: l.ja, gloss: l.en } : { text: l.ja, gloss: l.en, means: true, ...(r ? {} : { reveal: o.reveal }) };
       if (r) beats.push({ say: id, to: "viewer", look: { [who]: "viewer" }, mood: "happy", after: 0.2, words: title.words });
-      else beats.push({ ...(n && speakers[n - 1] !== who ? { exit: [speakers[n - 1]] } : {}), enter: { [who]: spot }, shot: { id: `practice-${id}`, frame: page.home, move: "hold", ...(n ? { join: "dissolve" } : {}) }, ...(title.give.length ? { give: title.give.map(g => ({ ...g, hidden: true })) } : {}), say: id, to: "viewer", look: { [who]: "viewer" }, mood: "happy", after: 0.2 });
+      else beats.push({ ...(n && speakers[n - 1] !== who ? { exit: [speakers[n - 1]] } : {}), enter: { [who]: spot }, shot: { id: `practice-${id}`, frame: page.home, move: "hold", ...(n ? { join: "dissolve" } : {}) }, ...(title.give.length || shown.length || picture.length ? { give: [...title.give.map(g => ({ ...g, hidden: true })), ...shown.map(g => ({ ...g, hidden: true })), ...picture] } : {}), say: id, to: "viewer", look: { [who]: "viewer" }, mood: "happy", after: 0.2 });
       const hold = own + (r ? 0 : (o.reveal ?? 0));
       beats.push({ seconds: hold, after: 0.3, give: title.give, do: [{ who, act: "listen", at: 0.2, for: long + 0.8 }, { who, act: "nod", at: hold - 0.8, for: 1 }], words: [...title.words, said] });
     }
+    shown = picture;
   });
-  return { id, stage: at.stage, cast: {}, cover: "none", beats };
+  return { id: scene, stage: at.stage, cast: {}, cover: "none", beats };
 }
 
 /** Words of a story with their pictures, side by side. */

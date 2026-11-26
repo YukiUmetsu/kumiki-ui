@@ -206,4 +206,18 @@ describe("lesson pages", () => {
   });
   it("keep the reveal when the switch is on", () => { expect(english(said, comes(said, line.ja) + 0.5, true)).not.toContain(line.en); });
   it("say a phrase as many times as asked", () => { expect(said.shots.flatMap(s => s.says ?? []).filter(s => s.line === first)).toHaveLength(2); });
+  it("put the picture of a line below the title and beside the speaker", () => {
+    const lib = storyLibrary(), prop = Object.keys(lib.props).find(k => lib.props[k].width > lib.props[k].height)!, second = Object.keys(KONBINI_LINES)[1];
+    const film = lesson({ id: "say", practice: { lines: [first, second], pictures: { [first]: prop } } }), shot = film.shots.find(s => s.id.endsWith(`practice-${first}`))!;
+    const staged = shot.props!.find(p => p.prop === prop)!, hold = staged.holds[staged.holds.length - 1] as unknown as { at: [number, number] }, v = lib.props[prop], scale = staged.scale ?? 1;
+    const { home } = lib.sets[lib.stages[lib.teach!.stage].set], f = lib.frame, unit = f.height / home.tall, px = ([x, y]: readonly [number, number]) => [f.x + f.width / 2 + (x - home.at[0]) * unit, f.y + f.height / 2 + (y - home.at[1]) * unit];
+    const [fx, fy] = v.foot ?? [0.5, 1], w = v.width * scale * unit, h = v.height * scale * unit, [x, y] = px(hold.at), box = [x - fx * w, y - fy * h, w, h];
+    expect(box[0]).toBeGreaterThanOrEqual(1038 - 1); expect(box[1]).toBeGreaterThanOrEqual(520 - 1); expect(box[0] + box[2]).toBeLessThanOrEqual(1558 + 1); expect(box[1] + box[3]).toBeLessThanOrEqual(800 + 1);
+    expect(box[1]).toBeGreaterThan(360 + 140); // the title, its furigana and its English
+    const tall = 1.5 * f.height; expect(box[0]).toBeGreaterThan(f.x + 0.3 * f.width + 0.18 * tall); // the speaker and the arms
+    expect(film.shots.find(s => s.id.endsWith(`practice-${second}`))!.props?.some(p => p.prop === prop)).toBeFalsy();
+    const next = lesson({ id: "say", practice: { lines: [first], pictures: { [first]: prop } } }, { id: "words", recap: { words: [{ text: "{水|みず}", gloss: "water" }] } });
+    expect(next.shots.find(s => s.id.startsWith("words"))!.props?.some(p => p.prop === prop)).toBeFalsy();
+    expect(() => lesson({ id: "say", practice: { lines: [first], pictures: { [first]: "no-such-prop" } } })).toThrow(`Practice "say": there is no prop "no-such-prop" for the picture of "${first}".`);
+  });
 });
