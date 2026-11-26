@@ -83,6 +83,12 @@ A set is layers of paintings with a place in centimetres. A stage is a set with 
 - A spot never looks (`toward`) at the person who stands on it.
 - Drifts are petals, steam, rain or smoke. With `grow` they get larger. Bursts are fireworks. `slides` moves a layer: a train, a door, a car. `pace` is how fast the street goes by behind a window.
 
+## Paint orders
+
+An insert (a close-up of hands, a tray from above, a sign) is a painting that a recipe orders. A source of `recipes/<place>.json` can have `"paint": { "prompt", "refs": [paintings in the sets folder], "size": [w, h], "seed" }`. Then `local-assets/storybook/py/bin/python scripts/storybook-paint-set.py src/video/storybook/recipes/<place>.json` paints each source whose `file` is not there yet with the local painting model, and writes its `sharp` file at 2×. Beside each painting it writes `<file>.json` with the prompt, the refs, the seed, the size, the model and the SHA-256. `--dry` lists the orders and loads no model. `--only a,b` paints only these sources, `--again` paints them again, and `--seed N` gives another try. The size is a multiple of 16. The lock `.paint.lock` in the sets folder keeps one painting process at a time.
+
+Look at each painting at 1× and 2× before `storybook-art.py` cuts it. A painting that shows the wrong count, the wrong side or letters that are not Japanese gets another seed.
+
 ## A figure
 
 A card of about 60 lines replaces a recipe cut by hand. For a new person, `story:person` proposes the card from the painting and runs all the steps below: see [Add a person](storybook-character.md). `storybook-rig.py` finds joints, jaw, lips and cuffs from landmarks, cuts the painting, fills what a joint uncovers, sews the faces, and takes hands and feet from the kit of the cast in the size and the skin colour of the figure. It prints how like the painting the figure is at rest. Then look at the kit film of the figure (`npm run -s story:look -- kit-<figure> --n 4`) and measure it (`story:qa -- kit-<figure>`): standing, turning, each look, speech, both arms through the space in front, each act, a walk, sitting.
