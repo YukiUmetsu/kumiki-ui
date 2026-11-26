@@ -12,7 +12,9 @@ import { playRole, storyDepth, storyRaised, storyView, type PlannedShot, type St
 
 export interface JointFound { shot: string; actor: string; /** What the actor does then. */ acts: readonly string[]; hand?: ActHand; joint: JointId; /** Degrees, at the worst moment. */ angle: number; range: readonly [number, number]; /** `can`: no person can. `easy`: it looks strained. */ level: "can" | "easy"; /** Seconds of the film: the worst moment. */ t: number; /** How long. */ seconds: number; /** Past the band of the wrist that the study of the act shows (`ACT_STUDIES` hand), not past what is easy. */ studied?: boolean }
 export interface ArmActSeen { shot: string; actor: string; view: string; act: string; hands: readonly ActHand[]; /** Seconds of the film. */ t: number; /** Left, top, width, height: parts of the picture. */ box: readonly [number, number, number, number]; /** The act has no study. */ unstudied: boolean }
-export interface StoryChecked { joints: JointFound[]; counters: string[]; /** Elbows that jump from one frame to the next. */ jumps: string[]; /** Hands that do something behind someone else. */ hidden: string[]; /** Hands drawn with a grip that the study of the act does not show. */ grips: string[]; /** Hands whose drawing shows a side that the photographs of the act do not: the palm faces the wrong way. */ palms: string[]; /** Forearms drawn so short that a painting shows a lump. */ short: string[]; acts: ArmActSeen[]; /** Acts of arms that nobody has looked at a photograph for. */ unstudied: string[] }
+/** Acts in which a hand holds, gives or rises. They go in an insert (a painting of the hands), not in a shot with people: their joints failed the art reviews. */
+export const HAND_ACTS: readonly string[] = ["cook", "eat", "offer", "receive", "take", "pack", "fan", "unfold", "fold", "steer", "show", "call", "raise", "wave"];
+export interface StoryChecked { joints: JointFound[]; counters: string[]; /** Elbows that jump from one frame to the next. */ jumps: string[]; /** Hands that do something behind someone else. */ hidden: string[]; /** Hands drawn with a grip that the study of the act does not show. */ grips: string[]; /** Hands whose drawing shows a side that the photographs of the act do not: the palm faces the wrong way. */ palms: string[]; /** Forearms drawn so short that a painting shows a lump. */ short: string[]; acts: ArmActSeen[]; /** Acts of arms that nobody has looked at a photograph for. */ unstudied: string[]; /** Acts of `HAND_ACTS` in shots with people. */ handActs: string[] }
 
 const ARM = /^(arm|hand)-/, BODY = /^(torso|trunk|arm-|head|leg-|skirt|coat)/, RAD = Math.PI / 180;
 const turnOf = (p: StoryPlayed, bone: string) => { const w = p.frame.bones.get(bone)?.world; return w ? Math.atan2(w.b, w.a) / RAD : 0; };
@@ -59,12 +61,13 @@ function handsOf(act: Act | undefined, params: Readonly<Record<string, unknown>>
 
 export interface StoryCheckOptions { /** Only these shots. */ shots?: readonly string[]; /** Moments a second. Default 12. */ rate?: number }
 export function checkStory(plan: StoryPlan, o: StoryCheckOptions = {}): StoryChecked {
-  const { film } = plan, library: Readonly<Record<string, Act>> = film.acts ? { ...ACTS, ...film.acts } : ACTS, out: StoryChecked = { joints: [], counters: [], jumps: [], hidden: [], grips: [], palms: [], short: [], acts: [], unstudied: [] }, missing = new Set<string>();
+  const { film } = plan, library: Readonly<Record<string, Act>> = film.acts ? { ...ACTS, ...film.acts } : ACTS, out: StoryChecked = { joints: [], counters: [], jumps: [], hidden: [], grips: [], palms: [], short: [], acts: [], unstudied: [], handActs: [] }, missing = new Set<string>();
   for (const planned of plan.shots) if (!o.shots || o.shots.includes(planned.shot.id)) for (const role of planned.shot.roles ?? []) checkRole(planned, role);
   out.unstudied = [...missing].sort();
   return out;
 
   function checkRole({ shot, start }: PlannedShot, role: StoryRole) {
+    for (const a of role.acts ?? []) if (HAND_ACTS.includes(a.act)) out.handActs.push(`${shot.id} ${Math.max(0, a.at).toFixed(2)} s, ${role.actor} ${a.act}: hands that hold, give or rise go in an insert (a painting), not in a shot with people.`);
     const fps = film.fps, every = Math.max(1, Math.round(fps / (o.rate ?? 12))), facing = playRole(film, shot, role, 0, true).figure.body.facing, timed = (role.acts ?? []).map(a => ({ ...a, d: a.for ?? library[a.act]?.seconds ?? 1 })).map(a => ({ ...a, hands: handsOf(library[a.act], a.params ?? {}, a.d, facing) }));
     const worst = new Map<string, JointFound>(), lump = new Map<string, { least: number; t: number; seconds: number; hand: ActHand; acts: readonly string[] }>(), was: Partial<Record<ActHand, boolean>> = {}, way: Record<ActHand, [number, number][]> = { f: [], b: [] }, jump = new Map<ActHand, { by: number; t: number; acts: readonly string[] }>();
     for (let n = 0; n <= Math.floor(shot.seconds * fps); n++) {

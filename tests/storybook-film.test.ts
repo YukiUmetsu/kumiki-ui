@@ -12,7 +12,7 @@ import { inspectRuby, moraeOf, parseRuby, phonesOf, rubyReading } from "../regis
 import { mouthAt, mouthKeys } from "../registry/video/storybook/speech-mouth";
 import type { SpeechTrack } from "../registry/video/storybook/speech-mouth";
 import { inspectStorybook, planStorybook, storybookFrame, storyLineSeconds } from "../registry/video/storybook/storybook-film";
-import { checkStory } from "../registry/video/storybook/story-check";
+import { checkStory, HAND_ACTS } from "../registry/video/storybook/story-check";
 import { composeStory } from "../registry/video/storybook/story-play";
 import type { PlayLesson } from "../registry/video/storybook/story-play";
 import type { StorybookFilm } from "../registry/video/storybook/storybook-film";
@@ -253,5 +253,12 @@ describe("lesson pages", () => {
     const next = lesson({ id: "say", practice: { lines: [first], pictures: { [first]: prop } } }, { id: "words", recap: { words: [{ text: "{水|みず}", gloss: "water" }] } });
     expect(next.shots.find(s => s.id.startsWith("words"))!.props?.some(p => p.prop === prop)).toBeFalsy();
     expect(() => lesson({ id: "say", practice: { lines: [first], pictures: { [first]: "no-such-prop" } } })).toThrow(`Practice "say": there is no prop "no-such-prop" for the picture of "${first}".`);
+  });
+});
+
+describe("screenplays", () => {
+  it("name a hand act in a shot with people", () => {
+    const plan = planStorybook(filmOf("festival")), call = plan.shots.map(s => s.shot.id).find(id => id.endsWith("-call"))!;
+    expect(HAND_ACTS).toContain("call"); expect(checkStory(plan, { shots: [call] }).handActs.some(h => h.includes("daichi call"))).toBe(true);
   });
 });
