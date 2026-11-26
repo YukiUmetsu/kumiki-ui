@@ -41,7 +41,7 @@
    "props": [{"prop": "fan", "to": "goods", "view": "closed", "angle": 82, "scale": 0.9}, {"prop": "fan-2", "to": "goods-2", "view": "closed", "angle": 86, "scale": 0.9}],
    "beats": [
     {"shot": {"id": "in", "frame": "all"}, "say": "welcome", "to": "ema", "mood": "happy", "do": [{"who": "emi", "act": "greet", "arms": false, "at": 0.7, "degrees": 20}], "look": {"sophie": "emi"}},
-    {"shot": {"id": "what", "frame": "both", "from": "door"}, "say": "what", "to": "emi", "do": [{"who": "sophie", "act": "point", "to": "goods", "at": 0.1, "for": 2.2}], "look": {"sophie": "goods", "ema": "goods"}},
+    {"shot": {"id": "what", "frame": "both", "from": "door"}, "say": "what", "to": "emi", "do": [{"who": "sophie", "act": "point", "to": "goods", "grip": "point", "angle": -65, "at": 0.1, "for": 2.2}], "look": {"sophie": "goods", "ema": "goods"}},
     {
      "shot": {"id": "opens", "on": "emi", "size": "waist"},
      "say": "fan",
@@ -79,13 +79,13 @@
    "cast": {"emi": "clerk", "ema": "ask-1", "sophie": "ask-2"},
    "props": [{"prop": "fan", "to": "sophie:bar-f"}, {"prop": "fan-2", "to": "goods-2", "view": "closed", "angle": 86, "scale": 0.9}],
    "beats": [
-    {"shot": {"id": "cool", "frame": "both", "from": "door"}, "say": "how-much", "to": "emi", "pose": {"sophie": [{"act": "fan", "y": 0.16}]}, "react": {"sophie": "happy"}, "look": {"sophie": "viewer"}},
+    {"shot": {"id": "cool", "frame": "both", "from": "door"}, "say": "how-much", "to": "emi", "pose": {"sophie": [{"act": "fan", "x": 0.03, "y": 0.09}]}, "react": {"sophie": "happy"}, "look": {"sophie": "viewer"}},
     {"shot": {"id": "two-thousand", "on": "emi", "size": "chest", "without": ["sophie"]}, "say": "two-thousand", "to": "ema", "do": [{"who": "emi", "act": "explain", "hand": "f", "at": 0.1}]},
     {
      "shot": {"id": "two", "on": ["ema", "sophie"], "size": "waist", "from": "door"},
      "say": "two",
      "to": "emi",
-     "do": [{"who": "ema", "act": "point", "to": "goods-2", "at": 0.7, "for": 2.2}],
+     "do": [{"who": "ema", "act": "point", "to": "goods-2", "grip": "guide", "at": 0.7, "for": 2.2}],
      "react": {"sophie": "happy"},
      "look": {"sophie": "ema"}
     },
@@ -114,7 +114,7 @@
     {
      "shot": {"id": "hands", "on": "emi", "size": "waist"},
      "seconds": 1.7,
-     "do": [{"who": "emi", "act": "offer", "to": [-36, -133], "under": 23, "side": 5, "grip": "bar", "in": 0.5, "at": 0, "for": 2.4}],
+     "do": [{"who": "emi", "act": "offer", "to": [-36, -133], "under": 23, "side": 5, "grip": "bar", "in": 0.5, "at": -0.6, "for": 3}],
      "give": [{"prop": "paper-bag", "to": "emi:bar-f"}, {"prop": "fan", "to": "goods", "hidden": true}, {"prop": "fan-2", "to": "goods", "hidden": true}],
      "look": {"emi": "sophie"},
      "after": 0
@@ -125,7 +125,7 @@
      "to": "emi",
      "mood": "happy",
      "react": {"ema": "happy"},
-     "do": [{"who": "sophie", "act": "receive", "to": [-34, -101], "under": 20, "side": 5, "grip": "bar", "in": 0.4, "at": -1, "for": 5.4}, {"who": "ema", "act": "thank", "arms": false, "at": 0.8}],
+     "do": [{"who": "sophie", "act": "receive", "to": [-34, -101], "under": 25, "side": 5, "grip": "bar", "in": 0.4, "at": -1, "for": 5.4}, {"who": "ema", "act": "thank", "arms": false, "at": 0.8}],
      "give": [{"prop": "paper-bag", "to": "sophie:bar-f"}],
      "sounds": [{"sound": "bag-taken", "at": 0.2, "gain": -18}],
      "after": 0.5
@@ -144,7 +144,7 @@
      "go": {"ema": "way-1", "sophie": "way-2"},
      "in": 2.8,
      "seconds": 4,
-     "pose": {"sophie": [{"act": "fan", "cool": 0.8, "y": 0.16}]},
+     "pose": {"sophie": [{"act": "fan", "cool": 0.8, "x": 0.03, "y": 0.09}]},
      "look": {"ema": "sophie", "sophie": "viewer"},
      "sounds": [{"sound": "suzu", "at": 0.2, "gain": -20}],
      "after": 0.3

@@ -92,17 +92,17 @@
    "join": "dissolve",
    "look": "happy",
    "cast": {"daniel": "by-1", "ema": "by-2", "sophie": "by-3", "leo": "by-4"},
-   "props": [{"prop": "takoyaki", "to": "leo:tray-f", "scale": 0.8, "grip": [0.46, 0.95]}, {"prop": "bite", "to": "leo:pen-b", "angle": 90, "scale": 0.9}, {"prop": "takoyaki-2", "to": "ema:hands", "scale": 1.1}],
+   "props": [{"prop": "takoyaki", "to": "leo:tray-f", "scale": 0.8, "grip": [0.46, 0.95]}, {"prop": "bite", "to": "leo:bar-b", "angle": 90, "scale": 0.9}, {"prop": "takoyaki-2", "to": "ema:hands", "scale": 1.1}],
    "beats": [
     {
      "shot": {"id": "bites", "frame": "leo", "without": ["sophie", "ema", "daniel"], "about": "Leo blows on a takoyaki and eats it."},
      "seconds": 3.2,
      "pose": {
-      "leo": [{"act": "carry", "hand": "f", "chest": [-0.045, 0.175], "grip": "under"}, {"act": "carry", "hand": "b", "chest": [0.06, 0.15], "angle": -150, "grip": "hold"}],
+      "leo": [{"act": "carry", "hand": "f", "chest": [-0.045, 0.175], "grip": "under"}, {"act": "carry", "hand": "b", "chest": [0.06, 0.15], "angle": -150, "grip": "bar"}],
       "ema": [{"act": "offer", "grip": "under", "apart": 7}]
      },
-     "do": [{"who": "leo", "act": "eat", "hand": "b", "x": 0.054, "y": 0.083, "at": 0.5, "for": 2.2, "bite": 0.5}],
-     "give": [{"prop": "bite", "to": "leo:pen-b", "at": 1.6, "view": "eaten", "over": 0, "angle": 90, "scale": 0.9}],
+     "do": [{"who": "leo", "act": "eat", "hand": "b", "x": 0.0, "y": 0.04, "grip": "bar", "at": 0.5, "for": 2.2, "bite": 0.5}],
+     "give": [{"prop": "bite", "to": "leo:bar-b", "at": 1.6, "view": "eaten", "over": 0, "angle": 90, "scale": 0.9}],
      "look": {"leo": "viewer"},
      "after": 0.3
     },
