@@ -11,7 +11,7 @@ How a scene or an episode of a painted storybook film is made from data. A new s
 | A figure | `cards/<name>.json` → `assets/<name>-front/` | `scripts/storybook-rig.py` |
 | An episode: plays, or scenes of plays, one after another | `episodes/<name>.json` | hand |
 
-The paintings, the raw voices and the landmark models are in `local-assets/storybook` (git ignores it): `--src local-assets/storybook/paintings` for figures and the convenience store, `--src local-assets/storybook/paintings/sets` for other places and props, `--models local-assets/storybook/models`. Keep a copy: without them nothing can be cut again.
+The paintings, the raw voices and the landmark models are in `local-assets/storybook` (git ignores it): `--src local-assets/storybook/paintings` for figures and the convenience store, `--src local-assets/storybook/paintings/sets` for other places and props, `--models local-assets/storybook/models`. The Python environment, the painting model, the aligner and the phone model are there too (`py/`, `models/`): see [Tools](storybook-character.md#tools). Keep a copy: without them nothing can be cut again.
 
 `src/video/storybook/library.ts` gathers all of them by folder. Nothing is registered by hand, except a new family of sound files, which the list in that file names.
 
@@ -25,7 +25,7 @@ npm run -s story:make -- tea --out dir --port 6016 [--voice]                    
 `--new` writes people at their spots, a picture for each line, and the pages that teach. Change its lines and beats. The second command does steps 2 and 5 to 8 below, speaks only the lines that are new (`--voice`), and stops at the first fault. Lines that nobody has spoken are silent. Film a draft first, and record it when its text is final.
 
 1. `npm run -s story:plan -- --library people|stages|props|sounds|acts [name]` shows what exists: views, looks, hands, sockets, spots, frames, marks. Use it before you write. Do not read the JSON of other scenes.
-2. Write the lines. Keep N5 and N4 words, one new pattern in a line, and 4 to 5 morae a second. Speak them: `npm run -s story:speech -- <play>`, with `--hear` and `--ear` so that a wrong reading is found.
+2. Write the lines. Keep N5 and N4 words, one new pattern in a line, and 4 to 5 morae a second. Speak them: `npm run -s story:speech -- <play> --hear`, so that a wrong reading is found.
 3. **Find photographs of each action that the scene needs, before a joint is set.** A hand on a wheel, a fan, a pick and a purse each failed when they came from imagination. Use the owner's action panels first, then photographs. An act that has an entry in `ACT_STUDIES` is done: use it. Photographs that are not free are for observation only.
 4. Find the real place. Measure it. Paint it, cut it with a recipe, and write its stage.
 5. Write the scenes. `npm run -s story:plan -- <play>` prints shots, times and faults. It takes a second and opens no browser.
@@ -85,13 +85,13 @@ A set is layers of paintings with a place in centimetres. A stage is a set with 
 
 ## A figure
 
-A card of about 60 lines replaces a recipe cut by hand. `storybook-rig.py` finds joints, jaw, lips and cuffs from landmarks, cuts the painting, fills what a joint uncovers, sews the faces, and takes hands and feet from the kit of the cast in the size and the skin colour of the figure. It prints how like the painting the figure is at rest. Then look at the kit film of the figure (`npm run -s story:look -- kit-<figure> --n 4`) and measure it (`story:qa -- kit-<figure>`): standing, turning, each look, speech, both arms through the space in front, each act, a walk, sitting.
+A card of about 60 lines replaces a recipe cut by hand. For a new person, `story:person` proposes the card from the painting and runs all the steps below: see [Add a person](storybook-character.md). `storybook-rig.py` finds joints, jaw, lips and cuffs from landmarks, cuts the painting, fills what a joint uncovers, sews the faces, and takes hands and feet from the kit of the cast in the size and the skin colour of the figure. It prints how like the painting the figure is at rest. Then look at the kit film of the figure (`npm run -s story:look -- kit-<figure> --n 4`) and measure it (`story:qa -- kit-<figure>`): standing, turning, each look, speech, both arms through the space in front, each act, a walk, sitting.
 
 A wide sleeve (a kimono) needs `fix.sleeve` in the card: the line where it ends against the body. Its corner past the cuff then hangs on a bone of its own (`hang`), and the cloth on the inside of the elbow is drawn in as the elbow bends (`slack` of the bind). Under a skirt or a hem the legs stand straight, so that the cloth hangs as it is painted.
 
 A hand that the kit does not have is made from the measured hand model, so that its joints are possible before it is painted: `npm run -s story:hand -- --gesture point --view back --out shape.png` (about 25 s), `python scripts/storybook-hand-paint.py shape.png painted.png`, then one clean-up by the local painting model with only that picture as its reference. Add it to `cards/kit-hands.json` with what it `shows`.
 
-`fix.hole` gives the armhole where the gap beside an arm does not show it. `idle` names the look between lines when the painting laughs. `badges` replaces the letters of a real company on a badge with a plain wheel. A view in other clothes is named in `apart` of the person in `cast.ts`: it is loaded only by the films that name it.
+`fix.hole` gives the armhole where the gap beside an arm does not show it. `idle` names the look between lines when the painting laughs or shows an open mouth. `storybook-rig.py --propose` writes `neutral` there when the person has a `rest` face. `badges` replaces the letters of a real company on a badge with a plain wheel. A view in other clothes is named in `apart` of the person in `cast.ts`: it is loaded only by the films that name it.
 
 A rear view is a card with `"view": "rear"`. `"body": { "sits": false }` says that the clothes hang in one piece and the figure only stands: a screenplay that asks for `sit` is refused.
 
@@ -113,7 +113,7 @@ Measured on the demo scenes, in the order in which they were made. New pictures 
 | What the next scene needs | Work |
 |---|---|
 | people and a place that exist | 6 to 10 KB of JSON, voices, two sheets to look at. No code, no new picture. Checks of an 80 s film: 56 s |
-| a new person | paintings of one front view and the faces, a card of about 60 lines. Hands, feet, acts and joints are shared |
+| a new person | a person file, one front painting, `story:person` (it paints the missing faces, proposes the card and checks the figure), corrections of the card, a voice. Hands, feet, acts and joints are shared. See [Add a person](storybook-character.md) |
 | a new place | paintings, a recipe, a stage |
 | a new act | photographs, one entry in `ACT_STUDIES`, one entry in `ACTS`. All people and later scenes have it |
 

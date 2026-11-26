@@ -4,7 +4,8 @@ Forced alignment always finds the phones that it is told. This hears them free: 
 it left out, shows as a difference. The pitch is compared with the accents that OpenJTalk gives to the text.
 
   <json> | python scripts/storybook-hear.py --model dir      [{"id", "audio", "text", "phones": [...], "track": {...}?}]
-  → [{"id", "heard": [...], "edits": [...], "accent": -1..1 | null, "pitch": [[phone, wanted high, semitones]...]}]
+  → [{"id", "heard": [...], "edits": [...], "accent": -1..1 | null, "pitch": [[phone, wanted high, semitones]...], "hz": median pitch}]
+  <json> | python scripts/storybook-hear.py --pitch          [{"id", "audio"}] → [{"id", "hz"}], with no model
 
 The model is prj-beatrice/japanese-hubert-base-phoneme-ctc-v4 (Apache-2.0), read from a folder. It needs torch and transformers; the
 accents need pyopenjtalk (MIT) and are left out without it. Both stay on this computer.
@@ -12,7 +13,8 @@ accents need pyopenjtalk (MIT) and are left out without it. Both stay on this co
 import argparse, json, re, subprocess, sys
 import numpy as np
 
-a = argparse.ArgumentParser(); a.add_argument("--model", required=True); o = a.parse_args()
+a = argparse.ArgumentParser(); a.add_argument("--model"); a.add_argument("--pitch", action="store_true"); o = a.parse_args()
+if not o.pitch and not o.model: a.error("--model is needed to hear phones")
 SAME = {"a:": "a a", "i:": "i i", "u:": "u u", "e:": "e e", "o:": "o o", "q": "cl", "I": "i", "U": "u", "dy": "j", "zy": "j", "sil": "", "pau": "", "sp": "", "PAD": ""}
 plain = lambda ps: [q for p in ps for q in SAME.get(p, p).split()]
 
@@ -108,8 +110,14 @@ def tune(x, text, track):
     return (round(num / np.sqrt(den * da), 2) if den * da > 0 else None), rows
 
 
-lines = json.load(sys.stdin); hear = ear(o.model); out = []
+def median_hz(x):
+    F = pitch(x); F = F[F > 0]; return round(float(np.median(F)), 1) if len(F) else None
+
+
+lines = json.load(sys.stdin); hear = None if o.pitch else ear(o.model); out = []
 for l in lines:
-    x = sound(l["audio"]); heard = hear(x); acc, rows = tune(x, l["text"], l["track"]) if l.get("track") else (None, [])
-    out.append({"id": l["id"], "heard": heard, "edits": edits(plain(l["phones"]), heard), "accent": acc, "pitch": rows})
+    x = sound(l["audio"])
+    if o.pitch: out.append({"id": l["id"], "hz": median_hz(x)}); continue
+    heard = hear(x); acc, rows = tune(x, l["text"], l["track"]) if l.get("track") else (None, [])
+    out.append({"id": l["id"], "heard": heard, "edits": edits(plain(l["phones"]), heard), "accent": acc, "pitch": rows, "hz": median_hz(x)})
 print("\n" + json.dumps(out, ensure_ascii=False))  # libraries print, too: the answer is the last line

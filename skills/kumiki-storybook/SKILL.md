@@ -5,7 +5,7 @@ description: Use when making, cutting, rigging, animating or reviewing painted s
 
 # Kumiki painted storybook films (STORY1)
 
-A new scene, figure or episode: read [storybook-episode](../../docs/component-specs/storybook-episode.md). The engine and the acts: [storybook-film](../../docs/component-specs/storybook-film.md). Packs: `painted-rig`, `storybook-film`.
+A new scene, figure or episode: read [storybook-episode](../../docs/component-specs/storybook-episode.md). A new person: [Add a person](../../docs/component-specs/storybook-character.md) (`story:person`, `story:voice`). The engine and the acts: [storybook-film](../../docs/component-specs/storybook-film.md). Packs: `painted-rig`, `storybook-film`.
 
 Start with `npm run -s story:make -- <play> --new --stage <stage> --cast a,b`: it writes a screenplay that plays. Then `story:make -- <play> --out dir` does all checks and draws two sheets. Before you write: `npm run -s story:plan -- --library people|stages|props|sounds|acts [name]`. Do not read the JSON of other scenes.
 
@@ -20,4 +20,4 @@ Start with `npm run -s story:make -- <play> --new --stage <stage> --cast a,b`: i
 9. **Subtitles have their own region.** Nothing covers them. Only Japanese is shown: the translation is hidden until `glosses` or the switch is on. The English of a taught word (`gloss`) shows always. Check the longest line with furigana and translation.
 10. **Calm, caused motion.** A reach takes 0.7 s. Looking comes before reaching. A raised hand comes up round a low elbow. A walk along the picture starts outside it or under a join.
 11. **Each figure keeps its own face and size.** The kit gives hands and feet in its size and skin. Look at its kit film (`story:look -- kit-<figure>`) after each change of an act.
-12. **Measure, then look.** `story:check -- <film> --out sheet.jpg` (joints, hidden hands, elbow jumps, counters), `story:qa -- <film>`, open the frames that they name, `story:look -- <film> --shots a,b`, and play the film at normal speed. Speak with `story:speech -- <play> --hear --ear`: it hears each line without its text. Say what is tested, what was looked at, and that nobody approved it yet.
+12. **Measure, then look.** `story:check -- <film> --out sheet.jpg` (joints, hidden hands, elbow jumps, counters), `story:qa -- <film>`, open the frames that they name, `story:look -- <film> --shots a,b`, and play the film at normal speed. Speak with `story:speech -- <play> --hear`: it hears each line without its text. Say what is tested, what was looked at, and that nobody approved it yet.

@@ -1,0 +1,13 @@
+{
+ "name": "Sophie",
+ "label": "ソフィー",
+ "color": "#B5524A",
+ "seed": 21,
+ "height": 138,
+ "voice": {
+  "fish": "97eda32449cf443bbc4b8782853ca554",
+  "speed": 0.75,
+  "pace": 5.7
+ },
+ "looks": "brown curly ponytail with a pink bow, pink hoodie, denim overalls with crossed straps, pink backpack with a small white rabbit charm, rolled cuffs, white and pink sneakers"
+}

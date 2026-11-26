@@ -1,0 +1,12 @@
+{
+ "name": "Haruka",
+ "label": "{遥|はるか}さん",
+ "color": "#7A5A93",
+ "seed": 74,
+ "height": 162,
+ "voice": {
+  "fish": "35c8e5ae5239435f8d9c26c86802b86d",
+  "speed": 0.75,
+  "pace": 5.6
+ }
+}

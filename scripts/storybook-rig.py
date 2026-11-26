@@ -4,6 +4,13 @@ rig, without outlines cut by hand. Landmarks (MediaPipe) say where the joints, t
 painting say where an arm ends and a chest begins; skin colour says where a sleeve ends.
 
   python scripts/storybook-rig.py card.json [...] --src paintings --out assets --models dir [--look dir]
+  python scripts/storybook-rig.py --propose <id> [...] --src paintings --models dir --look dir
+
+--propose writes the card of a person who has none (src/video/storybook/cards/<id>.json; when there is one, <look>/<id>.draft.json)
+from cast/<id>_full_body.png and src/video/storybook/people/<id>.json, and <look>/<id>-card.jpg: the painting with the head box, what
+the face shows, the joints, and the seam where each arm will be cut. It does not propose fix.hole: on the 7 cards that have one, the
+seam of the rig, the darkest line of ink and the end of the sleeve's colour came within 12 px of the hand-set seam on 4, 3 and 0 of
+14 sides. When the drawn seam cuts through a strap or a collar, give fix.hole.
 
 The models are face_landmarker.task, pose_landmarker_heavy.task and selfie_multiclass_256x256.tflite of MediaPipe.
 --look writes a picture of the parts of each figure.
@@ -42,6 +49,10 @@ JAW = [234, 93, 132, 58, 172, 136, 150, 149, 176, 148, 152, 377, 400, 378, 379, 
 LIPS = [61, 291, 13, 14, 0, 17, 40, 37, 267, 270, 91, 84, 314, 321, 78, 308, 81, 311, 178, 402]  # LIP_MARKS of rig-face.ts
 EYES = ([33, 133, 159, 145], [263, 362, 386, 374]); BROWS = ([70, 63, 105, 66, 107], [300, 293, 334, 296, 336])
 K = 2  # pixels of a layer for each pixel of the painting
+REPO = Path(__file__).resolve().parent.parent
+PROVENANCE = "The owner's full-body painting, cut; the face paintings were made from it with FLUX.2 Klein 4B (Apache-2.0), run locally."
+FACE_FILES = {"rest": "rest", "a": "a", "blink": "blink", "joy": "happy"}  # card name: suffix of faces/<id>_<suffix>.png
+OWN = {"rest": {"rest"}, "open": {"a"}, "joy": {"a", "joy"}, "narrow": {"rest"}}  # the faces that a painting gives itself, by what it shows
 
 
 class Models:
@@ -81,6 +92,52 @@ def filled(shape, pts): m = np.zeros(shape, np.uint8); cv2.fillPoly(m, [np.round
 def biggest(m):
     c, lab, st, _ = cv2.connectedComponentsWithStats(m.astype(np.uint8), connectivity=8)
     return lab == 1 + int(np.argmax(st[1:, cv2.CC_STAT_AREA])) if c > 1 else m
+
+
+def paper(path):
+    """The painting on white paper, and its alpha."""
+    raw = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
+    if raw is None: raise SystemExit(f"There is no painting {path}.")
+    raw = raw.astype(np.float32); rgb, a = (raw[..., 2::-1], raw[..., 3] / 255) if raw.ndim == 3 and raw.shape[2] == 4 else art.matte(raw[..., ::-1])
+    return rgb * a[..., None] + 255 * (1 - a[..., None]), a
+
+
+def head_box(models, over, solid):
+    """The square of the head: from just over the hair to past the chin, wide enough for the ears."""
+    H, W = solid.shape; rows = np.where(solid.any(1))[0]
+    if not len(rows): raise SystemExit("The painting is empty.")
+    top = int(rows[0]); hh = int(H * 0.22); cols = np.where(solid[top:top + hh // 2].any(0))[0]; cx0 = (cols[0] + cols[-1]) / 2; half = int(W * 0.195)
+    x0 = int(max(0, cx0 - half)); y0 = max(0, top - 10); f = models.face(over[y0:top + hh, x0:int(cx0 + half)], 0.2)
+    if f is None: raise SystemExit("MediaPipe (face_landmarker.task) found no face at the top of the painting.")
+    f = f + [x0, y0, 0]; chin = f[152, 1]; cx = (f[234, 0] + f[454, 0]) / 2
+    xs = np.where(solid[top:int(chin)].any(0))[0]; half = max(cx - xs[0], xs[-1] - cx)
+    S = int(math.ceil(min(1.5 * (chin - top), max(1.36 * (chin - top), 2 * half + 24)) / 8) * 8)
+    return [int(round(cx - S / 2)), int(round(top - S * 0.06)), S]
+
+
+def face_state(p):
+    """How open the lips and the eyes are, and how far the corners of the mouth are over the middle of the lips: shares of the face height."""
+    H = float(np.linalg.norm(p[10, :2] - p[152, :2])); eye = (abs(p[159, 1] - p[145, 1]) + abs(p[386, 1] - p[374, 1])) / 2
+    return {"gap": round(float(p[14, 1] - p[13, 1]) / H, 4), "eyes": round(float(eye) / H, 4), "corners": round(float((p[13, 1] + p[14, 1]) / 2 - (p[61, 1] + p[291, 1]) / 2) / H, 4)}
+
+
+def shows_of(state):
+    """What a painted face shows, from its landmarks. Measured on the 9 front figures: lips over 0.04 open are open; eyes that
+    laugh measure 0.025 to 0.045, narrow eyes 0.039, eyes at rest 0.049 and more."""
+    if state["gap"] > 0.04: return "joy" if state["eyes"] < 0.047 else "open"
+    return "narrow" if state["eyes"] < 0.042 else "rest"
+
+
+def own_run(xs, x):
+    """The run of pixels of a row that holds x, or the one nearest to it. A piece of hood or hair beside a neck is in the same rows."""
+    return min(np.split(xs, np.nonzero(np.diff(xs) > 1)[0] + 1), key=lambda r: max(r[0] - x, x - r[-1], 0))
+
+
+def painted_face(models, over, solid):
+    """The head box of a painting, the openings of its face and what the face shows."""
+    box = head_box(models, over, solid); p = models.face(square(over, *box), 0.2)
+    if p is None: raise SystemExit(f"MediaPipe (face_landmarker.task) found no face in the head box {box}.")
+    state = face_state(p); return box, state, shows_of(state)
 
 
 def square(rgb, x, y, s):
@@ -329,7 +386,7 @@ def draft(card, root, models):
     # ---- neck: under the collar, and up behind the jaw
     rows = np.nonzero(b.neck.any(1))[0]
     if len(rows):
-        ny = int(np.clip(chin[1] + 0.03 * W, rows.min(), rows.max())); spans = [np.nonzero(b.neck[y])[0] for y in range(ny, min(ny + 8, b.h)) if b.neck[y].any()]; x0, x1, top = float(np.median([r.min() for r in spans])), float(np.median([r.max() for r in spans])), float(chin[1] - 0.42 * W)
+        ny = int(np.clip(chin[1] + 0.03 * W, rows.min(), rows.max())); spans = [own_run(np.nonzero(b.neck[y])[0], chin[0]) for y in range(ny, min(ny + 8, b.h)) if b.neck[y].any()]; x0, x1, top = float(np.median([r.min() for r in spans])), float(np.median([r.max() for r in spans])), float(chin[1] - 0.42 * W)
         rgb, a = paint.copy(), alpha * mask(b.neck); dim = b.neck & (b.yy < ny + 10); tone = np.median(b.over[dim], 0) if dim.any() else b.skin * 0.9
         column = cv2.GaussianBlur(filled(shape, np.array([[x0 + 2, top], [x1 - 2, top], [x1 - 1, ny + 6], [x0 + 1, ny + 6]]) * K).astype(np.float32), (0, 0), 0.8 * K); free = column * (1 - np.clip(up(b.neck) * 1.5, 0, 1)); rgb = mix(rgb, tone + grain(shape, 3), free); a = np.maximum(a, column)
         # no ink of the jaw is left on it, and its sides go on up
@@ -435,13 +492,72 @@ def picture(recipe, b, path):
     cv2.imwrite(str(path), v[:, :, ::-1])
 
 
+def ears_left(b):
+    """Skin beside the head, from over the ears to the angle of the jaw, that the cut leaves on the body: it stays when the head turns.
+    An opening of 5 px removes the edge of the paint. On 2026-11-25 the seven cut figures left 0 px; cut at the cheek, as before #680, they left 960 to 4531 px (0.05 to 0.14 of the face width squared)."""
+    if b.rear: return 0, False
+    f, W = b.face, b.wide; skin = np.isin(b.seg, (2, 3)) | b.skinny
+    beside = (np.minimum(np.abs(b.xx - f[234][0]), np.abs(b.xx - f[454][0])) < 0.25 * W) & (b.yy > min(f[234][1], f[454][1]) - 0.15 * W) & (b.yy < max(f[172][1], f[397][1]))
+    n = int(cv2.morphologyEx((skin & beside & b.solid & ~b.head & ~b.neck).astype(np.uint8), cv2.MORPH_OPEN, np.ones((5, 5), np.uint8)).sum())
+    return n, n > 0.02 * W * W
+
+
+def card_picture(card, b, state, path):
+    """The proposed card on its painting: each point and line that it gives or that the rig will use, with its name."""
+    v = np.clip(b.over, 0, 255).astype(np.uint8)[:, :, ::-1].copy(); x, y, s = card["head"]["box"]; pt = lambda q: (int(round(q[0])), int(round(q[1])))
+    def say(text, at, col):
+        for c, w in (((255, 255, 255), 3), (col, 1)): cv2.putText(v, text, pt(at), cv2.FONT_HERSHEY_SIMPLEX, 0.45, c, w, cv2.LINE_AA)
+    cv2.rectangle(v, (x, y), (x + s, y + s), (0, 190, 255), 2); say(f"head.box {x},{y},{s}", (x + 4, max(14, y + 16)), (0, 130, 200))
+    for i in [*EYES[0], *EYES[1], *LIPS[:4]]: cv2.circle(v, pt(b.face[i]), 2, (0, 0, 220), -1)
+    for side, col in (("f", (200, 0, 200)), ("b", (200, 90, 0))):
+        a = b.arm[side]; cv2.polylines(v, [np.round(np.array(a["seam"] + [a["p"]])).astype(np.int32)], False, (0, 0, 255), 2); say(f"seam {side}", a["seam"][0], (0, 0, 255)); cv2.circle(v, pt(a["p"]), 4, (0, 0, 255), -1)
+        for k in ("s", "e", "w"): cv2.circle(v, pt(a[k]), 5, col, -1)
+        q = np.array(a["e"]) + a["d"] * a["cuff"]; n = np.array([-a["d"][1], a["d"][0]]) * 0.25 * a["L2"]; cv2.line(v, pt(q - n), pt(q + n), (0, 150, 255), 2); say("bare arm" if a["bare"] else "cuff", q + n, (0, 110, 220))
+    for i in (23, 24, 25, 26, 27, 28): cv2.circle(v, pt(b.pose[i]), 5, (0, 150, 0), -1)
+    cv2.line(v, (0, int(b.crotch)), (b.w - 1, int(b.crotch)), (0, 150, 0), 1); say("skirt: stands only" if b.skirt else "the legs part here", (8, b.crotch - 6), (0, 120, 0))
+    ears, bad = ears_left(b)
+    for i, t in enumerate([card["id"], f"height {card['height']} cm", f"shows {card['shows']}: lips {state['gap']:.1%} apart, eyes {state['eyes']:.1%} open", "faces: " + (", ".join(card["faces"]) or "none"),
+                           f"ears left on the body: {ears} px" + (" - FAULT" if bad else "")]): say(t, (8, 18 + 18 * i), (0, 0, 220) if t.endswith("FAULT") else (40, 40, 40))
+    cv2.imwrite(str(path), v, [cv2.IMWRITE_JPEG_QUALITY, 88])
+
+
+def propose(n, root, models, look):
+    """A card for a person from the painting and the person file. It is written where no card is, else beside the picture."""
+    pf = REPO / "src/video/storybook/people" / f"{n}.json"
+    if not pf.exists(): raise SystemExit(f"There is no person {n}: write {pf.relative_to(REPO)} first.")
+    person, painting = json.loads(pf.read_text()), f"cast/{n}_full_body.png"; over, a = paper(root / painting)
+    try:
+        box, state, shows = painted_face(models, over, a > 0.5); own = OWN[shows]
+        faces = {k: f"faces/{n}_{v}.png" for k, v in FACE_FILES.items() if k not in own and (root / "faces" / f"{n}_{v}.png").exists()}
+        card = {"id": f"{n}-front", "height": person["height"], "painting": painting, "sharp": f"flat/{n}@2.png", "head": {"box": box, "sharp": f"heads/{n}.png"}, "shows": shows, **({"idle": "neutral"} if shows in ("open", "joy") and "rest" in faces else {}), "faces": faces, "provenance": PROVENANCE, "kit": "kit-hands.json"}
+        if not (root / card["sharp"]).exists(): del card["sharp"]
+        if not (root / card["head"]["sharp"]).exists(): del card["head"]["sharp"]
+        b = Body(card, root, models)
+    except SystemExit as e: raise SystemExit(f"{painting}: {e}") from None
+    if b.skirt: card["body"] = {"sits": False}
+    target = REPO / "src/video/storybook/cards" / f"{n}.json"; look.mkdir(parents=True, exist_ok=True)
+    if target.exists(): target = look / f"{n}.draft.json"
+    target.write_text(json.dumps(card, ensure_ascii=False, indent=1) + "\n"); card_picture(card, b, state, look / f"{n}-card.jpg")
+    missing = [k for k in FACE_FILES if k not in own and k not in faces]
+    print(json.dumps({"card": str(target.relative_to(REPO) if target.is_relative_to(REPO) else target), "picture": str(look / f"{n}-card.jpg"), "box": box, "shows": shows, **state,
+                      "faces": sorted(faces), "missing": missing, "ears": ears_left(b)[0], "skirt": bool(b.skirt)}, ensure_ascii=False), flush=True)
+
+
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(); ap.add_argument("cards", nargs="+"); ap.add_argument("--src", required=True); ap.add_argument("--out", required=True); ap.add_argument("--models", required=True); ap.add_argument("--look"); ap.add_argument("--only-look", action="store_true"); o = ap.parse_args(); models = Models(o.models)
+    ap = argparse.ArgumentParser(); ap.add_argument("cards", nargs="+"); ap.add_argument("--src", required=True); ap.add_argument("--out"); ap.add_argument("--models", required=True); ap.add_argument("--look"); ap.add_argument("--only-look", action="store_true"); ap.add_argument("--propose", action="store_true"); o = ap.parse_args(); models = Models(o.models)
+    if o.propose:
+        for n in o.cards: propose(n, Path(o.src), models, Path(o.look or "."))
+        raise SystemExit(0)
+    if not o.out and not o.only_look: ap.error("--out is needed to cut")
     for c in o.cards:
         card = json.loads(Path(c).read_text()); print(card["id"], flush=True)
         if card.get("like"): card["like"] = json.loads((Path(c).parent / card["like"]).read_text())
         for own in (card, card.get("feet", {})):
             if own.get("kit"): own["kit"] = json.loads((Path(c).parent / own["kit"]).read_text())
-        recipe, body = draft(card, Path(o.src), models)
+        recipe, body = draft(card, Path(o.src), models); ears, bad = ears_left(body); print(f"{card['id']}: ears left on the body: {ears} px", flush=True)
+        if not body.rear: print(f"{card['id']}: faces not painted: {', '.join(k for k in FACE_FILES if k not in OWN[card.get('shows', 'rest')] and k not in card.get('faces', {})) or 'none'}", flush=True)
         if o.look: Path(o.look).mkdir(parents=True, exist_ok=True); picture(recipe, body, Path(o.look) / f"{card['id']}_parts.png")
-        if not o.only_look: art.build(recipe, Path(o.src), Path(o.out))
+        if bad: raise SystemExit(f"{card['id']}: the cut leaves {ears} px of ear on the body. The head layer must hold both ears: look at the parts picture of --look.")
+        if not o.only_look:
+            art.build(recipe, Path(o.src), Path(o.out)); whole = Path(o.out) / card["id"] / "_assembled.png"
+            if o.look and whole.exists(): whole.replace(Path(o.look) / f"{card['id']}_assembled.png")  # a picture to look at, not an asset

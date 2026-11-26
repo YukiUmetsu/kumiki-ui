@@ -1,31 +1,33 @@
 // Speech for painted storybook films: speaks lines, slows them for learners, and times every phone against the recording.
 //
-//   node scripts/storybook-speech.mjs <play> [--wav scratch/raw] [--julius bin --kit dir] [--hear python --ear model [--takes 4] [--only id,id]]
+//   node scripts/storybook-speech.mjs <play> [--wav scratch/raw] [--julius bin --kit dir] [--hear [--ear model] [--takes 4] [--only id,id]]
 //   node scripts/storybook-speech.mjs lines.json --out dir [--voices voices.json] [--wav scratch/raw] [--julius bin --kit dir]
 //
-// lines.json: { "voices": { "<speaker>": { "fish": "<voice id>", "tempo": 0.8, "pace": 5.5 } } (or those of --voices),
+// lines.json: { "voices": { "<speaker>": { "fish": "<voice id>", "tempo": 0.8, "pace": 5.5 } } (or those of --voices; a play has the voices of people/<id>.json),
 //               "lines": [{ "id", "speaker", "ja" (ruby markup), "en", "speak"?: text (or texts) for the voice, "tempo"?, "gap"? }] }
 //
 // A raw recording <wav>/<id>.wav is used when it is there, from any source (a person, a local voice). Otherwise Fish Audio speaks
 // the line when FISH_AUDIO_API is set. `pace` is morae a second: the tempo is found from the recording and never goes below 0.7.
 // Timing: forced alignment with Julius and the segmentation-kit monophone model (BSD-style licences) when --julius and --kit are
 // given; else the track is estimated from the text and says so ("precision": "estimated").
-// With --hear (a Python with torch, transformers and, for the accents, pyopenjtalk) and --ear (the model) every line is heard without its
+// With --hear (the Python of storybook-tools.mjs, with torch, transformers and, for the accents, pyopenjtalk) and --ear (the model) every line is heard without its
 // text: what was read another way is told, and of --takes new recordings the one is kept that is nearest to the reading and its accent.
 // A line of --only, or one with no recording, is recorded again. Writes <out>/<id>.mp3 and <out>/lines.json ({ id: { speaker, ja, en, track } }), which a film reads as data.
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { basename, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
+import { need, tools } from "./storybook-tools.mjs";
 import { moraeOf, parseRuby, phonesOf, rubyPlain, rubyReading } from "../registry/video/storybook/japanese-text.ts";
 
-const { values: opt, positionals } = parseArgs({ allowPositionals: true, options: { out: { type: "string" }, voices: { type: "string" }, wav: { type: "string" }, julius: { type: "string", default: process.env.JULIUS_BIN }, kit: { type: "string", default: process.env.JULIUS_KIT }, hear: { type: "string", default: process.env.STORY_HEAR }, ear: { type: "string", default: process.env.STORY_EAR }, takes: { type: "string", default: "1" }, only: { type: "string" }, again: { type: "boolean" } } });
+const at = tools(), local = Object.fromEntries(Object.entries(at).filter(([, p]) => existsSync(p)));
+const { values: opt, positionals } = parseArgs({ allowPositionals: true, options: { out: { type: "string" }, voices: { type: "string" }, wav: { type: "string" }, julius: { type: "string", default: process.env.JULIUS_BIN ?? local.julius }, kit: { type: "string", default: process.env.JULIUS_KIT ?? local.kit }, hear: { type: "boolean" }, ear: { type: "string", default: local.ear }, takes: { type: "string", default: "1" }, only: { type: "string" }, again: { type: "boolean" } } });
 // a name is a play of the demo: its lines, its voices and where its recordings go are known
 const demo = resolve(import.meta.dirname, "../src/video/storybook"), play = positionals[0] && !positionals[0].endsWith(".json") ? positionals[0] : null;
-if (play) { positionals[0] = join(demo, "plays", `${play}.json`); opt.out ??= join(demo, "assets", play, "voice"); opt.voices ??= join(demo, "voices.json"); }
+if (play) { positionals[0] = join(demo, "plays", `${play}.json`); opt.out ??= join(demo, "assets", play, "voice"); }
 if (!positionals[0] || !opt.out) { console.error("usage: storybook-speech.mjs <play> | lines.json --out dir [--voices file] [--wav dir] [--julius bin --kit dir]"); process.exit(2); }
-const spec = JSON.parse(readFileSync(positionals[0], "utf8")), voices = { ...(opt.voices ? JSON.parse(readFileSync(opt.voices, "utf8")) : {}), ...spec.voices }, out = resolve(opt.out), raw = resolve(opt.wav ?? join(out, "raw")), RATE = 48000, AT = 16000;
+const spec = JSON.parse(readFileSync(positionals[0], "utf8")), people = join(demo, "people"), voices = { ...(play ? Object.fromEntries(readdirSync(people).filter(f => f.endsWith(".json")).map(f => [basename(f, ".json"), JSON.parse(readFileSync(join(people, f), "utf8")).voice])) : {}), ...(opt.voices ? JSON.parse(readFileSync(opt.voices, "utf8")) : {}), ...spec.voices }, out = resolve(opt.out), raw = resolve(opt.wav ?? join(out, "raw")), RATE = 48000, AT = 16000;
 mkdirSync(out, { recursive: true }); mkdirSync(raw, { recursive: true });
 const ff = args => execFileSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args], { maxBuffer: 1 << 28 });
 const pcm = (file, rate, filter) => { const b = ff(["-i", file, ...(filter ? ["-af", filter] : []), "-ac", "1", "-ar", String(rate), "-f", "s16le", "-"]), n = b.length >> 1, x = new Float32Array(n); for (let i = 0; i < n; i++) x[i] = b.readInt16LE(i * 2) / 32768; return x; };
@@ -100,14 +102,14 @@ async function ready(line, voice, file) {
   if (got) {
     const levels = got.phones.map(p => rms(x, p.start * RATE, p.end * RATE)), loudest = Math.max(...levels);
     track = { seconds: +seconds.toFixed(3), precision: "aligned", phones: got.phones.map((p, i) => ({ p: p.p, start: +p.start.toFixed(3), end: +Math.min(p.end, seconds).toFixed(3), token: p.token, level: +(levels[i] / loudest).toFixed(2) })) };
-  } else { const { estimateSpeech } = await import("../registry/video/storybook/speech-mouth.ts").catch(() => ({})); if (!estimateSpeech) throw new Error(`"${line.id}" could not be aligned. Give --julius and --kit.`); track = estimateSpeech(tokens, seconds); }
+  } else { const { estimateSpeech } = await import("../registry/video/storybook/speech-mouth.ts").catch(() => ({})); if (!estimateSpeech) { need("julius", "kit"); throw new Error(`"${line.id}" could not be aligned. Look at the output of Julius.`); } track = estimateSpeech(tokens, seconds); }
   return { wav, seconds, track, tempo, score: got?.score, phones: phones.map(p => p.p), text: rubyPlain(tokens).replace(/ /g, ""), pace: morae / track.phones.reduce((s, p) => s + (p.p === "sp" ? 0 : p.end - p.start), 0) };
 }
 
 /** Recordings heard without their text: what differs from the reading, and how the pitch goes with the accents. */
 function heard(list) {
-  if (!opt.hear || !opt.ear || !list.length) return new Map();
-  const run = spawnSync(opt.hear, ["-I", join(import.meta.dirname, "storybook-hear.py"), "--model", opt.ear], { input: JSON.stringify(list.map(q => ({ id: q.id, audio: q.wav, text: q.text, phones: q.phones, track: q.track }))), encoding: "utf8", maxBuffer: 1 << 26 });
+  if (!opt.hear || !list.length) return new Map();
+  const run = spawnSync(need("python").python, ["-I", join(import.meta.dirname, "storybook-hear.py"), "--model", opt.ear ?? need("ear").ear], { input: JSON.stringify(list.map(q => ({ id: q.id, audio: q.wav, text: q.text, phones: q.phones, track: q.track }))), encoding: "utf8", maxBuffer: 1 << 26 });
   if (run.status !== 0) throw new Error(`The recordings could not be heard: ${run.stderr.trim().split("\n").pop()}`);
   return new Map(JSON.parse(run.stdout.trim().split("\n").pop()).map(q => [q.id, q]));
 }

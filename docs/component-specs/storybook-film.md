@@ -80,7 +80,7 @@ A range is no pose. A hand on a wheel can be inside all ranges and still hold it
 
 ## Add a figure
 
-A front or rear figure: write a card (see [storybook-episode](storybook-episode.md#a-figure)). A side or three-quarter figure, by hand:
+A new person, front view: follow [Add a person](storybook-character.md). One command paints the missing faces, proposes the card, cuts and checks the figure. A rear figure: write a card (see [storybook-episode](storybook-episode.md#a-figure)). A side or three-quarter figure, by hand:
 
 1. Get a front, three-quarter, side or rear painting of the figure on plain paper, and paintings of its hands and faces. Keep the paintings in `local-assets/`, which git ignores. The cut art goes into the host's assets.
 2. Write a recipe (the head of `storybook-art.py` gives each field): the joints in pixels, one polygon for each layer, steps that paint what lies hidden, hand drawings, face patches with marks on the lips, sockets.
@@ -112,7 +112,7 @@ Rules that decide the quality:
 
 `storybook-speech.mjs <play>` (or `lines.json --out dir`) speaks each line or uses a recording that is there, slows it to a pace in morae a second, and aligns each phone with the recording (Julius and its segmentation kit). Without the aligner the track is estimated from the text and says `"precision": "estimated"`.
 
-With `--hear <python> --ear <model>` each recording is heard by a model that does not know the text. The script names each line that was read another way, and the accent of each word (`speak` gives the voice another spelling). `--takes 4` records a line again and keeps the take that is nearest to the reading and its accent. A voice read ごじゅうのとう and せんはっぴゃくえん wrongly, and only this step found it. A line with no recording plays as silence with a slow mouth, so a film can be planned before it is spoken.
+With `--hear` each recording is heard by a model that does not know the text. The script names each line that was read another way, and the accent of each word (`speak` gives the voice another spelling). `--takes 4` records a line again and keeps the take that is nearest to the reading and its accent. A voice read ごじゅうのとう and せんはっぴゃくえん wrongly, and only this step found it. A line with no recording plays as silence with a slow mouth, so a film can be planned before it is spoken.
 
 The mouth has painted shapes for rest, a, i, u, e, o and closed lips, plus `teeth` and `n`. A figure that has no painting for one of them says which one stands in (`mouthFor`). `steps` and `squeeze` of a face patch change one painted mouth into another: lips painted out, a wide mouth made a round one. Two paintings are joined by moving marks on the lips. ん is closed only before m, b and p; before t, d, n, r and s the tongue shows; before k, g, a vowel or a pause the mouth keeps what the vowel left and half closes. A vowel before a pause is held as long as the voice sounds.
 
