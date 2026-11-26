@@ -1,0 +1,23 @@
+{
+ "id": "yui-front",
+ "height": 158,
+ "painting": "cast/yui_full_body.png",
+ "sharp": "flat/yui@2.png",
+ "head": {
+  "box": [
+   326,
+   -18,
+   384
+  ],
+  "sharp": "heads/yui.png"
+ },
+ "shows": "open",
+ "idle": "neutral",
+ "faces": {
+  "rest": "faces/yui_rest.png",
+  "blink": "faces/yui_blink.png",
+  "joy": "faces/yui_happy.png"
+ },
+ "provenance": "The owner's full-body painting, cut; the face paintings were made from it with FLUX.2 Klein 4B (Apache-2.0), run locally.",
+ "kit": "kit-hands.json"
+}

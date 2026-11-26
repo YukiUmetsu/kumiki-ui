@@ -128,6 +128,11 @@ def shows_of(state):
     return "narrow" if state["eyes"] < 0.042 else "rest"
 
 
+def own_run(xs, x):
+    """The run of pixels of a row that holds x, or the one nearest to it. A piece of hood or hair beside a neck is in the same rows."""
+    return min(np.split(xs, np.nonzero(np.diff(xs) > 1)[0] + 1), key=lambda r: max(r[0] - x, x - r[-1], 0))
+
+
 def painted_face(models, over, solid):
     """The head box of a painting, the openings of its face and what the face shows."""
     box = head_box(models, over, solid); p = models.face(square(over, *box), 0.2)
@@ -381,7 +386,7 @@ def draft(card, root, models):
     # ---- neck: under the collar, and up behind the jaw
     rows = np.nonzero(b.neck.any(1))[0]
     if len(rows):
-        ny = int(np.clip(chin[1] + 0.03 * W, rows.min(), rows.max())); spans = [np.nonzero(b.neck[y])[0] for y in range(ny, min(ny + 8, b.h)) if b.neck[y].any()]; x0, x1, top = float(np.median([r.min() for r in spans])), float(np.median([r.max() for r in spans])), float(chin[1] - 0.42 * W)
+        ny = int(np.clip(chin[1] + 0.03 * W, rows.min(), rows.max())); spans = [own_run(np.nonzero(b.neck[y])[0], chin[0]) for y in range(ny, min(ny + 8, b.h)) if b.neck[y].any()]; x0, x1, top = float(np.median([r.min() for r in spans])), float(np.median([r.max() for r in spans])), float(chin[1] - 0.42 * W)
         rgb, a = paint.copy(), alpha * mask(b.neck); dim = b.neck & (b.yy < ny + 10); tone = np.median(b.over[dim], 0) if dim.any() else b.skin * 0.9
         column = cv2.GaussianBlur(filled(shape, np.array([[x0 + 2, top], [x1 - 2, top], [x1 - 1, ny + 6], [x0 + 1, ny + 6]]) * K).astype(np.float32), (0, 0), 0.8 * K); free = column * (1 - np.clip(up(b.neck) * 1.5, 0, 1)); rgb = mix(rgb, tone + grain(shape, 3), free); a = np.maximum(a, column)
         # no ink of the jaw is left on it, and its sides go on up
@@ -524,7 +529,7 @@ def propose(n, root, models, look):
     try:
         box, state, shows = painted_face(models, over, a > 0.5); own = OWN[shows]
         faces = {k: f"faces/{n}_{v}.png" for k, v in FACE_FILES.items() if k not in own and (root / "faces" / f"{n}_{v}.png").exists()}
-        card = {"id": f"{n}-front", "height": person["height"], "painting": painting, "sharp": f"flat/{n}@2.png", "head": {"box": box, "sharp": f"heads/{n}.png"}, "shows": shows, "faces": faces, "provenance": PROVENANCE, "kit": "kit-hands.json"}
+        card = {"id": f"{n}-front", "height": person["height"], "painting": painting, "sharp": f"flat/{n}@2.png", "head": {"box": box, "sharp": f"heads/{n}.png"}, "shows": shows, **({"idle": "neutral"} if shows in ("open", "joy") and "rest" in faces else {}), "faces": faces, "provenance": PROVENANCE, "kit": "kit-hands.json"}
         if not (root / card["sharp"]).exists(): del card["sharp"]
         if not (root / card["head"]["sharp"]).exists(): del card["head"]["sharp"]
         b = Body(card, root, models)

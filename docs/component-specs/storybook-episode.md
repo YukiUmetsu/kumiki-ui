@@ -91,7 +91,7 @@ A wide sleeve (a kimono) needs `fix.sleeve` in the card: the line where it ends 
 
 A hand that the kit does not have is made from the measured hand model, so that its joints are possible before it is painted: `npm run -s story:hand -- --gesture point --view back --out shape.png` (about 25 s), `python scripts/storybook-hand-paint.py shape.png painted.png`, then one clean-up by the local painting model with only that picture as its reference. Add it to `cards/kit-hands.json` with what it `shows`.
 
-`fix.hole` gives the armhole where the gap beside an arm does not show it. `idle` names the look between lines when the painting laughs. `badges` replaces the letters of a real company on a badge with a plain wheel. A view in other clothes is named in `apart` of the person in `cast.ts`: it is loaded only by the films that name it.
+`fix.hole` gives the armhole where the gap beside an arm does not show it. `idle` names the look between lines when the painting laughs or shows an open mouth. `storybook-rig.py --propose` writes `neutral` there when the person has a `rest` face. `badges` replaces the letters of a real company on a badge with a plain wheel. A view in other clothes is named in `apart` of the person in `cast.ts`: it is loaded only by the films that name it.
 
 A rear view is a card with `"view": "rear"`. `"body": { "sits": false }` says that the clothes hang in one piece and the figure only stands: a screenplay that asks for `sit` is refused.
 

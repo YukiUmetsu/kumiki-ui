@@ -66,7 +66,7 @@ The colour of a face painting is printed and not judged: only its eyes, cheeks a
 
 1. `<id>-card.jpg`: the head box holds the hair and both ears; the seams run along the armholes and not through a strap; the cuff lines are at the cuffs; "the legs part here" is at the crotch, or "skirt: stands only".
 2. The new face paintings beside the painting: the same person, the same glasses, the same hair.
-3. `<id>-sheet.jpg`: the face in each look, the mouth in speech, the arms in the space in front, the walk.
+3. `<id>-sheet.jpg`: the face in each look, closed lips between lines, the mouth in speech, the neck beside the jaw, the arms in the space in front, the walk. A painting with an open mouth or a laugh gets `"idle": "neutral"` in the proposed card, so that the figure listens with the face painted at rest.
 4. `<id>-poses.jpg`: each act of the arms.
 
 Correct the card where a picture shows a wrong point, and run `story:person` again: the faces and the sharp copies that are there are kept.
@@ -90,7 +90,7 @@ The models take 6.6 GB and the environment 1.6 GB. One image model runs at a tim
 ## Limits
 
 - Front views only. A side or three-quarter view is cut by hand with a recipe (see [Add a figure](storybook-film.md#add-a-figure)).
-- On 2026-11-25 the kit film of every figure had 5 to 7 faults in the same acts: `clap` turns a hand to −150° to −173° (a person can turn it −85° to 80°), the end of `receive` to about −160°, and `raise` moves an elbow 4.4 to 5.0 cm in one frame. `clap` is in no film. The step `acts` writes them and does not stop.
+- On 2026-11-25 the kit film of every figure had 5 to 7 faults in the same acts: `clap` turns a hand to −149° to −173° (a person can turn it −85° to 80°), the end of `receive` to −144° to −160°, and `raise` moves an elbow 3.7 to 5.0 cm in one frame. `clap` is in no film. The step `acts` writes them and does not stop.
 - A figure that sits, seen from the front, shows a soft dark edge at the hips and between the legs. All figures have it (Sato, Daniel and Kento were looked at).
 - A face painting can pass its checks and still not look like the person. Look at it.
 - The proposed card does not give `fix.hole` (an armhole seam): on the cards that have one, no rule found it within 12 px on more than 4 of 14 sides.
