@@ -50,7 +50,7 @@
      "do": [
       {"who": "emi", "act": "take", "hand": "f", "to": "goods", "in": 0.55, "away": 0.5, "catch": 0.5, "after": "bar", "at": 0, "for": 1.25},
       {"who": "emi", "act": "unfold", "hand": "f", "at": 0.95, "for": 1.7},
-      {"who": "emi", "act": "fan", "hand": "f", "in": 0.35, "at": 2.3, "for": 3.4}
+      {"who": "emi", "act": "fan", "hand": "f", "x": 0.07, "y": 0.02, "up": 175, "grip": "grip", "in": 0.45, "at": 2.3, "for": 3.4}
      ],
      "give": [
       {"prop": "fan", "to": "emi:bar-f", "view": "closed", "at": 0.62, "over": 0.15},
@@ -67,7 +67,7 @@
      "to": "sophie",
      "mood": "happy",
      "pose": {"emi": [{"act": "fold"}]},
-     "do": [{"who": "emi", "act": "offer", "to": [-36, -126], "grip": "under", "apart": 8, "in": 0.5, "at": 0, "for": 2.6}],
+     "do": [{"who": "emi", "act": "offer", "to": [-36, -132], "grip": "under", "apart": 6, "in": 0.5, "at": 0, "for": 2.6}],
      "give": [{"prop": "fan", "to": "emi:tray-f", "view": "closed", "angle": 90, "scale": 0.9}]
     }
    ]

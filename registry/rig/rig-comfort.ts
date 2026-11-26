@@ -39,15 +39,15 @@ const unit = (a: ComfortVec): ComfortVec => { const n = Math.hypot(...a) || 1; r
 const deg = (c: number) => Math.acos(Math.min(1, Math.max(-1, c))) / RAD;
 const minus = (a: ComfortVec, b: ComfortVec, k: number): ComfortVec => [a[0] - b[0] * k, a[1] - b[1] * k, a[2] - b[2] * k];
 
-export interface ArmSeen { side: "f" | "b"; /** Degrees that the front of the body is turned to the viewer: 90 faces the viewer. */ facing: number; /** Elbow and wrist from the shoulder. */ elbow: ComfortVec; wrist: ComfortVec; /** Angle of the hand in the picture. */ hand: number; shows?: HandView }
+export interface ArmSeen { side: "f" | "b"; /** Degrees that the front of the body is turned to the viewer: 90 faces the viewer. */ facing: number; /** Elbow and wrist from the shoulder. */ elbow: ComfortVec; wrist: ComfortVec; /** Angle of the hand in the picture. */ hand: number; shows?: HandView; /** Degrees that the hand in the drawing is turned about its forearm from `shows`, the palm to the thumb: a palm painted a little from the side of the little finger. */ slant?: number }
 export type ArmAngles = Partial<Record<"raise" | "behind" | "aside" | "across" | "bend" | "turn" | "wrist-flex" | "wrist-side", number>>;
 
 /** Where the palm and the thumb of a hand look whose forearm points along `f`. */
-function handAxes(side: "f" | "b", f: ComfortVec, shows: HandView): { palm: ComfortVec; thumb: ComfortVec } {
+function handAxes(side: "f" | "b", f: ComfortVec, shows: HandView, slant = 0): { palm: ComfortVec; thumb: ComfortVec } {
   // a right hand has its thumb where palm × fingers points, a left hand on the other side; `f` is the arm of the right hand of a body that faces the viewer, and of one seen from the side that walks to the right
   const way = side === "f" ? 1 : -1, z: ComfortVec = [0, 0, shows === "back" || shows === "little" ? -1 : 1], seen = unit(minus(z, f, dot(z, f)));
-  if (shows === "palm" || shows === "back") { const t = cross(seen, f); return { palm: seen, thumb: [t[0] * way, t[1] * way, t[2] * way] }; }
-  const n = cross(f, seen); return { thumb: seen, palm: [n[0] * way, n[1] * way, n[2] * way] };
+  const t = cross(seen, f), n = cross(f, seen), [palm, thumb]: ComfortVec[] = shows === "palm" || shows === "back" ? [seen, [t[0] * way, t[1] * way, t[2] * way]] : [[n[0] * way, n[1] * way, n[2] * way], seen], c = Math.cos(slant * RAD), s = Math.sin(slant * RAD);
+  return { palm: [palm[0] * c + thumb[0] * s, palm[1] * c + thumb[1] * s, palm[2] * c + thumb[2] * s], thumb: [thumb[0] * c - palm[0] * s, thumb[1] * c - palm[1] * s, thumb[2] * c - palm[2] * s] };
 }
 
 /** The joints of an arm as it is drawn. The turn of the forearm is left out of a straight arm: there the shoulder turns the hand. */
@@ -56,7 +56,7 @@ export function armAngles(a: ArmSeen): ArmAngles {
   got.aside = Math.max(0, Math.asin(Math.max(-1, Math.min(1, dot(u, out)))) / RAD);
   if (raise > 25) got.across = Math.max(0, Math.asin(Math.max(-1, Math.min(1, -dot(u, out)))) / RAD);
   if (!a.shows) return got;
-  const { palm, thumb } = handAxes(a.side, f, a.shows), flat = turnBetween(Math.atan2(-f[0], f[1]) / RAD, a.hand), h: ComfortVec = [-Math.sin(a.hand * RAD), Math.cos(a.hand * RAD), 0];
+  const { palm, thumb } = handAxes(a.side, f, a.shows, a.slant), flat = turnBetween(Math.atan2(-f[0], f[1]) / RAD, a.hand), h: ComfortVec = [-Math.sin(a.hand * RAD), Math.cos(a.hand * RAD), 0];
   if (a.shows === "palm" || a.shows === "back") got["wrist-side"] = dot(h, thumb) > 0 ? -Math.abs(flat) : Math.abs(flat);
   else got["wrist-flex"] = dot(h, palm) > 0 ? Math.abs(flat) : -Math.abs(flat);
   if (bend > 25) { const way = a.side === "f" ? 1 : -1, c = cross(u, f), m = unit([c[0] * way, c[1] * way, c[2] * way]), n = unit(minus(palm, f, dot(palm, f))); got.turn = (Math.atan2(dot(cross(m, n), f), dot(m, n)) / RAD) * way; }

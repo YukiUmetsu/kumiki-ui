@@ -19,7 +19,8 @@ Recipe (all points are pixels of the painting they belong to; "base" is the pain
                          { picture: another painting, of: [x0, y0, x1, y1] of it, into: [its four corners here], soft? }: a photograph on a phone, a poster
                          { fold: [x, y] it turns about, from: [a, b], to: [a, b] degrees from straight up, clockwise: what is between two angles comes between two others, what is outside turns with its side (a fan that is half shut), past?: px from the point, of?: poly, the only paint that stays }
                        bind uses base pixels too and is written out in centimetres
-  hands.<layer>.<name> { source, poly?, wrist: [x,y], knuckle: [x,y], length?: cm from wrist to knuckle (else its own size), front?: poly, over?: how far it comes in front of its own cuff, mirror?, cuff?: degrees that the forearm is turned from the hand in a drawing of a hand alone (0) }
+  hands.<layer>.<name> { source, poly?, wrist: [x,y], knuckle: [x,y], length?: cm from wrist to knuckle (else its own size), front?: poly, over?: how far it comes in front of its own cuff, mirror?, cuff?: degrees that the forearm is turned from the hand in a drawing of a hand alone (0),
+                         shows?: the side of the hand that it shows, slant?: degrees that the hand is turned from that side about its forearm, the palm to the thumb, as?: the grip that it is another view of }
   kit?                 { file: the kit of hands beside the recipe (cards/kit-hands.json), skin: [r, g, b] of the lit skin of the figure, size: cm from its wrist to its finger tip }: every drawing of the kit,
                          in the size and the skin of the figure, under its own hands. A figure without them has no drawing for an act that names one (`back`, `bar`)
   sockets.<name>       { bone, hand?: variant it was measured on, at: point of that source or of the base, to?: a point that the top of a held thing goes toward }
@@ -375,7 +376,7 @@ def build(recipe, root, out):
         else: arm = recipe["joints"]["armF" if layer.endswith("-f") else "armB"]; f = R @ np.linalg.inv(s.M[:, :2]) @ (np.array(arm["end"], float) - arm["mid"]); v["wrist"] = round(math.degrees(math.atan2(-f[0], f[1])), 2)
         if h.get("front"): v["front"] = one({"poly": h["front"]}, f"{name}-front")
         if h.get("over"): v["over"] = h["over"]
-        for k in ("shows", "as"):
+        for k in ("shows", "as", "slant"):
             if h.get(k): v[k] = h[k]
         return v
     hand.M = {}
