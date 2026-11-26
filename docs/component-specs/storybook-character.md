@@ -73,12 +73,12 @@ Correct the card where a picture shows a wrong point, and run `story:person` aga
 
 ## Tools
 
-The tools are in `local-assets/storybook` (git ignores it). `STORY_PY` and `STORY_MODELS` overrule the paths. Keep a copy: without them no person can be cut again.
+The tools are in `local-assets/storybook` (git ignores it). `STORY_PY` and `STORY_MODELS` overrule the paths. `npm run -s story:setup` makes what is missing from pinned public sources and checks each file with its SHA-256 (`-- --check` only checks, `-- --only <part>` does one part). The Python packages are pinned in `scripts/storybook-requirements.txt`. The paintings are not rebuilt: keep a copy, without them no person can be cut again.
 
 | Path | What | Licence |
 |---|---|---|
 | `py/` | Python 3.12 with mflux 0.24.0, torch 2.15.0, spandrel 0.4.2, mediapipe 1.2.3, opencv-python 5.1.0.95, transformers 5.24.1, pyopenjtalk-plus 0.4.1, numpy 2.5.5 | each its own |
-| `models/klein6/` | [FLUX.2 Klein 4B](https://huggingface.co/black-forest-labs/FLUX.2-klein-4B), quantized to 6 bits for mflux | Apache-2.0 |
+| `models/klein6/` | [FLUX.2 Klein 4B](https://huggingface.co/black-forest-labs/FLUX.2-klein-4B), quantized to 6 bits for mflux ([mlx-community/FLUX.2-Klein-4B-6bit](https://huggingface.co/mlx-community/FLUX.2-Klein-4B-6bit)) | Apache-2.0 |
 | `models/RealESRGAN_x4plus_anime_6B.pth` | [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) anime 6B | BSD-3-Clause |
 | `models/face_landmarker.task`, `pose_landmarker_heavy.task`, `selfie_multiclass_256x256.tflite` | [MediaPipe](https://ai.google.dev/edge/mediapipe/solutions/guide) landmarks and segmentation | Apache-2.0 |
 | `models/phonectc/` | [japanese-hubert-base-phoneme-ctc-v4](https://huggingface.co/prj-beatrice/japanese-hubert-base-phoneme-ctc-v4), hears phones without the text | Apache-2.0 |
