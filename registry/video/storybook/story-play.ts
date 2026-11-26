@@ -59,8 +59,8 @@ export interface PlayScene {
 /** A plain stage with a spot for one person, and where things are shown on it (centimetres of its home picture). */
 export interface TeachStage { stage: string; /** Someone who asks, and someone who answers. */ asker: string; other: string; /** Where things are shown: the middle, and the size of one. */ show: { at: Pt; width: number; height: number }; /** A thing under titles: a brush stroke. */ ribbon?: string }
 /** Lines once more, words with their pictures, and things to name: scenes that are made from a list. */
-export interface PlayPractice { lines: readonly string[]; title?: string; gloss?: string; /** Seconds for the viewer, times the length of the line. */ slack?: number }
-export interface PlayRecap { words: readonly { text: string; gloss?: string; prop?: string; /** Another drawing of it. */ view?: string }[]; title?: string; gloss?: string; seconds?: number }
+export interface PlayPractice { lines: readonly string[]; title?: string; gloss?: string; /** Seconds for the viewer, times the length of the line. */ slack?: number; /** A review page: the English of a line comes this many seconds after its Japanese. */ reveal?: number; /** How many times each line is said, each with a pause to say it after. Default 1. */ times?: number }
+export interface PlayRecap { words: readonly { text: string; gloss?: string; prop?: string; /** Another drawing of it. */ view?: string }[]; title?: string; gloss?: string; seconds?: number; /** The English of each word comes this many seconds after it. */ reveal?: number }
 export interface PlayQuiz { ask: string; items: readonly { prop: string; view?: string; answer: string; word: string; gloss?: string }[]; /** Seconds to think. */ think?: number }
 export type PlayLesson = { id: string; join?: PlayShot["join"] } & ({ practice: PlayPractice } | { recap: PlayRecap } | { quiz: PlayQuiz });
 export interface StoryPlay { id: string; title: string; scenes: readonly (PlayScene | PlayLesson)[] }
@@ -296,8 +296,14 @@ function practiceScene(id: string, o: PlayPractice, at: TeachStage, lib: PlayLib
   o.lines.forEach((id, n) => {
     const who = speakers[n], l = lib.lines[id]; if (!l) throw new Error(`There is no line "${id}" to practise.`);
     const long = storyLineSeconds(l), own = long * (o.slack ?? 1.25) + 0.9, H = Object.values(lib.cast[who].figures)[0].body.height, scale = (1.5 * page.home.tall) / H, spot: PlaySpot = { at: [page.home.at[0] - 0.2 * page.width, page.home.at[1] - 0.41 * page.home.tall + H * scale], scale, toward: "viewer" };
-    beats.push({ ...(n && speakers[n - 1] !== who ? { exit: [speakers[n - 1]] } : {}), enter: { [who]: spot }, shot: { id: `practice-${id}`, frame: page.home, move: "hold", ...(n ? { join: "dissolve" } : {}) }, ...(title.give.length ? { give: title.give.map(g => ({ ...g, hidden: true })) } : {}), say: id, to: "viewer", look: { [who]: "viewer" }, mood: "happy", after: 0.2 });
-    beats.push({ seconds: own, after: 0.3, give: title.give, do: [{ who, act: "listen", at: 0.2, for: long + 0.8 }, { who, act: "nod", at: own - 0.8, for: 1 }], words: [...title.words, { text: l.ja, gloss: l.en }] });
+    for (let r = 0; r < (o.times ?? 1); r++) {
+      // on a review page the English comes after the Japanese the first time, and at once after that
+      const said: PlayWords = o.reveal === undefined ? { text: l.ja, gloss: l.en } : { text: l.ja, gloss: l.en, means: true, ...(r ? {} : { reveal: o.reveal }) };
+      if (r) beats.push({ say: id, to: "viewer", look: { [who]: "viewer" }, mood: "happy", after: 0.2, words: title.words });
+      else beats.push({ ...(n && speakers[n - 1] !== who ? { exit: [speakers[n - 1]] } : {}), enter: { [who]: spot }, shot: { id: `practice-${id}`, frame: page.home, move: "hold", ...(n ? { join: "dissolve" } : {}) }, ...(title.give.length ? { give: title.give.map(g => ({ ...g, hidden: true })) } : {}), say: id, to: "viewer", look: { [who]: "viewer" }, mood: "happy", after: 0.2 });
+      const hold = own + (r ? 0 : (o.reveal ?? 0));
+      beats.push({ seconds: hold, after: 0.3, give: title.give, do: [{ who, act: "listen", at: 0.2, for: long + 0.8 }, { who, act: "nod", at: hold - 0.8, for: 1 }], words: [...title.words, said] });
+    }
   });
   return { id, stage: at.stage, cast: {}, cover: "none", beats };
 }
@@ -307,7 +313,7 @@ function recapScene(id: string, o: PlayRecap, at: TeachStage, lib: PlayLibrary):
   const page = pageOf(at, lib, "full"), n = o.words.length, step = (lib.size.width * 0.86) / n, x = (i: number) => lib.size.width / 2 + (i - (n - 1) / 2) * step, wide = Math.min(at.show.width, (step / page.unit) * 0.86), low = 712;
   const props = o.words.flatMap((w, i): PlayGive[] => { const p = w.prop && lib.props[w.prop]; if (!p) return []; const v = (w.view && p.views?.[w.view]) || p, even = (0.74 * Math.sqrt(wide * at.show.height)) / Math.sqrt(v.width * v.height); return [{ prop: w.prop!, ...(w.view ? { view: w.view } : {}), to: page.cm([x(i), low]), scale: Math.min(even, wide / v.width, at.show.height / v.height), z: 5 }]; });
   const title = titled(at, lib, page, { text: o.title ?? "{今日|きょう}の ことば", gloss: o.gloss ?? "Today’s words", tone: "title", place: [960, 190], size: 72 }, 760);
-  return { id, stage: at.stage, layout: "full", cast: {}, props: [...title.give, ...props], cover: "none", beats: [{ shot: { id: "words", size: "wide", move: "hold", about: "The words of the story, with their readings." }, seconds: o.seconds ?? 2.2 + 1.3 * n, sounds: lib.sounds?.["page-turns"] ? [{ sound: "page-turns", at: 0.34 }] : [], words: [...title.words, ...o.words.map((w, i): PlayWords => ({ text: w.text, gloss: w.gloss, means: true, place: [x(i), low + 112], size: 72, at: 0.5 + 0.4 * i }))] }] };
+  return { id, stage: at.stage, layout: "full", cast: {}, props: [...title.give, ...props], cover: "none", beats: [{ shot: { id: "words", size: "wide", move: "hold", about: "The words of the story, with their readings." }, seconds: o.seconds ?? 2.2 + 1.3 * n, sounds: lib.sounds?.["page-turns"] ? [{ sound: "page-turns", at: 0.34 }] : [], words: [...title.words, ...o.words.map((w, i): PlayWords => ({ text: w.text, gloss: w.gloss, means: true, ...(o.reveal === undefined ? {} : { reveal: o.reveal }), place: [x(i), low + 112], size: 72, at: 0.5 + 0.4 * i }))] }] };
 }
 
 /** Things to name: someone asks, the viewer has a moment, someone answers. */

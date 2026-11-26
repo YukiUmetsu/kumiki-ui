@@ -13,10 +13,14 @@ import { mouthAt, mouthKeys } from "../registry/video/storybook/speech-mouth";
 import type { SpeechTrack } from "../registry/video/storybook/speech-mouth";
 import { inspectStorybook, planStorybook, storybookFrame } from "../registry/video/storybook/storybook-film";
 import { checkStory } from "../registry/video/storybook/story-check";
+import { composeStory } from "../registry/video/storybook/story-play";
+import type { PlayLesson } from "../registry/video/storybook/story-play";
+import type { StorybookFilm } from "../registry/video/storybook/storybook-film";
 import { StorybookFilmPlayer, StorybookFilmStage } from "../registry/video/storybook/storybook-film-react";
 import { figure, figureIds } from "../src/video/storybook/art";
 import { castOf, PEOPLE } from "../src/video/storybook/cast";
 import { filmNames, filmOf } from "../src/video/storybook/films";
+import { storyLibrary } from "../src/video/storybook/library";
 import { KONBINI_FILM, KONBINI_LINES } from "../src/video/storybook/konbini-film";
 import { armBench, walkBench } from "../src/video/storybook/story-benches";
 
@@ -186,4 +190,20 @@ describe("people", () => {
       expect(castOf(id)[id].name, id).toBe(p.name); if (p.voice) expect(p.voice.fish, id).toMatch(/^[0-9a-f]{32}$/); if (p.voice?.pace !== undefined) expect(p.voice.pace, id).toBe(6.5); expect(p.height, id).toBeGreaterThan(80);
     }
   });
+});
+
+describe("lesson pages", () => {
+  const first = Object.keys(KONBINI_LINES)[0], line = KONBINI_LINES[first];
+  const lesson = (...scenes: PlayLesson[]) => composeStory({ id: "t", title: "t", scenes }, { ...storyLibrary(), lines: KONBINI_LINES });
+  const english = (film: StorybookFilm, t: number, glosses?: boolean) => [...renderToStaticMarkup(createElement(StorybookFilmStage, { film, frame: Math.round(t * film.fps), glosses })).matchAll(/<p lang="en"[^>]*>([^<]*)<\/p>/g)].map(m => m[1]);
+  /** Film seconds when the words of the line first show. */
+  const comes = (film: StorybookFilm, text: string) => { const plan = planStorybook(film), s = plan.shots.find(s => s.shot.words?.some(w => w.text === text))!, w = s.shot.words!.find(w => w.text === text)!; return s.start + Math.max(w.at ?? 0, s.index ? (s.shot.transition?.seconds ?? 0) * 0.7 : 0); };
+  const said = lesson({ id: "say", practice: { lines: [first], reveal: 1.5, times: 2 } });
+  it("show the English of a practised line only after reveal seconds", () => {
+    const plan = planStorybook(said), at = comes(said, line.ja), shown = (t: number) => storybookFrame(plan, t).words.find(w => w.words.text === line.ja)!;
+    expect(shown(at + 0.5).glossOpacity).toBe(0); expect(shown(at + 2.2).glossOpacity).toBe(1);
+    expect(english(said, at + 0.5)).not.toContain(line.en); expect(english(said, at + 2.2)).toContain(line.en);
+  });
+  it("keep the reveal when the switch is on", () => { expect(english(said, comes(said, line.ja) + 0.5, true)).not.toContain(line.en); });
+  it("say a phrase as many times as asked", () => { expect(said.shots.flatMap(s => s.says ?? []).filter(s => s.line === first)).toHaveLength(2); });
 });

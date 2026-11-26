@@ -70,7 +70,7 @@ export interface StoryDrift { id: string; sprites: readonly PaintedImage[]; coun
 export interface StoryBurst extends Burst { id: string; spark: PaintedImage; glow?: PaintedImage; /** Order with the layers of the set. Default −98. */ z?: number; depth?: number; /** How much its light is on the whole picture, 0–1. */ light?: number }
 export interface StoryFiredBurst { burst: StoryBurst; /** Seconds into the shot when it opens. */ at: number; /** Where it opens. */ place: Pt; /** Times its size. */ size?: number }
 export interface StorySay { line: string; at: number }
-export interface StoryWords { text: string; /** Translation under it, smaller. */ gloss?: string; /** The translation is what the page teaches: it shows, also when `glosses` is off. */ means?: boolean; at?: number; for?: number; /** Middle of its letters, in the last row: furigana stand above it and the translation under it, so that words stay in one line. */ place: Pt; size: number; align?: "left" | "center" | "right"; tone?: "title" | "vocab" | "note" }
+export interface StoryWords { text: string; /** Translation under it, smaller. */ gloss?: string; /** The translation is what the page teaches: it shows, also when `glosses` is off. */ means?: boolean; at?: number; for?: number; /** Seconds after the words come when their translation comes. */ reveal?: number; /** Middle of its letters, in the last row: furigana stand above it and the translation under it, so that words stay in one line. */ place: Pt; size: number; align?: "left" | "center" | "right"; tone?: "title" | "vocab" | "note" }
 export interface StorySound {
   src: string; /** Seconds into the shot. */ at: number; /** dB. */ gain?: number; /** Seconds into the recording, and how many of them sound. */ from?: number; for?: number;
   /** Seconds from the start of the recording to its hit, which lands on `at`. */ lead?: number; /** Seconds to come in and to go out. */ fade?: Pt; /** −1 left, 1 right. */ pan?: number;
@@ -453,7 +453,7 @@ export function storySheet(film: StorybookFilm, shot: StoryShot, t: number, stil
 }
 
 export interface StoryCaption { line: StoryLine; tokens: readonly RubyToken[]; /** Token being said, −1 before the first. */ token: number; opacity: number; key: string }
-export interface StoryShownWords { words: StoryWords; tokens: readonly RubyToken[]; opacity: number; key: string }
+export interface StoryShownWords { words: StoryWords; tokens: readonly RubyToken[]; opacity: number; /** How much of the translation shows, 0 to 1. */ glossOpacity: number; key: string }
 export interface StoryFrame { paint: PaintFrame; shot: PlannedShot; caption: StoryCaption | null; words: readonly StoryShownWords[]; /** Who is on, for tools. */ played: readonly StoryPlayed[]; view: StoryView }
 const fade = (t: number, from: number, to: number, a = 0.22, b = 0.22) => Math.min(1, Math.max(0, Math.min((t - from) / a, (to - t) / b)));
 const tokensOf = new Map<string, RubyToken[]>();
@@ -475,7 +475,7 @@ export function storybookFrame(plan: StoryPlan, time: number, o: StoryFrameOptio
       const line = film.lines[say.line], sp = storySpoken(line), next = says.filter(q => q.at > say.at).map(q => q.at)[0] ?? Infinity, long = storyLineSeconds(line), read = strip.map(start).filter(at => at >= say.at + long - 0.05), end = Math.min(say.at + long + 1.1, next - 0.05, leave, ...read);
       const a = fade(t, say.at - 0.12, end, 0.16, 0.18); if (a > 0) caption = { line, tokens: sp.tokens, token: spokenToken(line.track, t - say.at), opacity: a, key: `${s.shot.id}/${say.line}/${say.at}` };
     }
-    (s.shot.words ?? []).forEach((w, i) => { const a = fade(t, start(w), Math.min(stop(w), s.index === plan.shots.length - 1 ? Infinity : leave + 0.1), 0.35, 0.28); if (a > 0) words.push({ words: w, tokens: ruby(w.text), opacity: a, key: `${s.shot.id}/w${i}` }); });
+    (s.shot.words ?? []).forEach((w, i) => { const end = Math.min(stop(w), s.index === plan.shots.length - 1 ? Infinity : leave + 0.1), a = fade(t, start(w), end, 0.35, 0.28); if (a > 0) words.push({ words: w, tokens: ruby(w.text), opacity: a, glossOpacity: w.reveal === undefined ? 1 : fade(t, start(w) + w.reveal, end, 0.35, 0.28), key: `${s.shot.id}/w${i}` }); });
   }
   return { paint, shot: at, caption, words, played: now.played, view: now.view };
 }
