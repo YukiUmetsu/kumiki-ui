@@ -3,16 +3,16 @@
   "phone": {
    "image": {
     "src": "phone.webp",
-    "width": 127,
-    "height": 196
+    "width": 117,
+    "height": 178
    },
-   "x": 1.462,
-   "y": 8.538,
-   "width": 10.583,
-   "height": 16.333,
+   "x": 1.923,
+   "y": 9.154,
+   "width": 9.75,
+   "height": 14.833,
    "grip": [
-    0.5306,
-    0.5981
+    0.5286,
+    0.6171
    ]
   },
   "suitcase": {
@@ -373,16 +373,16 @@
   "phone-inn": {
    "image": {
     "src": "phone-inn.webp",
-    "width": 127,
-    "height": 196
+    "width": 117,
+    "height": 178
    },
-   "x": 1.462,
-   "y": 8.538,
-   "width": 10.583,
-   "height": 16.333,
+   "x": 1.923,
+   "y": 9.154,
+   "width": 9.75,
+   "height": 14.833,
    "grip": [
-    0.5306,
-    0.5981
+    0.5286,
+    0.6171
    ]
   }
  },

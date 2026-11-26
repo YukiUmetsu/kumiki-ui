@@ -111,7 +111,7 @@ export const ACTS: Readonly<Record<string, Act>> = {
   invite: { seconds: 1.8, group: "talk", about: "どうぞ: the arm opens toward `to`, or ahead.", pose: c => { const k = strike(c.t, 0.9) * smooth((c.d - c.t) / 0.55), to = point(c, "to"); return { reach: { [hand(c)]: { ...(to ? { to } : { shoulder: [0.21, 0.185] as ActPoint, front: { upper: 28, lower: 68, hand: 86, long: [1, 0.86] } }), weight: k, ...way(c, -80) } }, grip: { [hand(c)]: text(c, "grip") ?? "open" }, turn: { torso: 3 * k, head: 3 * k } }; } },
   point: { seconds: 1.6, group: "talk", about: "Points at `to`, or ahead. The eyes and head go to `to`.", pose: c => { const k = strike(c.t, 1.7) * smooth((c.d - c.t) / 0.75), to = point(c, "to"); return { reach: { [hand(c)]: to ? { to, short: num(c, "short", 0.13), weight: k, ...(typeof c.params.angle === "number" ? { angle: c.params.angle } : {}) } : { shoulder: [0.24, 0.02] as ActPoint, weight: k, ...way(c, -85) } }, grip: { [hand(c)]: text(c, "grip") ?? "point" }, ...(to ? lookTo(c, to, k) : { gaze: [0.7 * k, 0] }), turn: { torso: 2 * k } }; } },
   wave: { seconds: 2.6, group: "talk", about: "A hand goes up and waves from the wrist. The far hand (`b`) is clear of the body in a three-quarter view.", pose: c => { const k = hold(c, 0.9, 1), h = c.params.hand === "f" ? "f" : "b"; const b = 15 * wave(c.t, 2.1); return { reach: { [h]: { front: { upper: 72, lower: 158 + 0.35 * b, hand: 168 + b }, shoulder: h === "f" ? [-0.09, -0.08] : [0.12, -0.05], weight: k, angle: (h === "f" ? 165 : -172) + (h === "f" ? 1 : -1) * b, near: 0.15, over: true } }, grip: { [h]: text(c, "grip") ?? "wave" }, turn: { head: -2 * k } }; } },
-  call: { seconds: 3.2, group: "talk", about: "呼び込み: a cupped hand stands beside the mouth, its palm to it, and the voice goes far.", pose: c => { const k = hold(c, 1, 1), h = hand(c); return { reach: { [h]: { head: [num(c, "x", 0.062), num(c, "y", 0.045)], weight: k, forward: -num(c, "palm", 152), near: 0.5, shortest: 0.55, over: true } }, grip: { [h]: text(c, "grip") ?? "cup" }, turn: { head: -3 * k, torso: -1.5 * k } }; } },
+  call: { seconds: 3.2, group: "talk", about: "呼び込み: a cupped hand stands beside the mouth, its palm to it, and the voice goes far.", pose: c => { const k = hold(c, 1, 1), h = hand(c); return { reach: { [h]: { head: [num(c, "x", 0.07), num(c, "y", 0.02)], weight: k, forward: -num(c, "palm", 152), near: 0.5, shortest: 0.55, over: true } }, grip: { [h]: text(c, "grip") ?? "cup" }, turn: { head: -3 * k, torso: -1.5 * k } }; } },
   greet: { ...bow(16, 1.35), about: "会釈: a small bow on the way in." },
   bow: bow(30, 1.9), "deep-bow": bow(45, 2.6),
   thank: { ...bow(26, 1.8, "happy"), about: "A bow with a smile." },
@@ -244,7 +244,7 @@ export interface ActingBody {
   /** Degrees that the painted body is turned to the viewer: 0 is a side view. Default 45. */ facing?: number;
   /** False: its clothes hang to the floor in one piece, so it only stands. */ sits?: false;
   /** Arm bones. */ arms?: Readonly<Record<ActHand, { upper: string; lower: string; hand: string }>>;
-  /** What the drawings of its hands show. One that is another view of a grip (`as`) is taken where the forearm can show that side and not the other. */ hands?: Readonly<Record<string, { shows: HandView; as?: string }>>;
+  /** What the drawings of its hands show. One that is another view of a grip (`as`) is taken where the forearm can show that side and not the other. */ hands?: Readonly<Record<string, { shows: HandView; as?: string; slant?: number }>>;
 }
 const ARMS: NonNullable<ActingBody["arms"]> = { f: { upper: "arm-f", lower: "fore-f", hand: "hand-f" }, b: { upper: "arm-b", lower: "fore-b", hand: "hand-b" } };
 /** How near to its shoulder a hand is held in front of the body, of the arm. */
@@ -262,7 +262,7 @@ export function actFrame(body: ActingBody, acts: readonly TimedAct[], t: number,
   const now = stands(body, acts, t, o), { p, at, hands, turns } = now, solved = hands.length ? solveArms(body, now) : {};
   if (hands.length) now.posed = now.pose(turns, Object.fromEntries(Object.values(solved).flatMap(a => Object.entries(keysOf(a, turns))).map(([id, k]) => [id, [{ frame: at, ...k }]])));
   const facing = body.facing ?? 45, arms: ActedFrame["arms"] = {}, drawn: ActedFrame["hands"] = { ...p.grip };
-  for (const h of hands) { const a = solved[h]!; if (a.grip) drawn[h] = a.grip; arms[h] = readArm({ side: h, facing, ...seenArm(a.U, a.V, a.got), shows: a.shows }); }
+  for (const h of hands) { const a = solved[h]!; if (a.grip) drawn[h] = a.grip; arms[h] = readArm({ side: h, facing, ...seenArm(a.U, a.V, a.got), shows: a.shows, slant: a.slant }); }
   return { frame: evaluateRig(now.posed, at), spec: now.posed, performance: p, arms, hands: drawn };
 }
 
@@ -345,7 +345,7 @@ function before(h: ActHand, up: ActPoint, to: ActPoint, short: number, U: number
   const k = Math.min(1, Math.max(d - short, Math.min(lerp(0.5 * (U + V), 0.75 * V, near), d)) / d); return { at: [from[0] + dx * k, from[1] + dy * k], angle: (Math.atan2(-dx, dy) * 180) / Math.PI };
 }
 /** An arm that reaches: its joints as the rig has them, in the figure's own space, and how it is bent to its place. */
-interface Solved { arm: { upper: string; lower: string; hand: string }; U: number; V: number; hangs: OwnJoint; up: OwnJoint; low: OwnJoint; tip: OwnJoint; got: ArmPose; /** 0–1: how much the body has to come along, and to which side. */ need: number; side: number; /** The drawing of its hand, and the side of it that a body seen from the front would show. */ grip?: string; shows?: HandView }
+interface Solved { arm: { upper: string; lower: string; hand: string }; U: number; V: number; hangs: OwnJoint; up: OwnJoint; low: OwnJoint; tip: OwnJoint; got: ArmPose; /** 0–1: how much the body has to come along, and to which side. */ need: number; side: number; /** The drawing of its hand, and the side of it that a body seen from the front would show. */ grip?: string; shows?: HandView; slant?: number }
 interface OwnJoint { x: number; y: number; angle: number; scale: number }
 
 /** Elbow and wrist from the shoulder, as deep as they are drawn short. */
@@ -363,7 +363,7 @@ function slowly(r: ActReach, about: readonly Moment[], h: ActHand): ActReach {
   const all = about.flatMap(m => m.p.reach[h].filter(q => q.of === r.of).map(q => ({ q, k: m.place }))), sum = all.reduce((n, { k }) => n + k, 0), mean = (of: (q: ActReach) => ActPoint | undefined): ActPoint | undefined => (of(r) ? [0, 1].map(i => all.reduce((n, { q, k }) => n + (of(q) ?? of(r)!)[i] * k, 0) / sum) as unknown as ActPoint : undefined);
   return { ...r, to: mean(q => q.to), shoulder: mean(q => q.shoulder), head: mean(q => q.head), chest: mean(q => q.chest) };
 }
-interface Drawn { /** The drawing, and the grip that it draws. */ grip?: string; of?: string; shows?: HandView; share: number }
+interface Drawn { /** The drawing, and the grip that it draws. */ grip?: string; of?: string; shows?: HandView; slant?: number; share: number }
 /** The grips that an act wants about now, each with its share. */
 function gripsOf(r: ActReach, about: readonly Moment[], h: ActHand): { grip?: string; share: number }[] {
   const all = about.flatMap(m => m.p.reach[h].filter(q => q.of === r.of).map(q => ({ grip: q.grip ?? m.p.grip[h], k: m.grip }))), sum = all.reduce((n, { k }) => n + k, 0);
@@ -373,8 +373,8 @@ function gripsOf(r: ActReach, about: readonly Moment[], h: ActHand): { grip?: st
 function drawnHands(body: ActingBody, h: ActHand, grip: string | undefined, U: number, V: number, got: ArmPose | ((shows: HandView) => ArmPose), sides?: readonly HandView[]): Drawn[] {
   const all = body.hands ?? {}, facing = body.facing ?? 45, seen = (n: string) => (Math.sin((facing * Math.PI) / 180) < -0.3 ? OTHER_SIDE[all[n].shows] : all[n].shows);
   if (!grip || !all[grip]) return [{ grip, of: grip, share: 1 }];
-  const strain = (n: string) => { const arm = typeof got === "function" ? got(seen(n)) : got; return armStrain(armAngles({ side: h, facing, ...seenArm(U, V, { ...arm, hand: arm.lower }), shows: seen(n) })) + (n === grip ? -8 : 0) + (sides && !sides.includes(seen(n)) ? 40 : 0); }, names = [grip, ...Object.keys(all).filter(n => all[n].as === grip)], cost = names.map(strain), least = Math.min(...cost), share = cost.map(c => Math.exp((least - c) / 4)), sum = share.reduce((a, b) => a + b, 0);
-  return names.map((n, i) => ({ grip: n, of: grip, shows: seen(n), share: share[i] / sum })).sort((a, b) => b.share - a.share);
+  const strain = (n: string) => { const arm = typeof got === "function" ? got(seen(n)) : got; return armStrain(armAngles({ side: h, facing, ...seenArm(U, V, { ...arm, hand: arm.lower }), shows: seen(n), slant: all[n].slant })) + (n === grip ? -8 : 0) + (sides && !sides.includes(seen(n)) ? 40 : 0); }, names = [grip, ...Object.keys(all).filter(n => all[n].as === grip)], cost = names.map(strain), least = Math.min(...cost), share = cost.map(c => Math.exp((least - c) / 4)), sum = share.reduce((a, b) => a + b, 0);
+  return names.map((n, i) => ({ grip: n, of: grip, shows: seen(n), slant: all[n].slant, share: share[i] / sum })).sort((a, b) => b.share - a.share);
 }
 
 /** The ways to hold an arm that are compared: how short a part of it is drawn, how near to the viewer the hand is, and over a counter how far the elbow goes out. Nearer lets the elbow hang where it else goes out. */
@@ -463,7 +463,7 @@ function solveArms(body: ActingBody, s: Pick<Stands, "p" | "at" | "about" | "han
       if (past > 0) counter = { g, all }; over = lerp(over, past, u); look = all.filter(d => d.of === s.p.grip[h]).reduce<Drawn | undefined>((a, d) => (a && a.share >= d.share ? a : d), undefined) ?? look;
     }
     const got = poseOf(now, way, 0); look ??= drawnHands(body, h, s.p.grip[h], U, V, got)[0];
-    out[h] = { arm, U, V, hangs, up, low, tip, got, need, side: Math.sign(side), grip: look.grip, shows: look.shows };
+    out[h] = { arm, U, V, hangs, up, low, tip, got, need, side: Math.sign(side), grip: look.grip, shows: look.shows, slant: look.slant };
   }
   return out;
 }

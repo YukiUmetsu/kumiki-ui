@@ -30,7 +30,7 @@ export interface PaintedLayer extends PaintedPlace {
   id: string; z: number; bind: PaintedBind; space?: "bone";
   /** Cells across and down. */ grid?: readonly [number, number];
   /** Other drawings for the same place (hands, feet). `front` is drawn over what the hand holds; `over` is added to the order: a fist that points at the viewer is in front of its own cuff; `rest` lies in the rest pose, as a layer does, and bends like it. `shows`: the side of the hand that is seen; with `as` it is another view of that drawing. */
-  variants?: Readonly<Record<string, PaintedPlace & { front?: PaintedPlace; over?: number; rest?: boolean; shows?: HandView; as?: string }>>;
+  variants?: Readonly<Record<string, PaintedPlace & { front?: PaintedPlace; over?: number; rest?: boolean; shows?: HandView; as?: string; slant?: number }>>;
   /** Multiplies the paint: a limb on the far side. */ tint?: readonly [number, number, number];
   /** It turns in depth: with the face (a head, its back hair) or with the trunk (a chest, a collar). */ turns?: boolean | "trunk";
   /** Lettering: it is turned back when the whole figure is mirrored. */ keepReading?: boolean;
@@ -252,8 +252,8 @@ function bound(bind: PaintedBind, rest: RigFrame, now: RigFrame, loose = 1): War
   };
 }
 
-/** How far up the forearm, rig units, its cut end at the wrist is rounded off under the drawn hand. */
-const WRIST_ROUND = 3.5;
+/** How far up the forearm, of its length, its cut end at the wrist is rounded off under the drawn hand: a child has a short forearm and a thin cuff. */
+const WRIST_ROUND = 0.15;
 
 /** A hand bends at its wrist: what is painted beyond it, in the bone's space, goes with the bone before it. */
 function wristWarp(drawn: number, soft: number, own: RigBone, now: RigFrame): Warp {
@@ -342,7 +342,7 @@ export function paintedMeshes(art: PaintedArt, spec: RigSpec, now: RigFrame, sta
       // the arm is cut square at the wrist, and its drawn hand turns there: the corners of the cut, with the ink round them, would stand out past the hand. The end is rounded off softly, its middle stays to the wrist under the hand
       const hand = art.layers.find(q => q.space === "bone" && q.bind.kind === "rigid" && !hidden.has(q.id) && spec.bones.find(b => b.id === (q.bind as { bone: string }).bone)?.parent === lower), sides = layer.bind.sides;
       if (sides && hand && (now.bones.get((hand.bind as { bone: string }).bone)?.opacity ?? 1) > 0.002) {
-        const l = rest.bones.get(lower)!, L = l.length || 1, w = l.world, k = Math.hypot(w.c, w.d) || 1, ux = w.c / k, uy = w.d / k, [lo, hi] = [1, 2].map(j => sides[sides.length - 1][j]), round = WRIST_ROUND / L;
+        const w = rest.bones.get(lower)!.world, k = Math.hypot(w.c, w.d) || 1, ux = w.c / k, uy = w.d / k, [lo, hi] = [1, 2].map(j => sides[sides.length - 1][j]), round = WRIST_ROUND;
         m.fade = m.along.map((s, i) => { if (s < 2 - round) return 1; const x = drawn.x + m.uvs[2 * i] * drawn.width - w.e, y = drawn.y + m.uvs[2 * i + 1] * drawn.height - w.f, off = Math.abs((2 * (y * ux - x * uy) - lo - hi) / (hi - lo || 1)), edge = smooth((off - 0.35) / 0.65); return 1 - smooth((s - (2 - round * edge)) / (0.45 * round)); });
       }
     }

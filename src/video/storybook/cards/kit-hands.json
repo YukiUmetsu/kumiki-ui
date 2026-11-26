@@ -226,7 +226,7 @@
    "file": "kit/kit_wave_back.png"
   },
   "kit-cup": {
-   "file": "kit/kit_cup.png"
+   "file": "kit/kit_call.png"
   }
  },
  "both": {
@@ -1475,18 +1475,18 @@
    "source": "kit-cup",
    "soft": 22,
    "wrist": [
-    215,
-    399
+    400,
+    384
    ],
    "knuckle": [
-    470,
-    415
+    660,
+    384
    ],
    "length": 9.1,
    "mirror": false,
    "poly": [
     [
-     190,
+     372,
      20
     ],
     [
@@ -1498,11 +1498,12 @@
      750
     ],
     [
-     190,
+     372,
      750
     ]
    ],
-   "shows": "thumb"
+   "shows": "palm",
+   "slant": 15
   }
  },
  "sockets": {
