@@ -10,6 +10,8 @@
  */
 import { armFrom, meanArm, solveArm, turnBetween } from "./rig-arm";
 import type { ArmAim, ArmBuild, ArmPose } from "./rig-arm";
+import { ACT_STUDIES } from "./rig-act-studies";
+import type { ActStudy } from "./rig-act-studies";
 import { armAngles, armEffort, armStrain, readArm, wristRange } from "./rig-comfort";
 import type { ArmAngles, HandView } from "./rig-comfort";
 import { seeded } from "./rig-flutter";
@@ -241,7 +243,7 @@ export interface ActingBody {
 const ARMS: NonNullable<ActingBody["arms"]> = { f: { upper: "arm-f", lower: "fore-f", hand: "hand-f" }, b: { upper: "arm-b", lower: "fore-b", hand: "hand-b" } };
 /** How near to its shoulder a hand is held in front of the body, of the arm. */
 const NEAR = 0.68;
-interface Reached { to: ActPoint; /** The hand comes up before the body, not at its side. */ inside: boolean; angle?: number; out: number; aside: number; near: number; shortest: number; /** The act says how short the arm is drawn (`shortest`), else the easiest arm does. */ said: boolean; palm: number; /** A place of the scene, not of the body. */ place: boolean; weight: number }
+interface Reached { to: ActPoint; /** The hand comes up before the body, not at its side. */ inside: boolean; angle?: number; out: number; aside: number; near: number; shortest: number; /** The act says how short the arm is drawn (`shortest`), else the easiest arm does. */ said: boolean; palm: number; /** A place of the scene, not of the body. */ place: boolean; weight: number; /** The wrist as the study of the act holds it (`ACT_STUDIES`). */ wrist?: NonNullable<ActStudy["hand"]>["wrist"] }
 export interface ActedFrame { frame: RigFrame; spec: RigSpec; performance: Performance; /** Joints of the arms that reach, degrees. */ arms: Partial<Record<ActHand, ArmAngles>>; /** The drawings of the hands that do something. */ hands: Partial<Record<ActHand, string>> }
 export interface ActOptions extends PerformOptions { root?: readonly RigRootKey[]; fps: number; /** Frames: which frames the gait drivers are on. */ drivers?: readonly RigDriver[]; /** Scene height of the far edge of what a hand goes over (a counter). */ over?: Partial<Record<ActHand, number>>; /** Where the legs stand at a time, when a walk says so. */ legs?: (t: number) => LegStance | null }
 
@@ -407,7 +409,7 @@ function solveArms(body: ActingBody, s: Pick<Stands, "p" | "at" | "about" | "han
     // the place that an act wants. What lies on a counter is pointed at from over the counter, not from the own hip
     const reached = (r: ActReach): Reached => {
       const from = r.head ? joint("head") : r.chest ? joint("neck") : up, q = r.head ?? r.chest ?? r.shoulder ?? [0, 0], stop = r.to ? before(h, at, r.to, (edge !== undefined && r.to[1] > edge ? 0.6 : 1) * (r.short ?? 0) * H, U, V) : undefined, side = r.angle ?? (r.forward !== undefined ? lerp(frontalAngle(h, r.forward), r.forward, ahead) : stop?.angle);
-      return { to: stop ? stop.at : [from.x + (r.chest ? q[0] + ahead * (r.ahead ?? 0) : lerp(frontal(h, q), q[0], ahead)) * H, from.y + q[1] * H], inside: r.to ? ((r.to[0] - up.x) * (h === "f" ? 1 : -1)) / L > 0.1 : !!r.chest || (!!r.head && Math.abs(r.head[0]) < 0.075), angle: side === undefined ? undefined : side + (r.spin ?? 0), out: r.out ?? 0, aside: r.aside ?? 0, near: r.near ?? NEAR, shortest: r.shortest ?? 0.62, said: r.shortest !== undefined, palm: r.palm === undefined ? own0[1] : r.palm * H, place: !!r.to, weight: r.weight };
+      return { to: stop ? stop.at : [from.x + (r.chest ? q[0] + ahead * (r.ahead ?? 0) : lerp(frontal(h, q), q[0], ahead)) * H, from.y + q[1] * H], inside: r.to ? ((r.to[0] - up.x) * (h === "f" ? 1 : -1)) / L > 0.1 : !!r.chest || (!!r.head && Math.abs(r.head[0]) < 0.075), angle: side === undefined ? undefined : side + (r.spin ?? 0), out: r.out ?? 0, aside: r.aside ?? 0, near: r.near ?? NEAR, shortest: r.shortest ?? 0.62, said: r.shortest !== undefined, palm: r.palm === undefined ? own0[1] : r.palm * H, place: !!r.to, weight: r.weight, wrist: ACT_STUDIES[r.of?.act ?? ""]?.hand?.wrist };
     };
     let need = 0, side = 0;
     const drawn = (r: ActReach, got: ArmPose): Drawn[] => gripsOf(r, s.about, h).flatMap(q => drawnHands(body, h, q.grip, U, V, got).map(d => ({ ...d, share: d.share * q.share }))).filter(d => d.share > 0.02);
@@ -415,7 +417,7 @@ function solveArms(body: ActingBody, s: Pick<Stands, "p" | "at" | "about" | "han
     const armOf = (g: Reached): ArmBuild => ({ side: h, upper: U, lower: V, facing, palm: [own0[0], g.palm] });
     // the elbow as it is held for `calm`, the hand at `to`
     const hold = (g: Reached, to: ActPoint, calm: Reached, all: readonly Drawn[]): Hold => mean(all, shows => {
-      const bare = armOf(g), build = shows ? { ...bare, wrist: wristRange(h, shows) } : bare, { angle, out, aside, shortest, near } = calm, goal: ArmAim = { shoulder: at, to: open(calm), angle, out, aside, shortest, near };
+      const bare = armOf(g), build = shows ? { ...bare, wrist: wristRange(h, shows, g.wrist) } : bare, { angle, out, aside, shortest, near } = calm, goal: ArmAim = { shoulder: at, to: open(calm), angle, out, aside, shortest, near };
       // first the arm as it is held on the whole, with a forearm that can be seen; then the hand, and the elbow stays
       const calmly = armFrom(build, goal, g.said || ahead >= 0.5 ? solveArm(build, goal) : easiest(build, goal, shows, edge !== undefined && calm.to[1] > edge ? edge : undefined), 0.42);
       return holdOf(armFrom(build, { ...goal, to, angle: g.angle }, calmly, 0.15), way, ahead < 0.5 && g.inside);
@@ -429,7 +431,7 @@ function solveArms(body: ActingBody, s: Pick<Stands, "p" | "at" | "about" | "han
     // photographs say how the arm is held: its joints, and nothing to solve
     const shownAs = (r: ActReach, f: NonNullable<ActReach["front"]>): { held: Hold; all: readonly Drawn[] } => {
       const got: ArmPose = { shift: [0, -0.055 * L * smooth((Math.abs(f.upper) - 50) / 80)], upper: way * f.upper, upperScale: f.long?.[0] ?? 1, lower: way * f.lower, lowerScale: f.long?.[1] ?? 1, hand: way * (f.hand ?? f.lower), depth: [0, 0], stretch: 0 }, q = holdOf(got, way, false), all = drawn(r, got);
-      return { held: mean(all, shows => { const [lo, hi] = shows ? wristRange(h, shows) : [-46, 46]; return { ...q, wrist: Math.min(hi, Math.max(lo, q.wrist)) }; }), all };
+      return { held: mean(all, shows => { const [lo, hi] = shows ? wristRange(h, shows, ACT_STUDIES[r.of?.act ?? ""]?.hand?.wrist) : [-46, 46]; return { ...q, wrist: Math.min(hi, Math.max(lo, q.wrist)) }; }), all };
     };
     const rests: Hold = { x: 0, y: 0, upper: about(60, way * up.angle), upperScale: shown(arm.upper), bend: about(0, way * (low.angle - up.angle)), lowerScale: shown(arm.lower), wrist: turnBetween(low.angle, tip.angle), elbowZ: 0, wristZ: 0 };
     let now = rests, over = 0, counter: { g: Reached; all: readonly Drawn[] } | undefined, look: Drawn | undefined;
