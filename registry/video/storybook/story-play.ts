@@ -65,7 +65,10 @@ export interface PlayRecap { words: readonly { text: string; gloss?: string; pro
 export interface PlayQuiz { ask: string; items: readonly { prop: string; view?: string; answer: string; word: string; gloss?: string }[]; /** Seconds to think. */ think?: number }
 /** A page with a title and up to three lines: the goal of a story, or the name of a chapter. A line is a line id or words. */
 export interface PlayCard { title: string; gloss?: string; lines?: readonly (string | { text: string; gloss?: string })[]; seconds?: number }
-export type PlayLesson = { id: string; join?: PlayShot["join"] } & ({ practice: PlayPractice } | { recap: PlayRecap } | { quiz: PlayQuiz } | { card: PlayCard });
+/** A line to answer: someone says it (`hear`), or the page says what the viewer wants (`ask`, with its English in `gloss`). */
+export interface PlayCheckItem { hear?: string; ask?: string; gloss?: string; answer: string }
+export interface PlayCheck { items: readonly PlayCheckItem[]; /** Seconds to think. Default 4. */ think?: number }
+export type PlayLesson = { id: string; join?: PlayShot["join"] } & ({ practice: PlayPractice } | { recap: PlayRecap } | { quiz: PlayQuiz } | { card: PlayCard } | { check: PlayCheck });
 export interface StoryPlay { id: string; title: string; scenes: readonly (PlayScene | PlayLesson)[] }
 /** What screenplays are made from. */
 export interface PlayLibrary {
@@ -352,7 +355,33 @@ function cardScene(id: string, o: PlayCard, at: TeachStage, lib: PlayLibrary): P
   const page = pageOf(at, lib, "full"), title = titled(at, lib, page, { text: o.title, gloss: o.gloss, tone: "title", place: [960, 260], size: 84 }, 900);
   return { id, stage: at.stage, layout: "full", cast: {}, props: title.give, cover: "none", beats: [{ shot: { id: "card", size: "wide", move: "hold", about: `A page: ${[o.title, ...lines.map(l => l.text)].map(t => rubyPlain(parseRuby(t))).join(" · ")}` }, seconds: o.seconds ?? 3 + 2.5 * lines.length, sounds: lib.sounds?.["page-turns"] ? [{ sound: "page-turns", at: 0.34 }] : [], words: [...title.words, ...lines.map((l, i): PlayWords => ({ text: l.text, gloss: l.gloss, means: true, place: [960, 470 + 150 * i], size: 60, at: 0.6 + 0.5 * i }))] }] };
 }
+/** Lines to answer: a line or a situation, a pause with no English, then the answer, said and shown with its English. */
+function checkScene(id: string, o: PlayCheck, at: TeachStage, lib: PlayLibrary): PlayScene {
+  const think = o.think ?? 4, read = 2.5, page = pageOf(at, lib, "page"), line = (l: string) => { const said = lib.lines[l]; if (!said) throw new Error(`There is no line "${l}" to check.`); return said; };
+  const items = o.items.map((q, n) => {
+    if (!q.hear === !q.ask) throw new Error(`Check "${id}" item ${n + 1}: give "hear" or "ask", not both.`);
+    const by = line(q.answer).speaker, hears = q.hear ? line(q.hear).speaker : undefined;
+    if (hears === by) throw new Error(`Check "${id}" item ${n + 1}: "${by}" hears and answers; a check needs two people.`);
+    return { ...q, by, hears };
+  });
+  // people from the knee up, as tall to each other as they are
+  const large = (1.12 * page.home.tall) / Math.max(...items.flatMap(q => (q.hears ? [q.by, q.hears] : [q.by])).map(w => Object.values(lib.cast[w].figures)[0].body.height));
+  const near = (spot: string): PlaySpot => { const s = lib.stages[at.stage].spots[spot]; return { ...s, at: [s.at[0], page.home.at[1] + 0.8 * page.home.tall], scale: large }; };
+  const plain: PlayGive[] = at.ribbon === undefined ? [] : [{ prop: at.ribbon, to: page.cm([960, 190]), hidden: true }], beats: PlayBeat[] = [];
+  let on = new Map<string, string>();
+  items.forEach((q, n) => {
+    const want = new Map<string, string>(q.hears ? [[q.hears, at.asker], [q.by, at.other]] : [[q.by, at.other]]), leave = [...on].filter(([w, s]) => want.get(w) !== s).map(([w]) => w), come = [...want].filter(([w, s]) => on.get(w) !== s);
+    const answer = line(q.answer), long = storyLineSeconds(answer), ask = q.ask === undefined ? undefined : titled(at, lib, page, { text: q.ask, gloss: q.gloss, means: true, reveal: read + think, for: read + think + long + 0.9, place: [960, 190], size: 72, tone: "title" }, 760);
+    const open: PlayBeat = { ...(leave.length ? { exit: leave } : {}), ...(come.length ? { enter: Object.fromEntries(come.map(([w, s]) => [w, near(s)])) } : {}), shot: { id: `check-${n}`, size: "wide", move: "hold", ...(n ? { join: "wash" } : {}) }, give: [...plain, ...(ask?.give ?? [])] };
+    on = want;
+    if (q.hear) beats.push({ ...open, say: q.hear, to: "viewer", look: { [q.hears!]: "viewer", [q.by]: q.hears! }, after: 0.3 });
+    else beats.push({ ...open, seconds: read, after: 0, look: { [q.by]: "viewer" }, words: ask!.words });
+    beats.push({ seconds: think, after: 0, do: [{ who: q.by, act: "think", at: 0.1, for: think - 0.2 }], words: [{ text: "？", place: [960, 470], size: 84, tone: "title" }] });
+    beats.push({ say: q.answer, to: "viewer", look: { [q.by]: "viewer", ...(q.hears ? { [q.hears]: q.by } : {}) }, mood: "happy", ...(q.hears ? { react: { [q.hears]: "happy" } } : {}), words: [{ text: answer.ja, gloss: answer.en, means: true, place: [960, 470], size: 72, for: long + 0.9 }], after: 0.9 });
+  });
+  return { id, stage: at.stage, cast: {}, cover: "none", beats };
+}
 function lessonScene(s: PlayLesson, lib: PlayLibrary): PlayScene {
   const at = lib.teach; if (!at) throw new Error(`"${s.id}" is a lesson, and the library has no place for lessons.`);
-  return { ...("practice" in s ? practiceScene(s.id, s.practice, at, lib) : "recap" in s ? recapScene(s.id, s.recap, at, lib) : "card" in s ? cardScene(s.id, s.card, at, lib) : quizScene(s.id, s.quiz, at, lib)), join: s.join ?? "page" };
+  return { ...("practice" in s ? practiceScene(s.id, s.practice, at, lib) : "recap" in s ? recapScene(s.id, s.recap, at, lib) : "card" in s ? cardScene(s.id, s.card, at, lib) : "check" in s ? checkScene(s.id, s.check, at, lib) : quizScene(s.id, s.quiz, at, lib)), join: s.join ?? "page" };
 }

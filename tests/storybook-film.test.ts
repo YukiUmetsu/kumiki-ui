@@ -11,7 +11,7 @@ import type { RigFrame } from "../registry/rig/rig-evaluate";
 import { inspectRuby, moraeOf, parseRuby, phonesOf, rubyReading } from "../registry/video/storybook/japanese-text";
 import { mouthAt, mouthKeys } from "../registry/video/storybook/speech-mouth";
 import type { SpeechTrack } from "../registry/video/storybook/speech-mouth";
-import { inspectStorybook, planStorybook, storybookFrame } from "../registry/video/storybook/storybook-film";
+import { inspectStorybook, planStorybook, storybookFrame, storyLineSeconds } from "../registry/video/storybook/storybook-film";
 import { checkStory } from "../registry/video/storybook/story-check";
 import { composeStory } from "../registry/video/storybook/story-play";
 import type { PlayLesson } from "../registry/video/storybook/story-play";
@@ -206,6 +206,30 @@ describe("lesson pages", () => {
   });
   it("keep the reveal when the switch is on", () => { expect(english(said, comes(said, line.ja) + 0.5, true)).not.toContain(line.en); });
   it("say a phrase as many times as asked", () => { expect(said.shots.flatMap(s => s.says ?? []).filter(s => s.line === first)).toHaveLength(2); });
+  const check = (...items: { hear?: string; ask?: string; gloss?: string; answer: string }[]) => lesson({ id: "check", check: { items } });
+  const sayOf = (film: StorybookFilm, id: string) => { const plan = planStorybook(film), s = plan.shots.find(s => s.shot.says?.some(q => q.line === id))!; return s.start + s.shot.says!.find(q => q.line === id)!.at; };
+  it("check a heard line: the line, a pause with no English, then the answer with its English", () => {
+    const film = check({ hear: "welcome", answer: "onigiri-please" }), heard = sayOf(film, "welcome") + storyLineSeconds(KONBINI_LINES.welcome), answer = sayOf(film, "onigiri-please");
+    expect(answer - heard).toBeGreaterThanOrEqual(4); expect(english(film, (heard + answer) / 2)).toEqual([]); expect(english(film, answer + 0.6)).toContain(KONBINI_LINES["onigiri-please"].en);
+  });
+  it("check a situation: its English waits for the answer", () => {
+    const film = check({ ask: "{水|みず}が {欲|ほ}しいです", gloss: "You want water.", answer: "yes-please" }), answer = sayOf(film, "yes-please");
+    const asked = (t: number) => storybookFrame(planStorybook(film), t).words.find(w => w.words.text === "{水|みず}が {欲|ほ}しいです");
+    expect(asked(answer - 1)?.glossOpacity).toBe(0); expect(english(film, answer - 1)).not.toContain("You want water.");
+    expect(asked(answer + 0.6)?.glossOpacity).toBe(1); expect(english(film, answer + 0.6)).toEqual(expect.arrayContaining(["You want water.", KONBINI_LINES["yes-please"].en]));
+  });
+  it("let people stay, change sides or leave between items", () => {
+    const film = check({ hear: "welcome", answer: "onigiri-please" }, { hear: "price", answer: "yes-please" }, { hear: "thanks", answer: "thanks-again" }), { spots } = storyLibrary().stages[storyLibrary().teach!.stage];
+    const x = (shot: StorybookFilm["shots"][number], who: string) => { const p = shot.roles!.find(r => r.actor === who)!.path; return typeof p[0] === "number" ? p[0] : (p as readonly { x: number }[])[0].x; };
+    expect(inspectStorybook(film)).toEqual([]); expect(film.shots).toHaveLength(3);
+    const [one, two, three] = film.shots, left = spots.asker.at[0], right = spots.other.at[0];
+    expect([x(one, "riku"), x(one, "ema"), x(two, "riku"), x(two, "ema"), x(three, "ema"), x(three, "riku")]).toEqual([left, right, left, right, left, right]);
+  });
+  it("refuse a check that one person hears and answers", () => { expect(() => check({ hear: "welcome", answer: "price" })).toThrow('Check "check" item 1: "riku" hears and answers; a check needs two people.'); expect(() => check({ hear: "welcome", ask: "?", answer: "thanks" })).toThrow('Check "check" item 1: give "hear" or "ask", not both.'); });
+  it("leave the picture of a practice page behind", () => {
+    const lib = storyLibrary(), prop = Object.keys(lib.props)[0], film = lesson({ id: "say", practice: { lines: ["welcome"], pictures: { welcome: prop } } }, { id: "check", check: { items: [{ hear: "price", answer: "yes-please" }] } });
+    expect(film.shots.filter(s => s.id.startsWith("check")).some(s => s.props?.some(p => p.prop === prop))).toBe(false);
+  });
   it("make a card from a title and up to three lines", () => {
     const card = (lines: readonly (string | { text: string; gloss?: string })[], seconds?: number) => lesson({ id: "goal", card: { title: "{今日|きょう}の もくひょう", gloss: "Today’s goal", lines, ...(seconds ? { seconds } : {}) } });
     const three = [first, { text: "{水|みず}を ください。", gloss: "Water, please." }, { text: "いくらですか。", gloss: "How much is it?" }], film = card(three), shot = film.shots[0];
