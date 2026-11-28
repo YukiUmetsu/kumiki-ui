@@ -261,4 +261,8 @@ describe("screenplays", () => {
     const plan = planStorybook(filmOf("festival")), call = plan.shots.map(s => s.shot.id).find(id => id.endsWith("-call"))!;
     expect(HAND_ACTS).toContain("call"); expect(checkStory(plan, { shots: [call] }).handActs.some(h => h.includes("daichi call"))).toBe(true);
   });
+  it("keep hands on props in inserts: matsuri has no hand act in a shot with people", () => {
+    const acts = filmOf("matsuri").shots.flatMap(s => s.roles ?? []).flatMap(r => r.acts ?? []);
+    expect(acts.length).toBeGreaterThan(0); expect(acts.filter(a => HAND_ACTS.includes(a.act))).toEqual([]);
+  });
 });

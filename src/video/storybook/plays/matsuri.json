@@ -1,0 +1,1396 @@
+{
+ "id": "matsuri",
+ "title": "お{祭|まつ}り — The festival",
+ "lines": [
+  {
+   "id": "crowd",
+   "speaker": "ema",
+   "ja": "{人|ひと}が いっぱいだね。",
+   "en": "So many people."
+  },
+  {
+   "id": "smell",
+   "speaker": "daniel",
+   "ja": "いい におい！",
+   "en": "Something smells good!"
+  },
+  {
+   "id": "nani-ga-ii",
+   "speaker": "sophie",
+   "ja": "{何|なに}が いい？",
+   "en": "What do you want?"
+  },
+  {
+   "id": "takoyaki-ga-ii",
+   "speaker": "leo",
+   "ja": "たこ{焼|や}きが いい！",
+   "en": "Takoyaki!"
+  },
+  {
+   "id": "welcome",
+   "speaker": "daichi",
+   "ja": "いらっしゃい！",
+   "en": "Welcome!"
+  },
+  {
+   "id": "one-please",
+   "speaker": "leo",
+   "ja": "たこ{焼|や}き、 {一|ひと}つ ください。",
+   "en": "One takoyaki, please."
+  },
+  {
+   "id": "how-much",
+   "speaker": "daniel",
+   "ja": "いくらですか。",
+   "en": "How much is it?"
+  },
+  {
+   "id": "six-hundred",
+   "speaker": "daichi",
+   "ja": "{六百円|ろっぴゃくえん}です。",
+   "en": "It's 600 yen."
+  },
+  {
+   "id": "careful",
+   "speaker": "daichi",
+   "ja": "{熱|あつ}いから、 {気|き}を つけてね。",
+   "en": "It's hot, so be careful."
+  },
+  {
+   "id": "here-you-are",
+   "speaker": "daichi",
+   "ja": "どうぞ。",
+   "en": "Here you are."
+  },
+  {
+   "id": "eat-here",
+   "speaker": "ema",
+   "ja": "ここで {食|た}べても いいですか。",
+   "en": "May we eat here?"
+  },
+  {
+   "id": "sure",
+   "speaker": "daichi",
+   "ja": "いいですよ。",
+   "en": "Sure."
+  },
+  {
+   "id": "itadakimasu",
+   "speaker": "leo",
+   "ja": "いただきます。",
+   "en": "Let's eat."
+  },
+  {
+   "id": "hot",
+   "speaker": "leo",
+   "ja": "あつい！",
+   "en": "Hot!"
+  },
+  {
+   "id": "tasty",
+   "speaker": "sophie",
+   "ja": "おいしい！",
+   "en": "Tasty!"
+  },
+  {
+   "id": "plate-where",
+   "speaker": "daniel",
+   "ja": "お{皿|さら}[は|わ] どこに {返|かえ}しますか。",
+   "en": "Where do we return the plate?"
+  },
+  {
+   "id": "plate-there",
+   "speaker": "daichi",
+   "ja": "あそこです。",
+   "en": "Over there."
+  },
+  {
+   "id": "fireworks",
+   "speaker": "sophie",
+   "ja": "あ、 {花火|はなび}！",
+   "en": "Oh, fireworks!"
+  },
+  {
+   "id": "pretty",
+   "speaker": "ema",
+   "ja": "きれい！",
+   "en": "Beautiful!"
+  },
+  {
+   "id": "kore-wa",
+   "speaker": "ema",
+   "ja": "これ[は|わ] {何|なん}ですか。",
+   "en": "What is this?"
+  },
+  {
+   "id": "is-yakisoba",
+   "speaker": "daichi",
+   "ja": "{焼|や}きそばです。",
+   "en": "It's yakisoba."
+  },
+  {
+   "id": "is-kakigori",
+   "speaker": "daichi",
+   "ja": "かき{氷|ごおり}です。",
+   "en": "It's shaved ice."
+  },
+  {
+   "id": "is-yukata",
+   "speaker": "daichi",
+   "ja": "{浴衣|ゆかた}です。",
+   "en": "It's a yukata."
+  },
+  {
+   "id": "is-hanabi",
+   "speaker": "daichi",
+   "ja": "{花火|はなび}です。",
+   "en": "It's fireworks."
+  }
+ ],
+ "scenes": [
+  {
+   "id": "open-batter",
+   "stage": "festival-top",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "open-batter",
+      "frame": "all",
+      "move": {
+       "frame": "near"
+      },
+      "about": "Batter goes into a hot takoyaki griddle, seen from above."
+     },
+     "seconds": 5,
+     "after": 0
+    }
+   ]
+  },
+  {
+   "id": "open-half",
+   "stage": "festival-top-half",
+   "join": "dissolve",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "open-half",
+      "frame": "near",
+      "move": "hold",
+      "about": "The balls are turned half over."
+     },
+     "seconds": 4,
+     "after": 0
+    }
+   ]
+  },
+  {
+   "id": "open-round",
+   "stage": "festival-top-round",
+   "join": "dissolve",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "open-round",
+      "frame": "near",
+      "move": {
+       "frame": "all"
+      },
+      "about": "Round golden takoyaki."
+     },
+     "seconds": 6,
+     "words": [
+      {
+       "text": "お{祭|まつ}り",
+       "gloss": "The festival",
+       "means": true,
+       "tone": "title",
+       "at": 0.6,
+       "for": 4.0
+      }
+     ],
+     "after": 0
+    }
+   ]
+  },
+  {
+   "id": "goal",
+   "card": {
+    "title": "{今日|きょう}[は|わ] これを {言|い}います",
+    "gloss": "Today you learn to say",
+    "lines": [
+     "one-please",
+     "how-much",
+     "eat-here"
+    ],
+    "seconds": 18
+   }
+  },
+  {
+   "id": "ch1",
+   "card": {
+    "title": "{一|いち} {屋台|やたい}が いっぱい",
+    "gloss": "1 So many stalls",
+    "seconds": 5
+   }
+  },
+  {
+   "id": "lane",
+   "stage": "festival-lane",
+   "join": "dissolve",
+   "cast": {
+    "daniel": "far-1",
+    "ema": "far-2",
+    "sophie": "far-3",
+    "leo": "far-4"
+   },
+   "beats": [
+    {
+     "shot": {
+      "id": "lane",
+      "frame": {
+       "at": [
+        0,
+        -166
+       ],
+       "tall": 306
+      },
+      "move": {
+       "frame": {
+        "at": [
+         0,
+         -140
+        ],
+        "tall": 260
+       }
+      },
+      "about": "A lane of stalls at night, under the lanterns."
+     },
+     "seconds": 9,
+     "after": 0
+    }
+   ]
+  },
+  {
+   "id": "banners",
+   "stage": "festival-banners",
+   "join": "dissolve",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "banners",
+      "frame": "left",
+      "move": {
+       "frame": "right"
+      },
+      "about": "The banners of four stalls go by."
+     },
+     "seconds": 18,
+     "words": [
+      {
+       "text": "たこ{焼|や}き",
+       "gloss": "octopus balls",
+       "means": true,
+       "at": 1.0,
+       "for": 3.6,
+       "place": [
+        960,
+        900
+       ],
+       "size": 64
+      },
+      {
+       "text": "{焼|や}きそば",
+       "gloss": "fried noodles",
+       "means": true,
+       "at": 5.2,
+       "for": 3.6,
+       "place": [
+        960,
+        900
+       ],
+       "size": 64
+      },
+      {
+       "text": "かき{氷|ごおり}",
+       "gloss": "shaved ice",
+       "means": true,
+       "at": 9.4,
+       "for": 3.6,
+       "place": [
+        960,
+        900
+       ],
+       "size": 64
+      },
+      {
+       "text": "りんご{飴|あめ}",
+       "gloss": "candy apple",
+       "means": true,
+       "at": 13.6,
+       "for": 3.6,
+       "place": [
+        960,
+        900
+       ],
+       "size": 64
+      }
+     ],
+     "after": 0
+    }
+   ]
+  },
+  {
+   "id": "lanterns",
+   "stage": "festival-lanterns",
+   "join": "dissolve",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "lanterns",
+      "frame": "all",
+      "move": {
+       "frame": "near"
+      },
+      "about": "Paper lanterns on a string glow in the dusk."
+     },
+     "seconds": 8,
+     "after": 0
+    }
+   ]
+  },
+  {
+   "id": "walk",
+   "stage": "festival-lane",
+   "join": "dissolve",
+   "cast": {
+    "daniel": "far-1",
+    "ema": "far-2",
+    "sophie": "far-3",
+    "leo": "far-4"
+   },
+   "beats": [
+    {
+     "shot": {
+      "id": "walk",
+      "frame": {
+       "at": [
+        0,
+        -150
+       ],
+       "tall": 280
+      },
+      "move": {
+       "frame": {
+        "at": [
+         0,
+         -120
+        ],
+        "tall": 230
+       }
+      },
+      "about": "The family walks down the lane."
+     },
+     "go": {
+      "daniel": "way-1",
+      "ema": "way-2",
+      "sophie": "way-3",
+      "leo": "way-4"
+     },
+     "in": 4.6,
+     "seconds": 6.4,
+     "look": {
+      "daniel": "ahead",
+      "ema": "ahead",
+      "sophie": "ahead",
+      "leo": "ahead"
+     },
+     "after": 0
+    },
+    {
+     "shot": {
+      "id": "crowd",
+      "on": [
+       "ema",
+       "daniel"
+      ],
+      "size": "waist"
+     },
+     "say": "crowd",
+     "to": "daniel",
+     "mood": "amazed",
+     "do": [
+      {
+       "who": "ema",
+       "act": "look-around",
+       "at": 0.1
+      }
+     ],
+     "react": {
+      "daniel": "happy"
+     },
+     "after": 1.5
+    },
+    {
+     "shot": {
+      "id": "smell",
+      "on": [
+       "daniel",
+       "ema"
+      ],
+      "size": "chest"
+     },
+     "say": "smell",
+     "to": "ema",
+     "mood": "happy",
+     "react": {
+      "ema": "happy"
+     },
+     "after": 1.5
+    },
+    {
+     "shot": {
+      "id": "nani",
+      "on": [
+       "sophie",
+       "leo"
+      ],
+      "size": "waist"
+     },
+     "say": "nani-ga-ii",
+     "to": "leo",
+     "mood": "happy",
+     "after": 1.5
+    },
+    {
+     "shot": {
+      "id": "tako",
+      "on": "leo",
+      "size": "chest"
+     },
+     "say": "takoyaki-ga-ii",
+     "to": "sophie",
+     "mood": "happy",
+     "do": [
+      {
+       "who": "leo",
+       "act": "hop",
+       "at": 0.1
+      }
+     ],
+     "react": {
+      "sophie": "happy"
+     },
+     "after": 1.5
+    },
+    {
+     "shot": {
+      "id": "turn",
+      "frame": {
+       "at": [
+        0,
+        -150
+       ],
+       "tall": 280
+      }
+     },
+     "seconds": 3.6,
+     "look": {
+      "daniel": [
+       160,
+       -120
+      ],
+      "ema": [
+       160,
+       -120
+      ],
+      "sophie": [
+       160,
+       -120
+      ],
+      "leo": [
+       160,
+       -120
+      ]
+     },
+     "after": 0
+    }
+   ]
+  },
+  {
+   "id": "ch2",
+   "card": {
+    "title": "{二|に} たこ{焼|や}き{屋|や}さん",
+    "gloss": "2 The takoyaki stall",
+    "seconds": 5
+   }
+  },
+  {
+   "id": "stall",
+   "stage": "festival",
+   "join": "dissolve",
+   "cast": {
+    "daichi": "cook",
+    "daniel": "ask-1",
+    "ema": "ask-2",
+    "sophie": "ask-3",
+    "leo": "ask-4"
+   },
+   "beats": [
+    {
+     "shot": {
+      "id": "stall-wide",
+      "frame": "all",
+      "about": "The family comes to a takoyaki stall."
+     },
+     "seconds": 5,
+     "after": 0
+    },
+    {
+     "shot": {
+      "id": "stall-welcome",
+      "frame": "cook",
+      "without": [
+       "daniel",
+       "ema",
+       "sophie",
+       "leo"
+      ]
+     },
+     "say": "welcome",
+     "to": "viewer",
+     "mood": "happy",
+     "after": 1.5
+    }
+   ]
+  },
+  {
+   "id": "round",
+   "stage": "festival-top-round",
+   "join": "dissolve",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "round",
+      "frame": "near",
+      "move": {
+       "frame": "all"
+      },
+      "about": "The takoyaki are round and golden."
+     },
+     "seconds": 5.5,
+     "after": 0
+    }
+   ]
+  },
+  {
+   "id": "order",
+   "stage": "festival",
+   "join": "dissolve",
+   "cast": {
+    "daichi": "cook",
+    "daniel": "ask-1",
+    "ema": "ask-2",
+    "sophie": "ask-3",
+    "leo": "ask-4"
+   },
+   "beats": [
+    {
+     "shot": {
+      "id": "order-one",
+      "on": [
+       "leo",
+       "sophie"
+      ],
+      "size": "waist",
+      "from": "door"
+     },
+     "say": "one-please",
+     "to": "daichi",
+     "mood": "happy",
+     "after": 1.5
+    },
+    {
+     "shot": {
+      "id": "order-price",
+      "on": [
+       "daniel",
+       "ema"
+      ],
+      "size": "waist",
+      "from": "door"
+     },
+     "say": "how-much",
+     "to": "daichi",
+     "after": 1.5
+    },
+    {
+     "shot": {
+      "id": "order-600",
+      "frame": "cook",
+      "without": [
+       "daniel",
+       "ema",
+       "sophie",
+       "leo"
+      ]
+     },
+     "say": "six-hundred",
+     "to": "daniel",
+     "mood": "happy",
+     "do": [
+      {
+       "who": "daichi",
+       "act": "nod",
+       "at": 0.1
+      }
+     ],
+     "after": 1.5
+    }
+   ]
+  },
+  {
+   "id": "sauce",
+   "stage": "festival-top-sauce",
+   "join": "dissolve",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "sauce",
+      "frame": "all",
+      "move": {
+       "frame": "near"
+      },
+      "about": "Sauce, mayonnaise and bonito flakes on eight takoyaki in a boat."
+     },
+     "seconds": 8,
+     "after": 0,
+     "drifts": [
+      "steam-boat"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tray-daichi",
+   "stage": "festival-tray-daichi",
+   "join": "dissolve",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "tray-daichi",
+      "frame": "all",
+      "move": "hold",
+      "about": "Daichi holds out the tray."
+     },
+     "seconds": 2,
+     "after": 0
+    },
+    {
+     "say": "careful",
+     "to": "viewer",
+     "after": 0.4
+    },
+    {
+     "say": "here-you-are",
+     "to": "viewer",
+     "after": 0.4
+    }
+   ]
+  },
+  {
+   "id": "tray-leo",
+   "stage": "festival-tray-leo",
+   "join": "cut",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "tray-leo",
+      "frame": "all",
+      "move": {
+       "frame": "near"
+      },
+      "about": "Leo holds the tray."
+     },
+     "seconds": 5,
+     "after": 0
+    }
+   ]
+  },
+  {
+   "id": "check-1",
+   "check": {
+    "items": [
+     {
+      "hear": "nani-ga-ii",
+      "answer": "takoyaki-ga-ii"
+     }
+    ]
+   }
+  },
+  {
+   "id": "ch3",
+   "card": {
+    "title": "{三|さん} いただきます",
+    "gloss": "3 Let's eat",
+    "seconds": 5
+   }
+  },
+  {
+   "id": "here",
+   "stage": "festival",
+   "join": "dissolve",
+   "cast": {
+    "daichi": "cook",
+    "daniel": "ask-1",
+    "ema": "ask-2",
+    "sophie": "ask-3",
+    "leo": "ask-4"
+   },
+   "beats": [
+    {
+     "shot": {
+      "id": "here-ask",
+      "on": [
+       "ema",
+       "daniel"
+      ],
+      "size": "waist",
+      "from": "door"
+     },
+     "say": "eat-here",
+     "to": "daichi",
+     "after": 1.5
+    },
+    {
+     "shot": {
+      "id": "here-sure",
+      "frame": "cook",
+      "without": [
+       "daniel",
+       "ema",
+       "sophie",
+       "leo"
+      ]
+     },
+     "say": "sure",
+     "to": "ema",
+     "mood": "happy",
+     "do": [
+      {
+       "who": "daichi",
+       "act": "nod",
+       "at": 0.1
+      }
+     ],
+     "after": 1.5
+    }
+   ]
+  },
+  {
+   "id": "eat",
+   "stage": "festival-eat",
+   "join": "dissolve",
+   "look": "happy",
+   "cast": {
+    "daniel": "by-1",
+    "ema": "by-2",
+    "sophie": "by-3",
+    "leo": "by-4"
+   },
+   "beats": [
+    {
+     "shot": {
+      "id": "eat-wide",
+      "frame": "all",
+      "about": "The family stands by the lane to eat."
+     },
+     "seconds": 3,
+     "after": 0
+    },
+    {
+     "shot": {
+      "id": "eat-bow",
+      "frame": "all"
+     },
+     "say": "itadakimasu",
+     "to": "viewer",
+     "mood": "happy",
+     "do": [
+      {
+       "who": "leo",
+       "act": "bow",
+       "at": 0.1
+      },
+      {
+       "who": "sophie",
+       "act": "bow",
+       "at": 0.18
+      },
+      {
+       "who": "ema",
+       "act": "bow",
+       "at": 0.26
+      },
+      {
+       "who": "daniel",
+       "act": "bow",
+       "at": 0.33999999999999997
+      }
+     ],
+     "after": 1.5
+    }
+   ]
+  },
+  {
+   "id": "pick",
+   "stage": "festival-pick",
+   "join": "dissolve",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "pick",
+      "frame": "near",
+      "move": {
+       "frame": "all"
+      },
+      "about": "Leo puts a pick into a hot takoyaki. Steam goes up."
+     },
+     "seconds": 8,
+     "after": 0,
+     "drifts": [
+      "steam-pick"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "taste",
+   "stage": "festival-eat",
+   "join": "dissolve",
+   "look": "happy",
+   "cast": {
+    "daniel": "by-1",
+    "ema": "by-2",
+    "sophie": "by-3",
+    "leo": "by-4"
+   },
+   "beats": [
+    {
+     "shot": {
+      "id": "taste-hot",
+      "frame": "leo"
+     },
+     "say": "hot",
+     "to": "viewer",
+     "mood": "surprised",
+     "do": [
+      {
+       "who": "leo",
+       "act": "hop",
+       "at": 0.1
+      }
+     ],
+     "react": {
+      "sophie": "happy"
+     },
+     "after": 1.5
+    },
+    {
+     "shot": {
+      "id": "taste-tasty",
+      "on": [
+       "sophie",
+       "ema"
+      ],
+      "size": "chest"
+     },
+     "say": "tasty",
+     "to": "viewer",
+     "mood": "happy",
+     "react": {
+      "ema": "happy"
+     },
+     "after": 1.5
+    }
+   ]
+  },
+  {
+   "id": "plate",
+   "stage": "festival",
+   "join": "dissolve",
+   "cast": {
+    "daichi": "cook",
+    "daniel": "ask-1",
+    "ema": "ask-2",
+    "sophie": "ask-3",
+    "leo": "ask-4"
+   },
+   "beats": [
+    {
+     "shot": {
+      "id": "plate-ask",
+      "on": [
+       "daniel",
+       "ema"
+      ],
+      "size": "waist",
+      "from": "door"
+     },
+     "say": "plate-where",
+     "to": "daichi",
+     "after": 1.5
+    },
+    {
+     "shot": {
+      "id": "plate-there",
+      "frame": "cook",
+      "without": [
+       "daniel",
+       "ema",
+       "sophie",
+       "leo"
+      ]
+     },
+     "say": "plate-there",
+     "to": "daniel",
+     "mood": "happy",
+     "look": {
+      "daichi": [
+       140,
+       -120
+      ]
+     },
+     "after": 1.5
+    }
+   ]
+  },
+  {
+   "id": "return",
+   "stage": "festival-return",
+   "join": "dissolve",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "return",
+      "frame": "all",
+      "move": {
+       "frame": "near"
+      },
+      "about": "A table where people return plates and rubbish."
+     },
+     "seconds": 6.5,
+     "after": 0
+    }
+   ]
+  },
+  {
+   "id": "sky",
+   "stage": "festival-sky",
+   "join": "brush",
+   "cover": "none",
+   "cast": {
+    "daniel": "see-1",
+    "ema": "see-2",
+    "sophie": "see-3",
+    "leo": "see-4"
+   },
+   "beats": [
+    {
+     "shot": {
+      "id": "sky",
+      "frame": {
+       "at": [
+        -20,
+        -178
+       ],
+       "tall": 248
+      },
+      "move": {
+       "frame": {
+        "at": [
+         0,
+         -200
+        ],
+        "tall": 304
+       }
+      },
+      "about": "The family looks at fireworks over the temple gate."
+     },
+     "say": "fireworks",
+     "to": "viewer",
+     "look": {
+      "daniel": "sky",
+      "ema": "sky",
+      "sophie": "sky",
+      "leo": "sky"
+     },
+     "bursts": [
+      {
+       "burst": "gold",
+       "at": 0.1,
+       "place": [
+        72,
+        -236
+       ]
+      },
+      {
+       "burst": "red",
+       "at": 1.6,
+       "place": [
+        -110,
+        -262
+       ],
+       "size": 0.95
+      }
+     ],
+     "after": 1.5
+    },
+    {
+     "say": "pretty",
+     "to": "viewer",
+     "bursts": [
+      {
+       "burst": "blue",
+       "at": 0.2,
+       "place": [
+        20,
+        -280
+       ]
+      },
+      {
+       "burst": "gold",
+       "at": 2.6,
+       "place": [
+        -60,
+        -250
+       ],
+       "size": 0.9
+      }
+     ],
+     "seconds": 6
+    },
+    {
+     "seconds": 5,
+     "after": 0,
+     "bursts": [
+      {
+       "burst": "red",
+       "at": 0.3,
+       "place": [
+        100,
+        -270
+       ]
+      },
+      {
+       "burst": "blue",
+       "at": 1.9,
+       "place": [
+        -90,
+        -240
+       ],
+       "size": 0.9
+      },
+      {
+       "burst": "gold",
+       "at": 3.3,
+       "place": [
+        10,
+        -290
+       ],
+       "size": 1.1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "check-2",
+   "check": {
+    "items": [
+     {
+      "ask": "{値段|ねだん}を {聞|き}きます",
+      "gloss": "Ask the price.",
+      "answer": "how-much"
+     }
+    ]
+   }
+  },
+  {
+   "id": "phrases",
+   "practice": {
+    "lines": [
+     "one-please",
+     "how-much",
+     "eat-here",
+     "plate-where",
+     "itadakimasu",
+     "takoyaki-ga-ii"
+    ],
+    "reveal": 1.5,
+    "times": 2,
+    "pictures": {
+     "one-please": "still-tray",
+     "how-much": "still-price",
+     "eat-here": "still-eat",
+     "plate-where": "still-return",
+     "itadakimasu": "still-pick",
+     "takoyaki-ga-ii": "still-sauce"
+    }
+   }
+  },
+  {
+   "id": "words-1",
+   "recap": {
+    "reveal": 1.5,
+    "seconds": 12,
+    "words": [
+     {
+      "text": "{祭|まつ}り",
+      "gloss": "festival",
+      "prop": "still-lane"
+     },
+     {
+      "text": "{屋台|やたい}",
+      "gloss": "food stall",
+      "prop": "still-stall"
+     },
+     {
+      "text": "{浴衣|ゆかた}",
+      "gloss": "summer kimono",
+      "prop": "yukata"
+     },
+     {
+      "text": "{花火|はなび}",
+      "gloss": "fireworks",
+      "prop": "hanabi"
+     }
+    ]
+   }
+  },
+  {
+   "id": "words-2",
+   "recap": {
+    "reveal": 1.5,
+    "seconds": 12,
+    "words": [
+     {
+      "text": "たこ{焼|や}き",
+      "gloss": "octopus balls",
+      "prop": "takoyaki-2"
+     },
+     {
+      "text": "{焼|や}きそば",
+      "gloss": "fried noodles",
+      "prop": "yakisoba"
+     },
+     {
+      "text": "かき{氷|ごおり}",
+      "gloss": "shaved ice",
+      "prop": "kakigori"
+     },
+     {
+      "text": "りんご{飴|あめ}",
+      "gloss": "candy apple",
+      "prop": "ringo-ame"
+     }
+    ]
+   }
+  },
+  {
+   "id": "words-3",
+   "recap": {
+    "reveal": 1.5,
+    "seconds": 12,
+    "words": [
+     {
+      "text": "{皿|さら}",
+      "gloss": "plate",
+      "prop": "plate"
+     },
+     {
+      "text": "ごみ",
+      "gloss": "rubbish",
+      "prop": "gomi"
+     },
+     {
+      "text": "{熱|あつ}い",
+      "gloss": "hot",
+      "prop": "still-steam"
+     },
+     {
+      "text": "{一|ひと}つ",
+      "gloss": "one (thing)",
+      "prop": "bite"
+     }
+    ]
+   }
+  },
+  {
+   "id": "quiz",
+   "quiz": {
+    "ask": "kore-wa",
+    "items": [
+     {
+      "prop": "yakisoba",
+      "answer": "is-yakisoba",
+      "word": "{焼|や}きそば",
+      "gloss": "fried noodles"
+     },
+     {
+      "prop": "kakigori",
+      "answer": "is-kakigori",
+      "word": "かき{氷|ごおり}",
+      "gloss": "shaved ice"
+     },
+     {
+      "prop": "yukata",
+      "answer": "is-yukata",
+      "word": "{浴衣|ゆかた}",
+      "gloss": "summer kimono"
+     },
+     {
+      "prop": "hanabi",
+      "answer": "is-hanabi",
+      "word": "{花火|はなび}",
+      "gloss": "fireworks"
+     }
+    ]
+   }
+  },
+  {
+   "id": "check-3",
+   "check": {
+    "items": [
+     {
+      "hear": "welcome",
+      "answer": "one-please"
+     },
+     {
+      "ask": "ここで {食|た}べたいです",
+      "gloss": "You want to eat here.",
+      "answer": "eat-here"
+     },
+     {
+      "ask": "お{皿|さら}を {返|かえ}したいです",
+      "gloss": "You want to return the plate.",
+      "answer": "plate-where"
+     }
+    ]
+   }
+  },
+  {
+   "id": "close-1",
+   "stage": "festival-top-round",
+   "join": "dissolve",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "close-1",
+      "frame": "near",
+      "move": {
+       "frame": "all"
+      },
+      "about": "Round golden takoyaki."
+     },
+     "seconds": 0.5,
+     "after": 0
+    },
+    {
+     "say": "welcome",
+     "to": "viewer",
+     "after": 0.4
+    },
+    {
+     "say": "one-please",
+     "to": "viewer",
+     "after": 0.4
+    }
+   ]
+  },
+  {
+   "id": "close-2",
+   "stage": "festival-top-sauce",
+   "join": "dissolve",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "close-2",
+      "frame": "all",
+      "move": {
+       "frame": "near"
+      },
+      "about": "Takoyaki with sauce in a boat."
+     },
+     "seconds": 0.5,
+     "after": 0,
+     "drifts": [
+      "steam-boat"
+     ]
+    },
+    {
+     "say": "six-hundred",
+     "to": "viewer",
+     "after": 0.4
+    }
+   ]
+  },
+  {
+   "id": "close-3",
+   "stage": "festival-tray-daichi",
+   "join": "dissolve",
+   "cover": "none",
+   "cast": {},
+   "beats": [
+    {
+     "shot": {
+      "id": "close-3",
+      "frame": "all",
+      "move": "hold",
+      "about": "Daichi holds out the tray."
+     },
+     "seconds": 0.5,
+     "after": 0
+    },
+    {
+     "say": "here-you-are",
+     "to": "viewer",
+     "after": 0.4
+    }
+   ]
+  },
+  {
+   "id": "next",
+   "card": {
+    "title": "{次|つぎ}[は|わ] お{土産|みやげ}{屋|や}さん",
+    "gloss": "Next: the souvenir shop",
+    "seconds": 5
+   }
+  }
+ ]
+}
