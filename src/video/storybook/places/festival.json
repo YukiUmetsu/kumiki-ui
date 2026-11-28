@@ -6,9 +6,54 @@
   "takoyaki-2": {"name": "たこ焼き", "piece": "props/takoyaki"},
   "takoyaki-3": {"name": "たこ焼き", "piece": "props/takoyaki"},
   "takoyaki-4": {"name": "たこ焼き", "piece": "props/takoyaki"},
-  "hanabi": {"name": "花火", "piece": "festival/hanabi"}
+  "hanabi": {"name": "花火", "piece": "festival/hanabi"},
+  "yakisoba": {"name": "焼きそば", "piece": "festival/yakisoba"},
+  "kakigori": {"name": "かき氷", "piece": "festival/kakigori"},
+  "plate": {"name": "お皿", "piece": "festival/plate"},
+  "gomi": {"name": "ごみ", "piece": "festival/gomi"},
+  "still-price": {"name": "たこ焼き 600円", "piece": "festival/still-price"},
+  "still-return": {"name": "お皿とごみ", "piece": "festival/still-return"},
+  "still-lane": {"name": "お祭りの道", "piece": "festival/still-lane"},
+  "still-stall": {"name": "たこ焼きの屋台", "piece": "festival/still-stall"},
+  "ringo-ame": {"name": "りんご飴", "piece": "festival/ringo-ame"},
+  "yukata": {"name": "浴衣", "piece": "festival/yukata"},
+  "still-tray": {"name": "たこ焼き一舟", "piece": "festival/still-tray"},
+  "still-eat": {"name": "たこ焼き一舟", "piece": "festival/still-eat"},
+  "still-pick": {"name": "たこ焼きとピック", "piece": "festival/still-pick"},
+  "still-steam": {"name": "熱いたこ焼き", "piece": "festival/still-steam"},
+  "still-sauce": {"name": "ソースのたこ焼き", "piece": "festival/still-sauce"}
  },
  "drifts": {
+  "steam-pick": {
+   "sprites": ["festival/puff"],
+   "count": 8,
+   "area": [-150, -280, 290, 80],
+   "size": [36, 66],
+   "life": 80,
+   "flutter": {"fall": -0.9, "wind": 0.15, "swing": 6, "period": 56, "tilt": 0, "lift": 0, "gust": 0.3, "gustPeriod": 80},
+   "tumble": 0,
+   "vary": 0.3,
+   "fade": 24,
+   "grow": [0.5, 2],
+   "seed": 6,
+   "z": -1,
+   "opacity": 0.24
+  },
+  "steam-boat": {
+   "sprites": ["festival/puff"],
+   "count": 10,
+   "area": [-190, -250, 380, 100],
+   "size": [40, 75],
+   "life": 80,
+   "flutter": {"fall": -0.9, "wind": 0.15, "swing": 6, "period": 56, "tilt": 0, "lift": 0, "gust": 0.3, "gustPeriod": 80},
+   "tumble": 0,
+   "vary": 0.3,
+   "fade": 24,
+   "grow": [0.5, 2],
+   "seed": 5,
+   "z": -1,
+   "opacity": 0.26
+  },
   "steam": {
    "sprites": ["festival/puff"],
    "count": 12,
@@ -94,7 +139,17 @@
    ]
   },
   "festival-people": {"home": {"at": [0, -140], "tall": 309}, "ground": {"horizon": [0, -112], "distance": 300}, "marks": {"plate": [20, -84], "sky": [-20, -230]}, "layers": [{"piece": "festival/people", "z": -100}]},
-  "festival-sky": {"home": {"at": [0, -230], "tall": 396}, "ground": {"horizon": [0, -150], "distance": 330}, "marks": {"sky": [0, -270]}, "layers": [{"piece": "festival/sky", "z": -100}, {"piece": "festival/skyline", "z": -96}]}
+  "festival-sky": {"home": {"at": [0, -230], "tall": 396}, "ground": {"horizon": [0, -150], "distance": 330}, "marks": {"sky": [0, -270]}, "layers": [{"piece": "festival/sky", "z": -100}, {"piece": "festival/skyline", "z": -96}]},
+  "festival-banners": {"home": {"at": [0, -198], "tall": 396}, "ground": {"horizon": [0, -150], "distance": 330}, "layers": [{"piece": "festival/banners", "z": -100}]},
+  "festival-lanterns": {"home": {"at": [0, -198], "tall": 396}, "ground": {"horizon": [0, -150], "distance": 330}, "layers": [{"piece": "festival/lanterns", "z": -100}]},
+  "festival-return": {"home": {"at": [0, -198], "tall": 396}, "ground": {"horizon": [0, -150], "distance": 330}, "layers": [{"piece": "festival/return", "z": -100}]},
+  "festival-top": {"home": {"at": [0, -198], "tall": 396}, "ground": {"horizon": [0, -150], "distance": 330}, "layers": [{"piece": "festival/top-1", "z": -100}]},
+  "festival-top-half": {"home": {"at": [0, -198], "tall": 396}, "ground": {"horizon": [0, -150], "distance": 330}, "layers": [{"piece": "festival/top-2", "z": -100}]},
+  "festival-top-round": {"home": {"at": [0, -198], "tall": 396}, "ground": {"horizon": [0, -150], "distance": 330}, "layers": [{"piece": "festival/top-3", "z": -100}]},
+  "festival-top-sauce": {"home": {"at": [0, -198], "tall": 396}, "ground": {"horizon": [0, -150], "distance": 330}, "layers": [{"piece": "festival/top-4", "z": -100}]},
+  "festival-tray-daichi": {"home": {"at": [0, -198], "tall": 396}, "ground": {"horizon": [0, -150], "distance": 330}, "layers": [{"piece": "festival/tray-daichi", "z": -100}]},
+  "festival-tray-leo": {"home": {"at": [0, -198], "tall": 396}, "ground": {"horizon": [0, -150], "distance": 330}, "layers": [{"piece": "festival/tray-leo", "z": -100}]},
+  "festival-pick": {"home": {"at": [0, -198], "tall": 396}, "ground": {"horizon": [0, -150], "distance": 330}, "layers": [{"piece": "festival/pick-1", "z": -100}]}
  },
  "stages": {
   "festival-lane": {
@@ -178,6 +233,16 @@
     "see-3": {"at": [-80, 44], "view": "rear", "toward": "sky"},
     "see-4": {"at": [-40, 40], "view": "rear", "toward": "sky"}
    }
-  }
+  },
+  "festival-banners": {"set": "festival-banners", "about": "The banners of four food stalls: takoyaki, yakisoba, shaved ice and candy apples.", "soft": 0.4, "bounds": [-346, -392, 346, -3], "bed": [{"sound": "crickets", "gain": -28}], "frames": {"all": {"at": [0, -198], "tall": 380}, "left": {"at": [-124, -195], "tall": 260}, "right": {"at": [124, -195], "tall": 260}}, "spots": {}},
+  "festival-lanterns": {"set": "festival-lanterns", "about": "Paper lanterns on a string glow in the dusk.", "soft": 0.4, "bounds": [-346, -392, 346, -3], "bed": [{"sound": "crickets", "gain": -28}], "frames": {"all": {"at": [0, -198], "tall": 380}, "near": {"at": [0, -210], "tall": 300}}, "spots": {}},
+  "festival-return": {"set": "festival-return", "about": "Two boxes on a table: one for plates, one for rubbish.", "soft": 0.4, "bounds": [-346, -392, 346, -3], "bed": [{"sound": "crickets", "gain": -28}], "frames": {"all": {"at": [0, -198], "tall": 380}, "near": {"at": [0, -170], "tall": 300}}, "spots": {}},
+  "festival-top": {"set": "festival-top", "about": "Batter in a hot takoyaki griddle, seen from above.", "soft": 0.4, "bounds": [-346, -392, 346, -3], "bed": [{"sound": "fire", "gain": -30}], "frames": {"all": {"at": [0, -198], "tall": 380}, "near": {"at": [0, -198], "tall": 300}}, "spots": {}},
+  "festival-top-half": {"set": "festival-top-half", "about": "The balls in the griddle are turned half over.", "soft": 0.4, "bounds": [-346, -392, 346, -3], "bed": [{"sound": "fire", "gain": -30}], "frames": {"all": {"at": [0, -198], "tall": 380}, "near": {"at": [0, -198], "tall": 300}}, "spots": {}},
+  "festival-top-round": {"set": "festival-top-round", "about": "Round golden takoyaki in the griddle.", "soft": 0.4, "bounds": [-346, -392, 346, -3], "bed": [{"sound": "fire", "gain": -30}], "frames": {"all": {"at": [0, -198], "tall": 380}, "near": {"at": [0, -198], "tall": 300}}, "spots": {}},
+  "festival-top-sauce": {"set": "festival-top-sauce", "about": "Eight takoyaki in a boat, with sauce, mayonnaise and bonito flakes.", "soft": 0.4, "bounds": [-346, -392, 346, -3], "bed": [{"sound": "fire", "gain": -30}], "frames": {"all": {"at": [0, -198], "tall": 380}, "near": {"at": [0, -198], "tall": 300}}, "spots": {}},
+  "festival-tray-daichi": {"set": "festival-tray-daichi", "about": "The stall keeper's hands hold out a boat of takoyaki.", "soft": 0.4, "bounds": [-346, -392, 346, -3], "bed": [{"sound": "fire", "gain": -30}], "frames": {"all": {"at": [0, -198], "tall": 380}, "near": {"at": [0, -198], "tall": 300}}, "spots": {}},
+  "festival-tray-leo": {"set": "festival-tray-leo", "about": "A child's hands hold a boat of takoyaki.", "soft": 0.4, "bounds": [-346, -392, 346, -3], "bed": [{"sound": "crickets", "gain": -28}], "frames": {"all": {"at": [0, -198], "tall": 380}, "near": {"at": [0, -198], "tall": 300}}, "spots": {}},
+  "festival-pick": {"set": "festival-pick", "about": "A child's hand puts a pick into a takoyaki.", "soft": 0.4, "bounds": [-346, -392, 346, -3], "bed": [{"sound": "crickets", "gain": -28}], "frames": {"all": {"at": [0, -198], "tall": 380}, "near": {"at": [0, -198], "tall": 300}}, "spots": {}}
  }
 }

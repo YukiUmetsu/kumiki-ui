@@ -264,6 +264,281 @@
    "y": -210.0,
    "width": 697.143,
    "height": 176.667
+  },
+  "banners": {
+   "image": {
+    "src": "banners.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.19,
+   "height": 392.381
+  },
+  "lanterns": {
+   "image": {
+    "src": "lanterns.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.19,
+   "height": 392.381
+  },
+  "return": {
+   "image": {
+    "src": "return.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.19,
+   "height": 392.381
+  },
+  "top-1": {
+   "image": {
+    "src": "top-1.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.19,
+   "height": 392.381
+  },
+  "top-2": {
+   "image": {
+    "src": "top-2.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.19,
+   "height": 392.381
+  },
+  "top-3": {
+   "image": {
+    "src": "top-3.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.19,
+   "height": 392.381
+  },
+  "top-4": {
+   "image": {
+    "src": "top-4.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.19,
+   "height": 392.381
+  },
+  "tray-daichi": {
+   "image": {
+    "src": "tray-daichi.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.19,
+   "height": 392.381
+  },
+  "tray-leo": {
+   "image": {
+    "src": "tray-leo.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.19,
+   "height": 392.381
+  },
+  "pick-1": {
+   "image": {
+    "src": "pick-1.webp",
+    "width": 2924,
+    "height": 1648
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.19,
+   "height": 392.381
+  },
+  "yakisoba": {
+   "image": {
+    "src": "yakisoba.webp",
+    "width": 629,
+    "height": 544
+   },
+   "x": 4.292,
+   "y": 6.125,
+   "width": 26.208,
+   "height": 22.667
+  },
+  "kakigori": {
+   "image": {
+    "src": "kakigori.webp",
+    "width": 357,
+    "height": 594
+   },
+   "x": 8.958,
+   "y": 3.708,
+   "width": 14.875,
+   "height": 24.75
+  },
+  "ringo-ame": {
+   "image": {
+    "src": "ringo-ame.webp",
+    "width": 247,
+    "height": 639
+   },
+   "x": 11.0,
+   "y": 3.708,
+   "width": 10.292,
+   "height": 26.625
+  },
+  "yukata": {
+   "image": {
+    "src": "yukata.webp",
+    "width": 439,
+    "height": 710
+   },
+   "x": 6.875,
+   "y": 0.875,
+   "width": 18.292,
+   "height": 29.583
+  },
+  "plate": {
+   "image": {
+    "src": "plate.webp",
+    "width": 627,
+    "height": 577
+   },
+   "x": 3.625,
+   "y": 4.458,
+   "width": 26.125,
+   "height": 24.042
+  },
+  "gomi": {
+   "image": {
+    "src": "gomi.webp",
+    "width": 268,
+    "height": 366
+   },
+   "x": 10.625,
+   "y": 8.208,
+   "width": 11.167,
+   "height": 15.25
+  },
+  "still-price": {
+   "image": {
+    "src": "still-price.webp",
+    "width": 482,
+    "height": 702
+   },
+   "x": -318.571,
+   "y": -300.0,
+   "width": 150.625,
+   "height": 219.375
+  },
+  "still-return": {
+   "image": {
+    "src": "still-return.webp",
+    "width": 784,
+    "height": 311
+   },
+   "x": -280.476,
+   "y": -254.762,
+   "width": 560.0,
+   "height": 222.143
+  },
+  "still-lane": {
+   "image": {
+    "src": "still-lane.webp",
+    "width": 766,
+    "height": 432
+   },
+   "x": -348.095,
+   "y": -378.571,
+   "width": 696.364,
+   "height": 392.727
+  },
+  "still-stall": {
+   "image": {
+    "src": "still-stall.webp",
+    "width": 760,
+    "height": 428
+   },
+   "x": -147.4,
+   "y": -218.0,
+   "width": 292.308,
+   "height": 164.615
+  },
+  "still-tray": {
+   "image": {
+    "src": "still-tray.webp",
+    "width": 766,
+    "height": 432
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.364,
+   "height": 392.727
+  },
+  "still-eat": {
+   "image": {
+    "src": "still-eat.webp",
+    "width": 766,
+    "height": 432
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.364,
+   "height": 392.727
+  },
+  "still-pick": {
+   "image": {
+    "src": "still-pick.webp",
+    "width": 766,
+    "height": 432
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.364,
+   "height": 392.727
+  },
+  "still-steam": {
+   "image": {
+    "src": "still-steam.webp",
+    "width": 349,
+    "height": 150
+   },
+   "x": -147.143,
+   "y": -240.476,
+   "width": 317.273,
+   "height": 136.364
+  },
+  "still-sauce": {
+   "image": {
+    "src": "still-sauce.webp",
+    "width": 766,
+    "height": 432
+   },
+   "x": -348.095,
+   "y": -393.81,
+   "width": 696.364,
+   "height": 392.727
   }
  },
  "provenance": "Painted with FLUX.2 Klein 4B (Apache-2.0), run locally, in the look of the owner's sheets; letters, picks, sparks and steam painted by this recipe. Takoyaki stalls, picks and fireworks studied from the sources in the docs."

@@ -11,7 +11,23 @@
   "tool": {"file": "fs_griddle.png", "sharp": "fs_griddle@2.png", "opaque": true, "px": 23.9, "origin": [0, 0]},
   "bite": {"file": "board.png", "sharp": "board@2.png", "opaque": true, "px": 18, "origin": [0, 0]},
   "dab": {"file": "fs_griddle.png", "sharp": "fs_griddle@2.png", "opaque": true, "px": 10, "origin": [0, 0]},
-  "stove": {"file": "fs_griddle.png", "sharp": "fs_griddle@2.png", "opaque": true, "px": 10, "origin": [670, 1112]}
+  "stove": {"file": "fs_griddle.png", "sharp": "fs_griddle@2.png", "opaque": true, "px": 10, "origin": [670, 1112]},
+  "banners": {"file": "fs_banners.png", "sharp": "fs_banners@2.png", "opaque": true, "px": 2.1, "origin": [736, 832], "paint": {"prompt": "A close view of the fronts of four festival food stalls side by side at dusk. Each stall has one large hanging cloth banner with a broad empty area for a name: red, white with a red border, light blue, and yellow. Red and white striped awnings above, small paper lanterns, warm light under the awnings. The banners are blank. No letters, no words, no logos. Hand-painted storybook illustration in the look of the reference paintings: fine brown ink lines, soft watercolour washes, warm light of a summer festival evening, paper texture.", "refs": ["fs_stall.png", "fs_lane.png"], "size": [1472, 832], "seed": 1}},
+  "lanterns": {"file": "fs_lanterns.png", "sharp": "fs_lanterns@2.png", "opaque": true, "px": 2.1, "origin": [736, 832], "paint": {"prompt": "A close still life of small round paper lanterns that hang at equal steps on a string; the string sags in a gentle curve across the evening sky. Red, white, green and pale blue lanterns, each glows softly from inside, thin ribs on the paper, black rims at top and bottom. Deep blue dusk sky with soft clouds, dark leaves of trees at the edges. No letters, no words, no logos. Hand-painted storybook illustration in the look of the reference paintings: fine brown ink lines, soft watercolour washes, warm light of a summer festival evening, paper texture.", "refs": ["fs_lane.png", "fs_sky.png"], "size": [1472, 832], "seed": 1}},
+  "top-1": {"file": "fs_top-1.png", "sharp": "fs_top-1@2.png", "opaque": true, "px": 2.1, "origin": [736, 832], "paint": {"prompt": "Repaint the first reference picture as a hand-painted storybook watercolour in the look of the second reference. It is a close view from straight above into a hot black cast-iron takoyaki griddle that fills the whole picture. Keep every round hollow exactly where it is in the first picture and the same size: fifteen equal hollows in three straight rows of five. Pale yellow batter fills every hollow to the rim and lies as a thin wet sheet over the iron between the hollows, with small bubbles. In each hollow one small piece of boiled octopus tentacle, cut across: white flesh, with purple-red skin and two or three small pale suckers along one curved side; white crunchy tenkasu bits, chopped green onion and thin strips of red ginger scattered over the batter. No letters, no words, no logos. Hand-painted storybook illustration in the look of the reference paintings: fine brown ink lines, soft watercolour washes, warm light of a summer festival evening, paper texture.", "refs": ["fs_layout-top.png", "fs_griddle.png"], "size": [1472, 832], "seed": 1}},
+  "top-2": {"file": "fs_top-2.png", "sharp": "fs_top-2@2.png", "opaque": true, "px": 2.1, "origin": [736, 832], "paint": {"prompt": "Repaint the first reference picture as a hand-painted storybook watercolour in the look of the second reference. The same black cast-iron takoyaki griddle from straight above, fifteen hollows in three straight rows of five, each in the same place and the same size as in the first picture. In each hollow a ball has been turned half over with a pick: a round golden cooked dome sits on one side of the hollow, shaded so that it looks round, lit from the upper left and darker at the lower right; soft raw yellow batter is still on the other side. No spoons, no tools. No letters, no words, no logos. Hand-painted storybook illustration in the look of the reference paintings: fine brown ink lines, soft watercolour washes, warm light of a summer festival evening, paper texture.", "refs": ["fs_layout-half.png", "fs_top-1.png"], "size": [1472, 832], "seed": 1}},
+  "top-3": {"file": "fs_top-3.png", "sharp": "fs_top-3@2.png", "opaque": true, "px": 2.1, "origin": [736, 832], "paint": {"prompt": "Repaint the first reference picture as a hand-painted storybook watercolour in the look of the second reference. The same black cast-iron takoyaki griddle from straight above, fifteen hollows in three straight rows of five, each in the same place and the same size as in the first picture. Each hollow holds one full round ball, evenly golden brown and crisp, a little darker toward its rim, with no dark spots, shaded so that it looks like a sphere and not a flat disc: lit from the upper left, darker at the lower right, with a small shine. All fifteen balls are the same size. No raw batter is left. No spoons, no tools. No letters, no words, no logos. Hand-painted storybook illustration in the look of the reference paintings: fine brown ink lines, soft watercolour washes, warm light of a summer festival evening, paper texture.", "refs": ["fs_layout-round.png", "fs_top-1.png"], "size": [1472, 832], "seed": 1}},
+  "top-4": {"file": "fs_top-4.png", "sharp": "fs_top-4@2.png", "opaque": true, "px": 2.1, "origin": [736, 832], "paint": {"prompt": "Repaint the first reference picture as a hand-painted storybook watercolour in the look of the second reference. Seen from straight above on a wooden counter: a long boat-shaped tray of thin pale wood with its ends cut at an angle, and in it eight round takoyaki in two rows of four, all the same size, filling the tray. Each ball is a full golden-brown sphere that stands up out of the tray, lit from the upper left, not a flat disc: dark brown glossy sauce over its top, with the golden sides still showing below it, one thin line of white mayonnaise drizzled in loose uneven loops along each row, a fine dusting of green aonori powder and a few thin pale tan bonito flakes. Two thin bamboo picks lie across one end. Keep the tray and each ball where they are in the first picture. No letters, no words, no logos. Hand-painted storybook illustration in the look of the reference paintings: fine brown ink lines, soft watercolour washes, warm light of a summer festival evening, paper texture.", "refs": ["fs_layout-boat.png", "fs_top-1.png"], "size": [1472, 832], "seed": 1}},
+  "tray-daichi": {"file": "fs_tray-daichi.png", "sharp": "fs_tray-daichi@2.png", "opaque": true, "px": 2.1, "origin": [736, 832], "paint": {"prompt": "Seen from the customer's side over a stall counter: the stall keeper's two hands hold out one boat of takoyaki, the same as in the first reference: a long tray of thin pale wood with low sides and its ends cut at an angle, and in it eight full round takoyaki balls in two rows, each as tall as it is wide and standing up out of the tray, golden brown, with dark brown sauce over their tops, a thin uneven drizzle of mayonnaise, green aonori and pale tan bonito flakes. His hands hold the two ends of the tray toward the viewer: the thumbs on the rim, the fingers under it. Strong tanned bare forearms come from the top of the picture, with the rolled navy blue cotton sleeves of his work coat. Each hand has five fingers. Behind: the warm inside of the stall, soft and out of focus. His face is not in the picture. No signs, no letters, no words, no logos. Hand-painted storybook illustration in the look of the reference paintings: fine brown ink lines, soft watercolour washes, warm light of a summer festival evening, paper texture.", "refs": ["fs_ref-takoyaki.png", "../cast/daichi_full_body.png", "fs_stall.png"], "size": [1472, 832], "seed": 1}},
+  "tray-leo": {"file": "fs_tray-leo.png", "sharp": "fs_tray-leo@2.png", "opaque": true, "px": 2.1, "origin": [736, 832], "paint": {"prompt": "Seen from a child's own eyes, looking down: the child's two small hands hold one boat of takoyaki, the same as in the first reference: a long tray of thin pale wood with low sides and its ends cut at an angle, and in it eight full round takoyaki balls in two rows, each as tall as it is wide and standing up out of the tray, golden brown, with dark brown sauce over their tops, a thin uneven drizzle of mayonnaise, green aonori and pale tan bonito flakes. Both hands are under the tray, palms up, holding it from below like a plate: the fingers spread under its bottom, the thumbs outside along its sides, and no thumb comes over the rim. No finger touches a takoyaki: they are very hot, so only the pick touches them. Blue denim jacket cuffs at the wrists, coming in from the bottom of the picture. Each hand has five fingers. Below, soft and out of focus: the stone paving of a festival lane in warm lantern light. No signs, no letters, no words, no logos. Hand-painted storybook illustration in the look of the reference paintings: fine brown ink lines, soft watercolour washes, warm light of a summer festival evening, paper texture.", "refs": ["fs_ref-takoyaki.png", "../cast/leo_full_body.png"], "size": [1472, 832], "seed": 2}},
+  "pick-1": {"file": "fs_pick-1.png", "sharp": "fs_pick-1@2.png", "opaque": true, "px": 2.1, "origin": [736, 832], "paint": {"prompt": "Seen from a child's own eyes, looking down: the child's left hand holds one boat of takoyaki, the same as in the first reference: a long tray of thin pale wood with low sides and its ends cut at an angle, and in it eight full round takoyaki balls in two rows, each as tall as it is wide and standing up out of the tray, golden brown, with dark brown sauce over their tops, a thin uneven drizzle of mayonnaise, green aonori and pale tan bonito flakes. The left hand is under the middle of the tray, its fingers under it and its thumb on the near rim. The right hand holds one thin bamboo pick like a pencil, pinched between the thumb and the index finger with the middle finger under it, and pushes its point into the side of the nearest ball. Blue denim jacket cuffs at the wrists, coming in from the bottom of the picture. Each hand has five fingers. Below, soft and out of focus: the stone paving of a festival lane in warm lantern light. No signs, no letters, no words, no logos. Hand-painted storybook illustration in the look of the reference paintings: fine brown ink lines, soft watercolour washes, warm light of a summer festival evening, paper texture.", "refs": ["fs_ref-takoyaki.png", "../cast/leo_full_body.png"], "size": [1472, 832], "seed": 1}},
+  "return": {"file": "fs_return.png", "sharp": "fs_return@2.png", "opaque": true, "px": 2.1, "origin": [736, 832], "paint": {"prompt": "At the side of a festival lane in the evening: a wooden table with two cardboard boxes side by side, each lined with a clear plastic bag, and a blank white card on the front of each box for a label. A neat stack of used white paper plates in the left box, crumpled paper cups and wrappers in the right box. Paper lanterns above, warm light. No letters, no words, no logos. Hand-painted storybook illustration in the look of the reference paintings: fine brown ink lines, soft watercolour washes, warm light of a summer festival evening, paper texture.", "refs": ["fs_lane.png", "fs_stall.png"], "size": [1472, 832], "seed": 1}},
+  "yakisoba": {"file": "fs_yakisoba.png", "sharp": "fs_yakisoba@2.png", "px": 24, "tol": 58, "paint": {"prompt": "A hand-painted storybook illustration, not a photograph: fine brown ink outlines and soft transparent watercolour washes, in the look of the reference paintings, with visible brush marks and paper texture. A clear plastic food pack of festival yakisoba: brown fried noodles with cabbage, a little red ginger and green aonori on top, the lid closed with a rubber band, a pair of wooden chopsticks under the band. Seen from a little above. One object alone in the middle of plain white paper, no shadow, no table, no letters.", "refs": ["board.png", "fs_stall.png"], "size": [768, 768], "seed": 2}},
+  "kakigori": {"file": "fs_kakigori.png", "sharp": "fs_kakigori@2.png", "px": 24, "tol": 58, "paint": {"prompt": "A hand-painted storybook illustration, not a photograph: fine brown ink outlines and soft transparent watercolour washes, in the look of the reference paintings, with visible brush marks and paper texture. A paper cup of Japanese shaved ice: a tall soft mound of white ice with bright red strawberry syrup that soaks in from the top, a plastic spoon straw stuck in it. One object alone in the middle of plain white paper, no shadow, no table, no letters.", "refs": ["board.png", "fs_stall.png"], "size": [768, 768], "seed": 2}},
+  "ringo-ame": {"file": "fs_ringo-ame.png", "sharp": "fs_ringo-ame@2.png", "px": 24, "tol": 58, "paint": {"prompt": "A hand-painted storybook illustration, not a photograph: fine brown ink outlines and soft transparent watercolour washes, in the look of the reference paintings, with visible brush marks and paper texture. One Japanese festival candy apple: a whole round apple as big as a fist, round like a ball and a little wider than it is tall, with a small dip at the top, coated in a glossy bright red candy shell with a white shine on it. A straight wooden stick goes up into the bottom of the apple and points down; the stick is about as long as the apple is tall. A clear plastic bag covers the apple and is tied with a twist tie on the stick just under the apple. One object alone in the middle of plain white paper, no shadow, no table, no letters.", "refs": ["board.png", "fs_stall.png"], "size": [768, 768], "seed": 3}},
+  "yukata": {"file": "fs_yukata.png", "sharp": "fs_yukata@2.png", "px": 24, "tol": 58, "paint": {"prompt": "A hand-painted storybook illustration, not a photograph: fine brown ink outlines and soft transparent watercolour washes, in the look of the reference paintings, with visible brush marks and paper texture. A full-length navy blue cotton yukata with thin white stripes and small white flowers, hung flat on a wooden kimono hanger, seen from the front. It is long, from the collar to the hem at the ankles, taller than it is wide. The left front panel lies over the right one, so the collar edge on top runs from the right of the neck in the picture down to the left. Wide square kimono sleeves hang down from the arms, each with a straight bottom edge and rounded lower corners. A narrow flat yellow obi band is wrapped round the waist, with its knot at the back, so no bow and no hanging ends show in front. One object alone in the middle of plain white paper, no shadow, no table, no letters.", "refs": ["board.png", "fs_stall.png"], "size": [768, 768], "seed": 3}},
+  "plate": {"file": "fs_plate.png", "sharp": "fs_plate@2.png", "px": 24, "tol": 58, "paint": {"prompt": "A hand-painted storybook illustration, not a photograph: fine brown ink outlines and soft transparent watercolour washes, in the look of the reference paintings, with visible brush marks and paper texture. One round white paper plate with a fluted rim, seen from a little above, with a few brown smears of sauce and a crumb or two left on it. One object alone in the middle of plain white paper, no shadow, no table, no letters.", "refs": ["board.png", "fs_stall.png"], "size": [768, 768], "seed": 2}},
+  "gomi": {"file": "fs_gomi.png", "sharp": "fs_gomi@2.png", "px": 24, "tol": 58, "paint": {"prompt": "A small green rubbish bin with a clear plastic bag inside, an empty drink can and crumpled paper in it. One object alone in the middle of plain white paper, in the look of the reference prop sheet: fine brown ink lines and soft watercolour. Plain white paper around it, no shadow, no table, no letters.", "refs": ["board.png"], "size": [768, 768], "seed": 1}}
  },
  "pieces": [
   {
@@ -957,6 +973,116 @@
     [1464, 480],
     [1464, 826]
    ]
-  }
+  },
+  {
+   "id": "banners",
+   "source": "banners",
+   "density": 4.2,
+   "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]],
+   "steps": [
+    {"inpaint": [[1427, 482], [1449, 482], [1449, 550], [1412, 550]]},
+    {"text": "たこ焼き", "at": [225, 388], "size": 76, "font": "maru.ttf", "rgb": [252, 246, 236], "rough": 0.8, "vertical": true},
+    {"text": "600円", "at": [225, 590], "size": 44, "font": "maru.ttf", "rgb": [252, 246, 236], "rough": 0.8},
+    {"text": "焼きそば", "at": [554, 430], "size": 70, "font": "maru.ttf", "rgb": [168, 44, 40], "rough": 0.8, "vertical": true},
+    {"text": "かき氷", "at": [920, 430], "size": 88, "font": "maru.ttf", "rgb": [168, 44, 40], "rough": 0.8, "vertical": true},
+    {"text": "りんご飴", "at": [1230, 410], "size": 74, "font": "maru.ttf", "rgb": [168, 44, 40], "rough": 0.8, "vertical": true}
+   ]
+  },
+  {"id": "lanterns", "source": "lanterns", "density": 4.2, "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]]},
+  {
+   "id": "return",
+   "source": "return",
+   "density": 4.2,
+   "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]],
+   "steps": [
+    {"inpaint": [[878, 462], [901, 460], [902, 491], [878, 493]]},
+    {"text": "お皿", "at": [477, 625], "size": 72, "font": "maru.ttf", "rgb": [44, 34, 34], "rough": 0.8},
+    {"text": "ごみ", "at": [1001, 627], "size": 76, "font": "maru.ttf", "rgb": [44, 34, 34], "rough": 0.8}
+   ]
+  },
+  {"id": "top-1", "source": "top-1", "density": 4.2, "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]]},
+  {"id": "top-2", "source": "top-2", "density": 4.2, "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]]},
+  {"id": "top-3", "source": "top-3", "density": 4.2, "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]]},
+  {"id": "top-4", "source": "top-4", "density": 4.2, "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]]},
+  {"id": "tray-daichi", "source": "tray-daichi", "density": 4.2, "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]]},
+  {
+   "id": "tray-leo",
+   "source": "tray-leo",
+   "density": 4.2,
+   "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]],
+   "steps": [
+    {"inpaint": [[296, 10], [338, 10], [338, 42], [296, 42]]}
+   ]
+  },
+  {"id": "pick-1", "source": "pick-1", "density": 4.2, "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]]},
+  {"id": "yakisoba", "source": "yakisoba", "density": 24, "soft": 0.8},
+  {"id": "kakigori", "source": "kakigori", "density": 24, "soft": 0.8},
+  {
+   "id": "ringo-ame",
+   "source": "ringo-ame",
+   "density": 24,
+   "soft": 0.8,
+   "steps": [
+    {"inpaint": [[376, 296], [391, 296], [391, 345], [376, 345]]}
+   ]
+  },
+  {"id": "yukata", "source": "yukata", "density": 24, "soft": 0.8},
+  {"id": "plate", "source": "plate", "density": 24, "soft": 0.8},
+  {"id": "gomi", "source": "gomi", "density": 24, "soft": 0.8},
+  {
+   "id": "still-price",
+   "source": "banners",
+   "density": 3.2,
+   "poly": [[70, 205], [380, 205], [380, 660], [70, 660]],
+   "steps": [
+    {"text": "たこ焼き", "at": [225, 388], "size": 76, "font": "maru.ttf", "rgb": [252, 246, 236], "rough": 0.8, "vertical": true},
+    {"text": "600円", "at": [225, 590], "size": 44, "font": "maru.ttf", "rgb": [252, 246, 236], "rough": 0.8}
+   ]
+  },
+  {
+   "id": "still-return",
+   "source": "return",
+   "density": 1.4,
+   "poly": [[150, 300], [1320, 300], [1320, 760], [150, 760]],
+   "steps": [
+    {"inpaint": [[878, 462], [901, 460], [902, 491], [878, 493]]},
+    {"text": "お皿", "at": [477, 625], "size": 72, "font": "maru.ttf", "rgb": [44, 34, 34], "rough": 0.8},
+    {"text": "ごみ", "at": [1001, 627], "size": 76, "font": "maru.ttf", "rgb": [44, 34, 34], "rough": 0.8}
+   ]
+  },
+  {"id": "still-lane", "source": "lane", "density": 1.1, "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]]},
+  {
+   "id": "still-stall",
+   "source": "stall",
+   "density": 2.6,
+   "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]],
+   "steps": [
+    {"paint": [[869, 425], [886, 425], [886, 456], [869, 456]], "rgb": [238, 222, 196], "soft": 1.5, "tooth": 5},
+    {"paint": [[907, 404], [937, 404], [937, 452], [907, 452]], "rgb": [240, 226, 202], "soft": 1.5, "tooth": 5},
+    {"paint": [[963, 420], [986, 420], [986, 452], [963, 452]], "rgb": [240, 226, 202], "soft": 1.5, "tooth": 5},
+    {"paint": [[1060, 404], [1072, 404], [1072, 418], [1060, 418]], "rgb": [236, 222, 198], "soft": 1, "tooth": 4},
+    {"paint": [[1086, 404], [1098, 404], [1098, 418], [1086, 418]], "rgb": [236, 222, 198], "soft": 1, "tooth": 4},
+    {"paint": [[1110, 404], [1122, 404], [1122, 418], [1110, 418]], "rgb": [236, 222, 198], "soft": 1, "tooth": 4},
+    {"ink": [[930.0, 428.0], [929.8, 430.0], [929.2, 431.9], [928.3, 433.6], [927.0, 435.0], [925.5, 436.1], [923.8, 436.8], [922.0, 437.0], [920.2, 436.8], [918.5, 436.1], [917.0, 435.0], [915.7, 433.6], [914.8, 431.9], [914.2, 430.0], [914.0, 428.0], [914.2, 426.0], [914.8, 424.1], [915.7, 422.4], [917.0, 421.0], [918.5, 419.9], [920.2, 419.2], [922.0, 419.0], [923.8, 419.2], [925.5, 419.9], [927.0, 421.0], [928.3, 422.4], [929.2, 424.1], [929.8, 426.0]], "width": 1.4, "rgb": [176, 60, 50]},
+    {"ink": [[980.0, 436.0], [979.8, 437.6], [979.4, 439.0], [978.7, 440.4], [977.7, 441.5], [976.6, 442.3], [975.3, 442.8], [974.0, 443.0], [972.7, 442.8], [971.4, 442.3], [970.3, 441.5], [969.3, 440.4], [968.6, 439.0], [968.2, 437.6], [968.0, 436.0], [968.2, 434.4], [968.6, 433.0], [969.3, 431.6], [970.3, 430.5], [971.4, 429.7], [972.7, 429.2], [974.0, 429.0], [975.3, 429.2], [976.6, 429.7], [977.7, 430.5], [978.7, 431.6], [979.4, 433.0], [979.8, 434.4]], "width": 1.2, "rgb": [200, 140, 50]},
+    {"text": "た", "at": [602, 173], "size": 70, "font": "maru.ttf", "rgb": [168, 44, 40], "rough": 0.8, "rotate": 0},
+    {"text": "こ", "at": [690, 174], "size": 70, "font": "maru.ttf", "rgb": [168, 44, 40], "rough": 0.8, "rotate": 0},
+    {"text": "焼", "at": [788, 174], "size": 70, "font": "maru.ttf", "rgb": [168, 44, 40], "rough": 0.8, "rotate": 0},
+    {"text": "き", "at": [878, 173], "size": 70, "font": "maru.ttf", "rgb": [168, 44, 40], "rough": 0.8, "rotate": 0}
+   ]
+  },
+  {"id": "still-tray", "source": "tray-daichi", "density": 1.1, "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]]},
+  {
+   "id": "still-eat",
+   "source": "tray-leo",
+   "density": 1.1,
+   "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]],
+   "steps": [
+    {"inpaint": [[296, 10], [338, 10], [338, 42], [296, 42]]}
+   ]
+  },
+  {"id": "still-pick", "source": "pick-1", "density": 1.1, "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]]},
+  {"id": "still-steam", "source": "tray-daichi", "density": 1.1, "poly": [[430, 330], [1090, 330], [1090, 610], [430, 610]]},
+  {"id": "still-sauce", "source": "top-4", "density": 1.1, "poly": [[8, 8], [1464, 8], [1464, 826], [8, 826]]}
  ]
 }

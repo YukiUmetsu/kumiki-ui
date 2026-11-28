@@ -87,6 +87,14 @@ A set is layers of paintings with a place in centimetres. A stage is a set with 
 
 An insert (a close-up of hands, a tray from above, a sign) is a painting that a recipe orders. A source of `recipes/<place>.json` can have `"paint": { "prompt", "refs": [paintings in the sets folder], "size": [w, h], "seed" }`. Then `local-assets/storybook/py/bin/python scripts/storybook-paint-set.py src/video/storybook/recipes/<place>.json` paints each source whose `file` is not there yet with the local painting model, and writes its `sharp` file at 2×. Beside each painting it writes `<file>.json` with the prompt, the refs, the seed, the size, the model and the SHA-256. `--dry` lists the orders and loads no model. `--only a,b` paints only these sources, `--again` paints them again, and `--seed N` gives another try. The size is a multiple of 16. The lock `.paint.lock` in the sets folder keeps one painting process at a time.
 
+The model reads each ref with its long side at 768 px at most: three refs at full size filled the memory. A ref can be the file of an order before it, so that the next state of a picture (batter, then turned balls, then round balls) is an edit of the last one and keeps its framing. The model does not keep a regular structure by itself: a griddle came out with rows of 5, 6, 8 and 5 hollows. Then draw the structure in code (equal hollows in straight rows), put it in the sets folder beside the script that draws it, and make it the first ref with "Repaint the first reference picture … keep every hollow where it is".
+
+A code-drawn ref also teaches its faults. A perfect zigzag of mayonnaise in the ref came back as a perfect zigzag, and dark dots for browning came back as blotches. Draw each mark as uneven as the real food is. A view from straight above makes round food look flat. For an angled view of the same food, use a crop of a painting that shows it at an angle as the ref, best the prop that the film already shows (`fs_ref-takoyaki.png` is the takoyaki boat cut from `board@2.png`).
+
+People do not touch hot food with their fingers. A hand holds the tray at its ends, a pick or chopsticks. "Thumbs on the near rim" put both thumbs on the takoyaki, so write "No finger touches a takoyaki: they are very hot, so only the pick touches them" in the prompt and look at each finger at 2×. An edit of a painting with one ref ("now the right hand holds a pick") gave back the same picture twice. Paint the next action fresh from the same refs instead.
+
+A lesson picture (`still-*`) is its own piece: a crop of a painting with a `poly`, a low `density` and the same lettering steps, because a prop names one piece and cannot crop.
+
 Look at each painting at 1× and 2× before `storybook-art.py` cuts it. A painting that shows the wrong count, the wrong side or letters that are not Japanese gets another seed.
 
 ## A figure
