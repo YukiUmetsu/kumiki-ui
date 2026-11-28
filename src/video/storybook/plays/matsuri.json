@@ -228,7 +228,7 @@
      "how-much",
      "eat-here"
     ],
-    "seconds": 18
+    "seconds": 20
    }
   },
   {
@@ -271,7 +271,7 @@
       },
       "about": "A lane of stalls at night, under the lanterns."
      },
-     "seconds": 9,
+     "seconds": 10,
      "after": 0
     }
    ]
@@ -438,7 +438,7 @@
      "react": {
       "daniel": "happy"
      },
-     "after": 1.5
+     "after": 1.8
     },
     {
      "shot": {
@@ -455,7 +455,7 @@
      "react": {
       "ema": "happy"
      },
-     "after": 1.5
+     "after": 1.8
     },
     {
      "shot": {
@@ -469,7 +469,7 @@
      "say": "nani-ga-ii",
      "to": "leo",
      "mood": "happy",
-     "after": 1.5
+     "after": 1.8
     },
     {
      "shot": {
@@ -490,7 +490,27 @@
      "react": {
       "sophie": "happy"
      },
-     "after": 1.5
+     "after": 1.8
+    },
+    {
+     "shot": {
+      "id": "tako-ok",
+      "on": [
+       "sophie",
+       "leo"
+      ],
+      "size": "waist"
+     },
+     "seconds": 2.4,
+     "after": 0,
+     "mood": "happy",
+     "do": [
+      {
+       "who": "sophie",
+       "act": "nod",
+       "at": 0.2
+      }
+     ]
     },
     {
      "shot": {
@@ -552,7 +572,7 @@
       "frame": "all",
       "about": "The family comes to a takoyaki stall."
      },
-     "seconds": 5,
+     "seconds": 6.5,
      "after": 0
     },
     {
@@ -569,7 +589,7 @@
      "say": "welcome",
      "to": "viewer",
      "mood": "happy",
-     "after": 1.5
+     "after": 1.8
     }
    ]
   },
@@ -589,7 +609,7 @@
       },
       "about": "The takoyaki are round and golden."
      },
-     "seconds": 5.5,
+     "seconds": 7,
      "after": 0
     }
    ]
@@ -619,7 +639,7 @@
      "say": "one-please",
      "to": "daichi",
      "mood": "happy",
-     "after": 1.5
+     "after": 1.8
     },
     {
      "shot": {
@@ -633,7 +653,7 @@
      },
      "say": "how-much",
      "to": "daichi",
-     "after": 1.5
+     "after": 1.8
     },
     {
      "shot": {
@@ -656,7 +676,27 @@
        "at": 0.1
       }
      ],
-     "after": 1.5
+     "after": 1.8
+    },
+    {
+     "shot": {
+      "id": "order-ok",
+      "on": [
+       "daniel",
+       "ema"
+      ],
+      "size": "waist",
+      "from": "door"
+     },
+     "seconds": 2.6,
+     "after": 0,
+     "do": [
+      {
+       "who": "daniel",
+       "act": "nod",
+       "at": 0.2
+      }
+     ]
     }
    ]
   },
@@ -676,7 +716,7 @@
       },
       "about": "Sauce, mayonnaise and bonito flakes on eight takoyaki in a boat."
      },
-     "seconds": 8,
+     "seconds": 9,
      "after": 0,
      "drifts": [
       "steam-boat"
@@ -729,7 +769,7 @@
       },
       "about": "Leo holds the tray."
      },
-     "seconds": 5,
+     "seconds": 7,
      "after": 0
     }
    ]
@@ -777,7 +817,7 @@
      },
      "say": "eat-here",
      "to": "daichi",
-     "after": 1.5
+     "after": 1.8
     },
     {
      "shot": {
@@ -800,7 +840,33 @@
        "at": 0.1
       }
      ],
-     "after": 1.5
+     "after": 1.8
+    },
+    {
+     "shot": {
+      "id": "here-thanks",
+      "on": [
+       "ema",
+       "daniel"
+      ],
+      "size": "waist",
+      "from": "door"
+     },
+     "seconds": 2.8,
+     "after": 0,
+     "mood": "happy",
+     "do": [
+      {
+       "who": "ema",
+       "act": "thank",
+       "at": 0.1
+      },
+      {
+       "who": "daniel",
+       "act": "thank",
+       "at": 0.25
+      }
+     ]
     }
    ]
   },
@@ -822,7 +888,7 @@
       "frame": "all",
       "about": "The family stands by the lane to eat."
      },
-     "seconds": 3,
+     "seconds": 4,
      "after": 0
     },
     {
@@ -855,7 +921,7 @@
        "at": 0.33999999999999997
       }
      ],
-     "after": 1.5
+     "after": 1.8
     }
    ]
   },
@@ -875,7 +941,7 @@
       },
       "about": "Leo puts a pick into a hot takoyaki. Steam goes up."
      },
-     "seconds": 8,
+     "seconds": 9,
      "after": 0,
      "drifts": [
       "steam-pick"
@@ -913,7 +979,7 @@
      "react": {
       "sophie": "happy"
      },
-     "after": 1.5
+     "after": 1.8
     },
     {
      "shot": {
@@ -930,7 +996,23 @@
      "react": {
       "ema": "happy"
      },
-     "after": 1.5
+     "after": 1.8
+    },
+    {
+     "shot": {
+      "id": "taste-all",
+      "frame": "all"
+     },
+     "seconds": 3,
+     "after": 0,
+     "mood": "happy",
+     "do": [
+      {
+       "who": "daniel",
+       "act": "nod",
+       "at": 0.3
+      }
+     ]
     }
    ]
   },
@@ -958,7 +1040,7 @@
      },
      "say": "plate-where",
      "to": "daichi",
-     "after": 1.5
+     "after": 1.8
     },
     {
      "shot": {
@@ -980,7 +1062,37 @@
        -120
       ]
      },
-     "after": 1.5
+     "after": 1.8
+    },
+    {
+     "shot": {
+      "id": "plate-ok",
+      "on": [
+       "daniel",
+       "ema"
+      ],
+      "size": "waist",
+      "from": "door"
+     },
+     "seconds": 2.6,
+     "after": 0,
+     "do": [
+      {
+       "who": "daniel",
+       "act": "nod",
+       "at": 0.2
+      }
+     ],
+     "look": {
+      "daniel": [
+       140,
+       -120
+      ],
+      "ema": [
+       140,
+       -120
+      ]
+     }
     }
    ]
   },
@@ -1000,7 +1112,7 @@
       },
       "about": "A table where people return plates and rubbish."
      },
-     "seconds": 6.5,
+     "seconds": 8,
      "after": 0
     }
    ]
@@ -1065,7 +1177,7 @@
        "size": 0.95
       }
      ],
-     "after": 1.5
+     "after": 1.8
     },
     {
      "say": "pretty",
@@ -1092,7 +1204,7 @@
      "seconds": 6
     },
     {
-     "seconds": 5,
+     "seconds": 6.5,
      "after": 0,
      "bursts": [
       {
@@ -1150,6 +1262,7 @@
     ],
     "reveal": 1.5,
     "times": 2,
+    "slack": 1.6,
     "pictures": {
      "one-please": "still-tray",
      "how-much": "still-price",

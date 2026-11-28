@@ -35,7 +35,7 @@ const wavOf = (x, rate) => { const b = Buffer.alloc(44 + x.length * 2); b.write(
 const rms = (x, a, b) => { let s = 0; const i0 = Math.max(0, Math.floor(a)), i1 = Math.min(x.length, Math.ceil(b)); for (let i = i0; i < i1; i++) s += x[i] * x[i]; return Math.sqrt(s / Math.max(1, i1 - i0)); };
 
 async function speak(line, voice, file, text) {
-  if (existsSync(file)) return;
+  if (existsSync(file) && !opt.again) return;
   const key = process.env.FISH_AUDIO_API;
   if (!key || !voice?.fish) throw new Error(`There is no recording ${file}, and no voice to speak "${line.id}" with.`);
   const r = await fetch("https://api.fish.audio/v1/tts", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", model: process.env.FISH_MODEL ?? "s2.1-pro-free" }, body: JSON.stringify({ text, reference_id: voice.fish, format: "mp3", mp3_bitrate: 192, prosody: { speed: line.speed ?? voice.speed ?? 1 }, temperature: line.temperature ?? 0.7 }) });
@@ -123,7 +123,13 @@ for (const line of work) {
   const voice = voices[line.speaker] ?? {}, file = join(raw, `${line.id}.wav`), texts = [line.speak ?? rubyPlain(parseRuby(line.ja))].flat();
   if (opt.again || !existsSync(file)) {
     const n = Math.max(1, +opt.takes), all = [];
-    for (const [i, text] of texts.entries()) for (let k = 0; k < n; k++) { const take = join(raw, `${line.id}.take-${i}${k}.wav`); await speak(line, voice, take, text); all.push({ id: `${i}${k}`, file: take, ...(all.length || n * texts.length > 1 ? await ready(line, voice, take) : {}) }); }
+    for (const [i, text] of texts.entries()) for (let k = 0; k < n; k++) {
+      const take = join(raw, `${line.id}.take-${i}${k}.wav`); await speak(line, voice, take, text);
+      // a take that the aligner loses is left out while another take can stand
+      const got = n * texts.length > 1 ? await ready(line, voice, take).catch(e => { console.log(`  take ${i}${k}    ${e.message}`); return null; }) : {};
+      if (got) all.push({ id: `${i}${k}`, file: take, ...got });
+    }
+    if (!all.length) throw new Error(`No take of "${line.id}" could be aligned. Look at the output of Julius.`);
     const ears = all.length > 1 ? heard(all) : new Map(), cost = q => { const e = ears.get(q.id); return (e ? 4 * faults(e).length + 2 * (1 - (e.accent ?? 0.5)) : 0) - 0.1 * (q.score ?? -30) + 4 * Math.max(0, 1 - q.tempo); }, best = all.length > 1 ? all.reduce((p, q) => (cost(q) < cost(p) ? q : p)) : all[0];
     for (const q of all) if (all.length > 1) console.log(`  take ${q.id}${q === best ? " *" : "  "} ${cost(q).toFixed(2)}  ${faults(ears.get(q.id)).join(" ") || "as written"}  accent ${ears.get(q.id)?.accent ?? "?"}`);
     writeFileSync(file, readFileSync(best.file));
